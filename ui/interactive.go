@@ -418,8 +418,47 @@ func saveToFile(response *types.ScriptResponse) {
 
 // editScript allows the user to edit the script
 func editScript(response *types.ScriptResponse) {
-	fmt.Printf("%s✏️  Script editing feature coming soon!%s\n", ColorPurple, ColorReset)
-	fmt.Printf("%s💡 For now, you can copy the script and edit it in your favorite editor.%s\n", ColorDim, ColorReset)
+	fmt.Printf("%s✏️  Edit Script%s\n", ColorBold+ColorPurple, ColorReset)
+	fmt.Printf("%s═══════════════════════════════════════%s\n\n", ColorPurple, ColorReset)
+	
+	// Offer editing options
+	fmt.Printf("%sChoose editing method:%s\n\n", ColorBold+ColorYellow, ColorReset)
+	fmt.Printf("  %s1.%s %sOpen in external editor (recommended)%s\n", ColorGreen, ColorReset, ColorCyan, ColorReset)
+	fmt.Printf("  %s2.%s %sInline editing (line-by-line)%s\n", ColorGreen, ColorReset, ColorBlue, ColorReset)
+	fmt.Printf("  %s3.%s %sCancel editing%s\n\n", ColorGreen, ColorReset, ColorDim, ColorReset)
+	
+	fmt.Printf("%sPress 1-3: %s", ColorBold+ColorYellow, ColorReset)
+	choice := getSingleKeyInput()
+	fmt.Printf("%c\n", choice)
+	
+	switch string(choice) {
+	case "1":
+		// External editor
+		if editedResponse, err := script.EditScript(response); err != nil {
+			fmt.Printf("%s❌ Editor failed: %v%s\n", ColorRed, err, ColorReset)
+			fmt.Printf("%s💡 Tip: Set EDITOR environment variable or install VS Code%s\n", ColorDim, ColorReset)
+		} else if editedResponse != response {
+			// Script was modified, update the response and continue with new script
+			*response = *editedResponse
+			fmt.Printf("%s🎯 Updated script is now active in the menu%s\n", ColorGreen, ColorReset)
+		}
+		
+	case "2":
+		// Inline editing
+		if editedResponse, err := script.OfferInlineEditing(response); err != nil {
+			fmt.Printf("%s❌ Inline editing failed: %v%s\n", ColorRed, err, ColorReset)
+		} else if editedResponse != response {
+			// Script was modified, update the response
+			*response = *editedResponse
+			fmt.Printf("%s🎯 Updated script is now active in the menu%s\n", ColorGreen, ColorReset)
+		}
+		
+	case "3":
+		fmt.Printf("%s🚫 Editing cancelled%s\n", ColorYellow, ColorReset)
+		
+	default:
+		fmt.Printf("%s❌ Invalid choice%s\n", ColorRed, ColorReset)
+	}
 }
 
 // showDetailedExplanation shows a detailed breakdown of the script
