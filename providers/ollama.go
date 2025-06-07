@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"oohlama/types"
+	"please/types"
 )
 
 // OllamaProvider implements the Provider interface for Ollama

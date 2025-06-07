@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"oohlama/providers"
-	"oohlama/types"
+	"please/providers"
+	"please/types"
 )
 
 // SelectBestModel automatically chooses the most appropriate model for the given task

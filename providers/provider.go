@@ -1,7 +1,7 @@
 package providers
 
 import (
-	"oohlama/types"
+	"please/types"
 )
 
 // Provider defines the interface for AI providers

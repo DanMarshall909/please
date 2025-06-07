@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strings"
 
-	"oohlama/types"
+	"please/types"
 )
 
 // CopyToClipboard copies the script content to the system clipboard
@@ -78,7 +78,7 @@ func ExecuteScript(response *types.ScriptResponse) error {
 	var cmd *exec.Cmd
 
 	if response.ScriptType == "powershell" {
-		tempFile = filepath.Join(tempDir, "oohlama_temp.ps1")
+		tempFile = filepath.Join(tempDir, "please_temp.ps1")
 		
 		// Save script to temp file
 		if err := SaveToFile(response.Script, tempFile); err != nil {
@@ -89,7 +89,7 @@ func ExecuteScript(response *types.ScriptResponse) error {
 		// Execute with PowerShell
 		cmd = exec.Command("powershell", "-ExecutionPolicy", "Bypass", "-File", tempFile)
 	} else {
-		tempFile = filepath.Join(tempDir, "oohlama_temp.sh")
+		tempFile = filepath.Join(tempDir, "please_temp.sh")
 		
 		// Save script to temp file
 		if err := SaveToFile(response.Script, tempFile); err != nil {
@@ -152,7 +152,7 @@ func GetSuggestedFilename(response *types.ScriptResponse) string {
 	}
 	
 	if len(filteredWords) == 0 {
-		baseName = "oohlama_script"
+		baseName = "please_script"
 	} else {
 		baseName = strings.Join(filteredWords, "_")
 	}

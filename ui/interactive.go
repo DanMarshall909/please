@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"oohlama/script"
-	"oohlama/types"
+	"please/script"
+	"please/types"
 )
 
 // ShowScriptMenu displays an interactive menu after script generation
@@ -55,7 +55,7 @@ func handleUserChoice(choice string, response *types.ScriptResponse) {
 	case "5":
 		showDetailedExplanation(response)
 	case "6":
-		fmt.Printf("%s👋 Thanks for using OohLama! Happy scripting!%s\n", ColorGreen, ColorReset)
+		fmt.Printf("%s✨ Ta-da! Thanks for using Please! Happy scripting! 🎉%s\n", ColorGreen, ColorReset)
 		return
 	default:
 		fmt.Printf("%s❌ Invalid choice. Please try again.%s\n\n", ColorRed, ColorReset)
@@ -70,7 +70,7 @@ func handleUserChoice(choice string, response *types.ScriptResponse) {
 		if strings.ToLower(strings.TrimSpace(input)) == "y" {
 			ShowScriptMenu(response)
 		} else {
-			fmt.Printf("%s👋 Thanks for using OohLama! Happy scripting!%s\n", ColorGreen, ColorReset)
+			fmt.Printf("%s✨ Ta-da! Thanks for using Please! Happy scripting! 🎉%s\n", ColorGreen, ColorReset)
 		}
 	}
 }

@@ -6,17 +6,17 @@ import (
 	"path/filepath"
 	"strings"
 
-	"oohlama/config"
-	"oohlama/models"
-	"oohlama/providers"
-	"oohlama/types"
-	"oohlama/ui"
+	"please/config"
+	"please/models"
+	"please/providers"
+	"please/types"
+	"please/ui"
 )
 
 func main() {
-	// Check if we're being run as "ol" or with special flags
+	// Check if we're being run as "pls" or "ol" (legacy) with special flags
 	programName := filepath.Base(os.Args[0])
-	if programName == "ol" || programName == "ol.exe" {
+	if programName == "pls" || programName == "pls.exe" || programName == "ol" || programName == "ol.exe" {
 		// Running as the short alias
 	}
 
@@ -119,7 +119,7 @@ func getFallbackModel(provider string) string {
 // displayScriptAndConfirm shows the generated script with explanation and interactive menu
 func displayScriptAndConfirm(response *types.ScriptResponse) {
 	fmt.Printf("╔══════════════════════════════════════════════════════════════════════════════╗\n")
-	fmt.Printf("║                           🤖 OohLama Script Generator                        ║\n")
+	fmt.Printf("║                           🤖 Please Script Generator                         ║\n")
 	fmt.Printf("╚══════════════════════════════════════════════════════════════════════════════╝\n\n")
 
 	fmt.Printf("📝 Task: %s\n", response.TaskDescription)
@@ -143,10 +143,10 @@ func displayScriptAndConfirm(response *types.ScriptResponse) {
 	ui.ShowScriptMenu(response)
 }
 
-// installAlias creates the "ol" shortcut for the current platform
+// installAlias creates the "pls" shortcut for the current platform
 func installAlias() {
 	ui.PrintRainbowBanner()
-	fmt.Printf("\n%s🔧 Installing 'ol' alias...%s\n\n", ui.ColorBold+ui.ColorYellow, ui.ColorReset)
+	fmt.Printf("\n%s🔧 Installing 'pls' alias (with 'ol' for backwards compatibility)...%s\n\n", ui.ColorBold+ui.ColorYellow, ui.ColorReset)
 	
 	// Get current executable path
 	execPath, err := os.Executable()
@@ -155,29 +155,35 @@ func installAlias() {
 		return
 	}
 
-	// Create ol.bat in the same directory as the executable
 	dir := filepath.Dir(execPath)
-	batPath := filepath.Join(dir, "ol.bat")
-
 	batContent := fmt.Sprintf(`@echo off
 "%s" %%*
 `, execPath)
 
-	if err := os.WriteFile(batPath, []byte(batContent), 0755); err != nil {
-		fmt.Printf("%s❌ Failed to create ol.bat: %v%s\n", ui.ColorRed, err, ui.ColorReset)
+	// Create pls.bat as the primary alias
+	plsBatPath := filepath.Join(dir, "pls.bat")
+	if err := os.WriteFile(plsBatPath, []byte(batContent), 0755); err != nil {
+		fmt.Printf("%s❌ Failed to create pls.bat: %v%s\n", ui.ColorRed, err, ui.ColorReset)
 		return
 	}
 
-	fmt.Printf("%s✅ Successfully created ol.bat!%s\n\n", ui.ColorGreen, ui.ColorReset)
+	// Create ol.bat for backwards compatibility
+	olBatPath := filepath.Join(dir, "ol.bat")
+	if err := os.WriteFile(olBatPath, []byte(batContent), 0755); err != nil {
+		fmt.Printf("%s⚠️ Warning: Failed to create ol.bat for backwards compatibility: %v%s\n", ui.ColorYellow, err, ui.ColorReset)
+	}
+
+	fmt.Printf("%s✅ Successfully created pls.bat!%s\n", ui.ColorGreen, ui.ColorReset)
+	fmt.Printf("%s✅ Created ol.bat for backwards compatibility%s\n\n", ui.ColorGreen, ui.ColorReset)
 	ui.PrintInstallationSuccess()
 }
 
-// uninstallAlias removes the "ol" shortcut
+// uninstallAlias removes both "pls" and "ol" shortcuts
 func uninstallAlias() {
 	ui.PrintRainbowBanner()
-	fmt.Printf("\n%s🗑️  Removing 'ol' alias...%s\n\n", ui.ColorBold+ui.ColorYellow, ui.ColorReset)
+	fmt.Printf("\n%s🗑️  Removing aliases...%s\n\n", ui.ColorBold+ui.ColorYellow, ui.ColorReset)
 
-	// Look for ol.bat in the same directory as the executable
+	// Look for aliases in the same directory as the executable
 	execPath, err := os.Executable()
 	if err != nil {
 		fmt.Printf("%s❌ Failed to get executable path: %v%s\n", ui.ColorRed, err, ui.ColorReset)
@@ -185,16 +191,28 @@ func uninstallAlias() {
 	}
 
 	dir := filepath.Dir(execPath)
-	batPath := filepath.Join(dir, "ol.bat")
-
-	if err := os.Remove(batPath); err != nil {
+	
+	// Remove pls.bat
+	plsBatPath := filepath.Join(dir, "pls.bat")
+	if err := os.Remove(plsBatPath); err != nil {
 		if os.IsNotExist(err) {
-			fmt.Printf("%s💭 ol.bat not found - nothing to remove%s\n", ui.ColorYellow, ui.ColorReset)
+			fmt.Printf("%s💭 pls.bat not found%s\n", ui.ColorYellow, ui.ColorReset)
+		} else {
+			fmt.Printf("%s❌ Failed to remove pls.bat: %v%s\n", ui.ColorRed, err, ui.ColorReset)
+		}
+	} else {
+		fmt.Printf("%s✅ Successfully removed pls.bat%s\n", ui.ColorGreen, ui.ColorReset)
+	}
+
+	// Remove ol.bat
+	olBatPath := filepath.Join(dir, "ol.bat")
+	if err := os.Remove(olBatPath); err != nil {
+		if os.IsNotExist(err) {
+			fmt.Printf("%s💭 ol.bat not found%s\n", ui.ColorYellow, ui.ColorReset)
 		} else {
 			fmt.Printf("%s❌ Failed to remove ol.bat: %v%s\n", ui.ColorRed, err, ui.ColorReset)
 		}
-		return
+	} else {
+		fmt.Printf("%s✅ Successfully removed ol.bat%s\n", ui.ColorGreen, ui.ColorReset)
 	}
-
-	fmt.Printf("%s✅ Successfully removed ol.bat%s\n", ui.ColorGreen, ui.ColorReset)
 }

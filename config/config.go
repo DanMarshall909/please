@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"oohlama/types"
+	"please/types"
 )
 
 // Load loads the configuration from the appropriate platform-specific location
@@ -84,19 +84,19 @@ func getConfigPath() (string, error) {
 		if appData == "" {
 			return "", fmt.Errorf("APPDATA environment variable not set")
 		}
-		configDir = filepath.Join(appData, "oohlama")
+		configDir = filepath.Join(appData, "please")
 	case "darwin":
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
 			return "", fmt.Errorf("could not get user home directory: %v", err)
 		}
-		configDir = filepath.Join(homeDir, "Library", "Application Support", "oohlama")
+		configDir = filepath.Join(homeDir, "Library", "Application Support", "please")
 	default: // Linux and others
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
 			return "", fmt.Errorf("could not get user home directory: %v", err)
 		}
-		configDir = filepath.Join(homeDir, ".config", "oohlama")
+		configDir = filepath.Join(homeDir, ".config", "please")
 	}
 
 	// Create directory if it doesn't exist
@@ -127,9 +127,12 @@ func DetermineScriptType(config *types.Config) string {
 
 // DetermineProvider determines which AI provider to use based on config and environment
 func DetermineProvider(config *types.Config) string {
-	// Check environment variable first
-	if provider := os.Getenv("OOHLAMA_PROVIDER"); provider != "" {
+	// Check environment variable first (new and legacy names)
+	if provider := os.Getenv("PLEASE_PROVIDER"); provider != "" {
 		return provider
+	}
+	if provider := os.Getenv("OOHLAMA_PROVIDER"); provider != "" {
+		return provider // Legacy compatibility
 	}
 
 	// Use config setting

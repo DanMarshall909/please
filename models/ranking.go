@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"oohlama/types"
+	"please/types"
 )
 
 // RankModels selects the best model based on task type and model capabilities
