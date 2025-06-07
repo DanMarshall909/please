@@ -93,7 +93,10 @@ func generateScript(cfg *types.Config, request *types.ScriptRequest) (*types.Scr
 	switch request.Provider {
 	case "ollama":
 		provider = providers.NewOllamaProvider(cfg)
-	// TODO: Add other providers (OpenAI, Anthropic, Custom)
+	case "openai":
+		provider = providers.NewOpenAIProvider(cfg)
+	case "anthropic":
+		provider = providers.NewAnthropicProvider(cfg)
 	default:
 		return nil, fmt.Errorf("unsupported provider: %s", request.Provider)
 	}

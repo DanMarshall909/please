@@ -71,7 +71,7 @@ please "show system information"
    pls create a backup script for my documents
    ```
 
-### Option 2: Using OpenAI 🚧 Planned
+### Option 2: Using OpenAI ✅
 
 1. **Set your API key**:
    ```bash
@@ -89,9 +89,7 @@ please "show system information"
    pls create a backup script for important files
    ```
 
-*Note: OpenAI provider is planned but not yet implemented.*
-
-### Option 3: Using Anthropic 🚧 Planned
+### Option 3: Using Anthropic ✅
 
 1. **Set your API key**:
    ```bash
@@ -104,7 +102,10 @@ please "show system information"
    export PLEASE_PROVIDER=anthropic
    ```
 
-*Note: Anthropic provider is planned but not yet implemented.*
+2. **Generate a script**:
+   ```bash
+   pls create a backup script for important files
+   ```
 
 ## 🖥️ Platform Support ✅
 
@@ -209,19 +210,19 @@ For backward compatibility, the old `OOHLAMA_*` environment variables still work
 - **Cost**: Free (local compute)
 - **Features**: Smart model selection, automatic ranking, task categorization
 
-### OpenAI 🚧 Planned
-- **Models**: GPT-3.5-turbo, GPT-4, GPT-4-turbo
+### OpenAI ✅ Fully Implemented
+- **Models**: GPT-3.5-turbo, GPT-4, GPT-4-turbo, GPT-4-turbo-preview
 - **Best for**: High-quality output, latest capabilities
 - **Setup**: Get API key from OpenAI platform
 - **Cost**: Pay-per-use
-- **Status**: Data structures exist, implementation pending
+- **Features**: Automatic model selection, task-specific optimization
 
-### Anthropic Claude 🚧 Planned
-- **Models**: Claude-3-haiku, Claude-3-sonnet, Claude-3-opus
+### Anthropic Claude ✅ Fully Implemented
+- **Models**: Claude-3-5-sonnet, Claude-3-5-haiku, Claude-3-opus, Claude-3-sonnet, Claude-3-haiku
 - **Best for**: Balanced performance and safety
 - **Setup**: Get API key from Anthropic console
 - **Cost**: Pay-per-use
-- **Status**: Data structures exist, implementation pending
+- **Features**: Advanced reasoning, safety-focused responses
 
 ### Custom Providers 🚧 Planned
 - **Setup**: Configure in config file

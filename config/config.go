@@ -39,6 +39,9 @@ func Load() (*types.Config, error) {
 		config.CustomProviders = make(map[string]types.ProviderConfig)
 	}
 
+	// Override with environment variables if present
+	overrideWithEnvironment(&config)
+
 	return &config, nil
 }
 
@@ -142,4 +145,28 @@ func DetermineProvider(config *types.Config) string {
 
 	// Default to ollama
 	return "ollama"
+}
+
+// overrideWithEnvironment overrides configuration values with environment variables if present
+func overrideWithEnvironment(config *types.Config) {
+	// Override API keys from environment variables
+	if apiKey := os.Getenv("OPENAI_API_KEY"); apiKey != "" {
+		config.OpenAIAPIKey = apiKey
+	}
+	
+	if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
+		config.AnthropicAPIKey = apiKey
+	}
+	
+	// Override Ollama URL if set
+	if ollamaURL := os.Getenv("OLLAMA_URL"); ollamaURL != "" {
+		config.OllamaURL = ollamaURL
+	}
+	
+	// Override script type if set
+	if scriptType := os.Getenv("PLEASE_SCRIPT_TYPE"); scriptType != "" {
+		config.ScriptType = scriptType
+	} else if scriptType := os.Getenv("OOHLAMA_SCRIPT_TYPE"); scriptType != "" {
+		config.ScriptType = scriptType // Legacy compatibility
+	}
 }
