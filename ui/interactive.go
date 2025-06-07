@@ -102,6 +102,11 @@ func getSingleKeyUnix() rune {
 
 // handleUserChoice processes the user's menu selection and returns true if should exit
 func handleUserChoice(choice string, response *types.ScriptResponse) bool {
+	// Handle special characters that should be ignored
+	if len(choice) == 0 || choice == "\r" || choice == "\n" || choice == " " {
+		return false // Ignore empty, Enter, or space - continue showing menu
+	}
+	
 	switch choice {
 	case "1":
 		copyToClipboard(response)
