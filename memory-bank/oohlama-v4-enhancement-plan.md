@@ -53,30 +53,50 @@ Building on the successful modular refactoring of v3.0, OohLama v4.0 focuses on 
 - Implement acknowledgment workflow for dangerous operations
 - Enhanced visual presentation with colors and clear formatting
 
-### 3. ✏️ Immediate Script Editing
-**Objective:** Enable users to edit scripts before execution with multiple editing options
+### 3. ✏️ Script Editing & Browser Viewing
+**Objective:** Enable users to edit scripts and view them with syntax highlighting
 
 **Features:**
 - **Pre-execution Editing**: Offer editing before script execution
 - **Multiple Editor Options**: System default, simple terminal editor, line-by-line editing
 - **Cross-platform Support**: notepad (Windows), nano/vim (Linux/macOS)
+- **Browser-based Viewing**: Generate HTML with syntax highlighting and open in default browser
 - **Validation After Edit**: Re-run safety checks on modified scripts
 - **Edit History**: Track changes made to scripts
 
+**Browser Viewing Features:**
+- **Syntax Highlighting**: PowerShell and Bash syntax highlighting using highlight.js or Prism.js
+- **Clean HTML Generation**: Professional layout with script metadata
+- **Copy to Clipboard**: JavaScript-based clipboard functionality in browser
+- **Print Support**: CSS optimized for printing
+- **Responsive Design**: Works on desktop and mobile browsers
+- **Dark/Light Themes**: Automatic theme detection or user preference
+
 **Implementation Plan:**
-- Create `script/editor.go` package
+- Create `script/editor.go` package for editing functionality
+- Create `script/browser.go` package for HTML generation and browser integration
 - Implement platform-specific editor detection and launching
-- Add simple terminal-based editing option
-- Integrate editing workflow into execution process
+- Add HTML template system with embedded CSS/JavaScript
+- Integrate browser viewing into interactive menu
 - Add post-edit validation
 
-**User Workflow:**
+**User Workflows:**
+
+**Editing Workflow:**
 1. Generate script
 2. Choose "Execute script now"
 3. System offers: "Would you like to edit the script first? (y/n)"
 4. If yes, opens editor of choice
 5. After editing, re-validates and shows changes
 6. Confirms execution of modified script
+
+**Browser Viewing Workflow:**
+1. Generate script
+2. Choose "🌐 View in browser"
+3. System generates HTML file with syntax highlighting
+4. Opens in default browser automatically
+5. User can copy, print, or save from browser
+6. Returns to interactive menu for further actions
 
 ### 4. 📚 Script Execution History
 **Objective:** Maintain comprehensive history of all executed scripts with full traceability
@@ -145,10 +165,19 @@ Building on the successful modular refactoring of v3.0, OohLama v4.0 focuses on 
 3. ✏️  Edit script
 4. ▶️  Execute script now
 5. 💾 Save to file
-6. 📜 View execution history
-7. 📖 Show detailed explanation
-8. 🚪 Exit
+6. 🌐 View in browser (with syntax highlighting)
+7. 📜 View execution history
+8. 📖 Show detailed explanation
+9. 🚪 Exit
 ```
+
+**New Browser Viewing Option Details:**
+- **🌐 View in browser**: Generates a professional HTML page with syntax highlighting
+  - **Syntax Highlighting**: Uses highlight.js or Prism.js for PowerShell/Bash syntax
+  - **Professional Layout**: Clean, responsive design with script metadata
+  - **Interactive Features**: Browser-based copy to clipboard, print support
+  - **Theme Support**: Dark/light themes with automatic detection
+  - **Cross-platform**: Opens in default browser on Windows, macOS, Linux
 
 ## 🏗️ Architecture Enhancements
 

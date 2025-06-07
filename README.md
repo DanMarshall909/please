@@ -21,6 +21,7 @@
 - **🔄 Feedback & Refinement**: Iteratively improve scripts through AI-powered refinement
 - **⚠️ Enhanced Safety Warnings**: Comprehensive warning system with severity levels (🟢 Info, 🟡 Caution, 🔴 Danger, ⛔ Critical)
 - **✏️ Immediate Script Editing**: Edit scripts before execution with multiple editor options
+- **🌐 Browser Viewing**: View scripts with syntax highlighting in your default browser
 - **📚 Execution History**: Complete history tracking of all executed scripts with metadata
 - **🛡️ Advanced Validation**: Dangerous command detection with detailed explanations
 
