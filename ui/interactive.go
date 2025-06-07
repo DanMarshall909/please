@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -45,27 +46,58 @@ func getSingleKeyInput() rune {
 	return getSingleKeyUnix()
 }
 
-// getSingleKeyWindows captures single key on Windows
+// getSingleKeyWindows captures single key on Windows using getch-like functionality
 func getSingleKeyWindows() rune {
-	// For Windows, we'll use a simple approach for now
-	// In a production environment, you'd want to use Windows API calls
-	reader := bufio.NewReader(os.Stdin)
-	input, _ := reader.ReadString('\n')
-	if len(input) > 0 {
-		return rune(input[0])
+	// Use PowerShell's Read-Host with single character mode
+	cmd := exec.Command("powershell", "-Command", "$Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown').Character")
+	output, err := cmd.Output()
+	if err != nil {
+		// Fallback to regular input
+		reader := bufio.NewReader(os.Stdin)
+		input, _ := reader.ReadString('\n')
+		if len(input) > 0 {
+			return rune(input[0])
+		}
+		return '7'
 	}
-	return '7' // Default to exit
+	
+	if len(output) > 0 {
+		return rune(output[0])
+	}
+	return '7'
 }
 
-// getSingleKeyUnix captures single key on Unix systems
+// getSingleKeyUnix captures single key on Unix systems using stty
 func getSingleKeyUnix() rune {
-	// Simplified for now - in production, you'd use termios to set raw mode
-	reader := bufio.NewReader(os.Stdin)
-	input, _ := reader.ReadString('\n')
-	if len(input) > 0 {
-		return rune(input[0])
+	// Save current terminal settings
+	cmd := exec.Command("stty", "-g")
+	originalSettings, err := cmd.Output()
+	if err != nil {
+		// Fallback to regular input
+		reader := bufio.NewReader(os.Stdin)
+		input, _ := reader.ReadString('\n')
+		if len(input) > 0 {
+			return rune(input[0])
+		}
+		return '7'
 	}
-	return '7' // Default to exit
+	
+	// Set terminal to raw mode (single character, no echo)
+	exec.Command("stty", "cbreak", "-echo").Run()
+	
+	// Restore terminal settings when done
+	defer func() {
+		exec.Command("stty", string(originalSettings)).Run()
+	}()
+	
+	// Read single character
+	reader := bufio.NewReader(os.Stdin)
+	char, _, err := reader.ReadRune()
+	if err != nil {
+		return '7'
+	}
+	
+	return char
 }
 
 // handleUserChoice processes the user's menu selection and returns true if should exit
