@@ -4,13 +4,25 @@
 
 ## ✨ Features
 
+### Core Functionality
 - **🌍 Cross-Platform**: Automatically generates PowerShell scripts on Windows, Bash scripts on Linux/macOS
 - **🧠 Multiple AI Providers**: Support for Ollama, OpenAI, Anthropic, and custom providers
 - **📋 Smart Model Selection**: Automatically chooses the best AI model for your task
-- **🔄 Multiple Output Options**: Copy to clipboard, execute immediately, or save to file
-- **🔍 Script Analysis**: Provides detailed explanations of what each script does
 - **⚙️ Highly Configurable**: Supports provider preferences, API keys, and task-specific overrides
-- **🛡️ Safety First**: Always shows the script before execution with clear warnings
+
+### Interactive Experience
+- **🎯 Interactive Menu System**: Choose from multiple actions after script generation
+- **📋 Copy to Clipboard**: Cross-platform clipboard integration
+- **▶️ Safe Execution**: Execute scripts with safety validation and warnings
+- **💾 Smart File Saving**: Intelligent filename suggestions based on task description
+- **📖 Detailed Analysis**: Comprehensive script explanations and usage tips
+
+### Advanced Features (v4.0)
+- **🔄 Feedback & Refinement**: Iteratively improve scripts through AI-powered refinement
+- **⚠️ Enhanced Safety Warnings**: Comprehensive warning system with severity levels (🟢 Info, 🟡 Caution, 🔴 Danger, ⛔ Critical)
+- **✏️ Immediate Script Editing**: Edit scripts before execution with multiple editor options
+- **📚 Execution History**: Complete history tracking of all executed scripts with metadata
+- **🛡️ Advanced Validation**: Dangerous command detection with detailed explanations
 
 ## 🚀 Quick Start
 
@@ -192,7 +204,6 @@ OohLama intelligently selects models based on:
 📝 Task: create a simple script to show current time
 🧠 Model: deepseek-coder:6.7b (ollama)  
 🖥️  Platform: windows (powershell script)
-📅 Generated: 2025-06-07 16:48:57
 
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                              📋 Generated Script                             ║
@@ -205,7 +216,37 @@ OohLama intelligently selects models based on:
   5│ } catch {
   6│     Write-Error "Failed to get the current time. Error: $_"
   7│ }
+
+✅ Script generated successfully!
+
+🎯 What would you like to do with this script?
+
+  1. 📋 Copy to clipboard
+  2. ▶️  Execute script now
+  3. 💾 Save to file
+  4. ✏️  Edit script
+  5. 📖 Show detailed explanation
+  6. 🚪 Exit
+
+Enter your choice (1-6):
 ```
+
+### Interactive Menu System
+
+After generating a script, OohLama presents an interactive menu with the following options:
+
+- **📋 Copy to clipboard**: Cross-platform clipboard integration (Windows clip, macOS pbcopy, Linux xclip/xsel)
+- **▶️ Execute script now**: Safe execution with validation warnings and user confirmation
+- **💾 Save to file**: Intelligent filename suggestions based on task description
+- **✏️ Edit script**: Opens script in system editor (currently displays placeholder)
+- **📖 Show detailed explanation**: Comprehensive analysis including:
+  - Task analysis and AI model used
+  - Script statistics (lines, comments, commands)
+  - Platform-specific usage tips
+  - Safety recommendations
+- **🚪 Exit**: Clean program termination
+
+The menu system supports multiple actions on the same script and provides a continuous workflow until the user chooses to exit.
 
 ## 🛡️ Safety Features
 
