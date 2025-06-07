@@ -5,6 +5,7 @@
 ## ✨ Current Status (v4.0+)
 
 ### 🎪 Complete Rebrand: From OohLama to Please ✅
+
 - **🤖 New Personality**: Politely silly and overly helpful digital assistant
 - **🗣️ Natural Language Interface**: No quotes needed! Just talk naturally
 - **⚡ New Shortcuts**: `pls` and `please` commands (plus legacy `ol` support)
@@ -12,10 +13,11 @@
 - **📦 Environment Variables**: Updated from `OOHLAMA_*` to `PLEASE_*` (legacy still supported)
 
 ### 🗣️ Natural Language Interface ✅
+
 ```bash
 # Natural language - just talk normally!
 pls list all files older than 10 years
-pls backup my documents folder  
+pls backup my documents folder
 pls find processes using too much memory
 
 # Legacy quoted syntax still works
@@ -26,12 +28,14 @@ please "show system information"
 ## ✨ Core Features
 
 ### 🤖 Intelligent Script Generation ✅
+
 - **🌍 Cross-Platform**: Automatically generates PowerShell scripts on Windows, Bash scripts on Linux/macOS
 - **🧠 AI Provider Support**: Currently supports Ollama (OpenAI and Anthropic planned)
 - **📋 Smart Model Selection**: Automatically chooses the best AI model for your task
 - **⚙️ Configurable**: Supports provider preferences and task-specific settings
 
 ### 🎯 Interactive Experience ✅
+
 - **🎯 Interactive Menu System**: Choose from multiple actions after script generation
 - **📋 Copy to Clipboard**: Cross-platform clipboard integration (Windows clip, macOS pbcopy, Linux xclip/xsel)
 - **▶️ Safe Execution**: Execute scripts with safety validation and risk-based warnings
@@ -41,9 +45,10 @@ please "show system information"
 - **🎮 Single-Key Navigation**: Quick menu navigation without pressing Enter
 
 ### 🛡️ Advanced Safety Features ✅
+
 - **⚠️ Enhanced Safety Warnings**: Comprehensive warning system with severity levels:
   - ⛔ **Critical**: `rm -rf /`, `format c:`, filesystem destruction
-  - 🔴 **High Risk**: `shutdown`, `chmod 777`, privilege escalation  
+  - 🔴 **High Risk**: `shutdown`, `chmod 777`, privilege escalation
   - 🟡 **Medium Risk**: `rm -rf`, service management, recursive deletion
   - 🟢 **Info**: Missing error handling, incomplete scripts
 - **✏️ Script Review**: Always shows scripts with line numbers before execution
@@ -54,76 +59,121 @@ please "show system information"
   - 🔴 **Red (High Risk)**: Must type 'EXECUTE' to proceed
 - **🚑 Auto-Fix**: Attempts automatic script repair when execution fails
 
+## 📦 Installation
+
+### Option 1: Download Pre-built Binaries (Recommended) ⚡
+
+**Easiest way to get started!** Download the latest release for your platform:
+
+👉 **[Download Latest Release](https://github.com/DanMarshall909/please/releases/latest)**
+
+Available for all platforms:
+- **Windows**: `please-windows-amd64.exe` 
+- **Linux**: `please-linux-amd64` (Intel/AMD) or `please-linux-arm64` (ARM)
+- **macOS**: `please-macos-amd64` (Intel) or `please-macos-arm64` (Apple Silicon)
+
+#### Quick Installation Examples
+
+```bash
+# Linux/macOS - Download and install system-wide
+wget https://github.com/DanMarshall909/please/releases/latest/download/please-linux-amd64
+chmod +x please-linux-amd64
+sudo mv please-linux-amd64 /usr/local/bin/please
+
+# Linux/macOS - Local installation
+wget https://github.com/DanMarshall909/please/releases/latest/download/please-linux-amd64
+chmod +x please-linux-amd64
+./please-linux-amd64 --help
+
+# Windows - Download and run
+# Download please-windows-amd64.exe from releases page
+# Rename to please.exe and add to PATH (optional)
+please.exe --help
+```
+
+### Option 2: Build from Source
+
+See the [Building from Source](#🔨-building-from-source) section below.
+
+### 🔄 Automated Releases
+
+**New releases are automatically built and published:**
+- **Every push to master** creates a timestamped pre-release with all platform binaries
+- **Tagged releases** (e.g., `v1.0.0`) create stable releases
+- All releases include pre-built binaries for Windows, Linux, and macOS
+
 ## 🚀 Quick Start
 
-### Option 1: Using Ollama (Local AI - Recommended) ✅
+### Step 1: Install AI Provider
+
+#### Using Ollama (Local AI - Recommended) ✅
 
 1. **Install and start Ollama**:
+
    ```bash
    # Install from https://ollama.ai/
    ollama serve
    ollama pull llama3.2  # or any preferred model
    ```
 
-2. **Generate a script naturally**:
-   ```bash
-   pls list all files in the current directory
-   pls create a backup script for my documents
-   ```
-
-### Option 2: Using OpenAI ✅
+#### Using OpenAI ✅
 
 1. **Set your API key**:
+
    ```bash
    # Windows
    set OPENAI_API_KEY=your_api_key_here
    set PLEASE_PROVIDER=openai
-   
+
    # Linux/macOS
    export OPENAI_API_KEY=your_api_key_here
    export PLEASE_PROVIDER=openai
    ```
 
-2. **Generate a script**:
-   ```bash
-   pls create a backup script for important files
-   ```
-
-### Option 3: Using Anthropic ✅
+#### Using Anthropic ✅
 
 1. **Set your API key**:
+
    ```bash
    # Windows
    set ANTHROPIC_API_KEY=your_api_key_here
    set PLEASE_PROVIDER=anthropic
-   
+
    # Linux/macOS
    export ANTHROPIC_API_KEY=your_api_key_here
    export PLEASE_PROVIDER=anthropic
    ```
 
-2. **Generate a script**:
-   ```bash
-   pls create a backup script for important files
-   ```
+### Step 2: Generate Your First Script
+
+```bash
+# Natural language - just talk normally!
+pls list all files in the current directory
+pls create a backup script for my documents
+pls show system memory usage
+pls organize my photos by date
+```
 
 ## 🖥️ Platform Support ✅
 
 ### Windows
+
 - **Script Type**: PowerShell (.ps1)
 - **Execution**: Direct PowerShell execution with `-ExecutionPolicy Bypass`
 - **Clipboard**: Windows clip utility
 - **Config Location**: `%APPDATA%\please\config.json`
 
 ### Linux
-- **Script Type**: Bash (.sh) 
+
+- **Script Type**: Bash (.sh)
 - **Execution**: Bash shell execution
 - **Clipboard**: xclip or xsel (auto-detected)
 - **Config Location**: `~/.config/please/config.json`
 
 ### macOS
+
 - **Script Type**: Bash (.sh)
-- **Execution**: Bash shell execution  
+- **Execution**: Bash shell execution
 - **Clipboard**: pbcopy
 - **Config Location**: `~/Library/Application Support/please/config.json`
 
@@ -135,7 +185,7 @@ pls copy all .txt files to a backup folder
 pls find large files taking up space
 pls organize my photos by date
 
-# System information  
+# System information
 pls show system memory usage
 pls check what processes are running
 pls display disk space information
@@ -189,21 +239,23 @@ Please automatically creates a configuration file to store your preferences:
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PLEASE_PROVIDER` | AI provider to use | `ollama` |
-| `PLEASE_SCRIPT_TYPE` | Force script type (`powershell`, `bash`, `auto`) | `auto` |
-| `OLLAMA_URL` | Ollama server URL | `http://localhost:11434` |
-| `OLLAMA_MODEL` | Force specific Ollama model | (auto-selected) |
-| `OPENAI_API_KEY` | OpenAI API key | |
-| `ANTHROPIC_API_KEY` | Anthropic API key | |
+| Variable             | Description                                      | Default                  |
+| -------------------- | ------------------------------------------------ | ------------------------ |
+| `PLEASE_PROVIDER`    | AI provider to use                               | `ollama`                 |
+| `PLEASE_SCRIPT_TYPE` | Force script type (`powershell`, `bash`, `auto`) | `auto`                   |
+| `OLLAMA_URL`         | Ollama server URL                                | `http://localhost:11434` |
+| `OLLAMA_MODEL`       | Force specific Ollama model                      | (auto-selected)          |
+| `OPENAI_API_KEY`     | OpenAI API key                                   |                          |
+| `ANTHROPIC_API_KEY`  | Anthropic API key                                |                          |
 
 ### Legacy Environment Variables (Still Supported)
+
 For backward compatibility, the old `OOHLAMA_*` environment variables still work but will show deprecation warnings.
 
 ## 🤖 AI Provider Support
 
 ### Ollama (Local AI) ✅ Fully Implemented
+
 - **Models**: Any Ollama-compatible model (codegemma, codellama, llama3.1, deepseek-coder, etc.)
 - **Best for**: Privacy, offline use, custom models
 - **Setup**: Install Ollama and pull desired models
@@ -211,6 +263,7 @@ For backward compatibility, the old `OOHLAMA_*` environment variables still work
 - **Features**: Smart model selection, automatic ranking, task categorization
 
 ### OpenAI ✅ Fully Implemented
+
 - **Models**: GPT-3.5-turbo, GPT-4, GPT-4-turbo, GPT-4-turbo-preview
 - **Best for**: High-quality output, latest capabilities
 - **Setup**: Get API key from OpenAI platform
@@ -218,6 +271,7 @@ For backward compatibility, the old `OOHLAMA_*` environment variables still work
 - **Features**: Automatic model selection, task-specific optimization
 
 ### Anthropic Claude ✅ Fully Implemented
+
 - **Models**: Claude-3-5-sonnet, Claude-3-5-haiku, Claude-3-opus, Claude-3-sonnet, Claude-3-haiku
 - **Best for**: Balanced performance and safety
 - **Setup**: Get API key from Anthropic console
@@ -225,6 +279,7 @@ For backward compatibility, the old `OOHLAMA_*` environment variables still work
 - **Features**: Advanced reasoning, safety-focused responses
 
 ### Custom Providers 🚧 Planned
+
 - **Setup**: Configure in config file
 - **Flexibility**: Support any OpenAI-compatible API
 - **Examples**: Azure OpenAI, local LLM servers, other cloud providers
@@ -258,7 +313,7 @@ Please intelligently selects models based on:
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 📝 Task: create a simple script to show current time
-🧠 Model: deepseek-coder:6.7b (ollama)  
+🧠 Model: deepseek-coder:6.7b (ollama)
 🖥️  Platform: powershell script
 
 ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -316,7 +371,7 @@ The menu system supports single-key input and multiple actions on the same scrip
 
 - **📖 Script Preview**: Always shows the generated script with line numbers before execution
 - **🌍 Platform Awareness**: Scripts use platform-appropriate commands and syntax
-- **🔍 Detailed Analysis**: Explains what the script does and potential risks  
+- **🔍 Detailed Analysis**: Explains what the script does and potential risks
 - **✋ Risk-Based Confirmation**: Different confirmation levels based on detected dangers
 - **🛡️ Error Handling**: Generated scripts include appropriate error handling
 - **🔒 Secure Execution**: Scripts run via temporary files with proper cleanup
@@ -326,14 +381,16 @@ The menu system supports single-key input and multiple actions on the same scrip
 ## 🎯 Command Examples
 
 ### 📁 File Management
+
 ```bash
 pls organize photos by date taken
-pls create incremental backup script  
+pls create incremental backup script
 pls find and remove duplicate files
 pls compress old log files
 ```
 
-### 💻 System Administration  
+### 💻 System Administration
+
 ```bash
 pls monitor disk space and send alerts
 pls automate log rotation for application logs
@@ -342,6 +399,7 @@ pls restart services if they stop responding
 ```
 
 ### 🔧 Development
+
 ```bash
 pls create a git hook to run tests before commit
 pls generate a script to build and deploy my application
@@ -350,9 +408,10 @@ pls automate database migrations
 ```
 
 ### 🌐 Network & Automation
+
 ```bash
 pls schedule automated database backups
-pls create a script to update all git repositories  
+pls create a script to update all git repositories
 pls automate certificate renewal process
 pls monitor website uptime
 ```
@@ -360,8 +419,9 @@ pls monitor website uptime
 ## 🚀 Installation & Shortcuts ✅
 
 ### Install Shortcuts
+
 ```bash
-# Install both 'pls' and legacy 'ol' shortcuts  
+# Install both 'pls' and legacy 'ol' shortcuts
 please --install-alias
 
 # Remove shortcuts
@@ -369,12 +429,15 @@ please --uninstall-alias
 ```
 
 After installation, you can use:
+
 - `pls` - The new primary command
 - `please` - Full command name
 - `ol` - Legacy shortcut (still supported)
 
 ### Interactive Main Menu
+
 Run `please` without arguments to access the interactive main menu:
+
 - Generate new scripts interactively
 - Browse history (🚧 planned)
 - Show configuration
@@ -383,13 +446,14 @@ Run `please` without arguments to access the interactive main menu:
 ## 🔨 Building from Source
 
 ### Prerequisites
-- Go 1.24.4 or later
+
+- Go 1.21 or later
 
 ### Build Commands
 
 ```bash
 # Clone repository
-git clone <repository-url>
+git clone https://github.com/DanMarshall909/please.git
 cd please
 
 # Build for current platform
@@ -399,22 +463,37 @@ go build -o please main.go
 # Windows
 GOOS=windows GOARCH=amd64 go build -o please.exe main.go
 
-# Linux  
+# Linux
 GOOS=linux GOARCH=amd64 go build -o please main.go
 
 # macOS
 GOOS=darwin GOARCH=amd64 go build -o please main.go
 ```
 
+### Local Development Scripts
+
+Use the included build scripts to create all platform binaries:
+
+```bash
+# Linux/macOS
+./build.sh
+
+# Windows
+build.bat
+```
+
 ## 📋 Requirements
 
 ### Runtime Requirements
+
 - **No dependencies** - single binary executable
-- **AI Provider Access**: Currently requires Ollama with installed models
-  - Download from: https://ollama.ai/
-  - Install models: `ollama pull llama3.2` or `ollama pull deepseek-coder`
+- **AI Provider Access**: Requires one of the following:
+  - Ollama with installed models (recommended)
+  - OpenAI API key
+  - Anthropic API key
 
 ### Platform-Specific
+
 - **Windows**: PowerShell (usually pre-installed)
 - **Linux**: Bash shell, optional xclip/xsel for clipboard
 - **macOS**: Bash shell (built-in)
@@ -422,10 +501,11 @@ GOOS=darwin GOARCH=amd64 go build -o please main.go
 ## 🏗️ Architecture
 
 ### Modular Design ✅
+
 ```
 please/
 ├── main.go              # Clean entry point with natural language processing
-├── config/             # Configuration management  
+├── config/             # Configuration management
 ├── providers/          # AI provider implementations
 │   ├── provider.go     # Interface definition
 │   └── ollama.go       # ✅ Ollama implementation
@@ -436,6 +516,7 @@ please/
 ```
 
 ### Provider Interface
+
 ```go
 type Provider interface {
     GenerateScript(request *ScriptRequest) (*ScriptResponse, error)
@@ -447,6 +528,7 @@ type Provider interface {
 ## 🚧 Planned Features (Future Releases)
 
 ### v5.0 Planned Features
+
 - **🤔 Interactive Clarification System**: Handle ambiguous requests intelligently
 - **🌍 Internationalization**: Multiple languages and tone customization
 - **🌐 Browser Viewing**: View scripts with syntax highlighting in browser
@@ -454,6 +536,7 @@ type Provider interface {
 - **📚 Complete History System**: Browse, search, and manage script history
 
 ### Provider Implementations
+
 - **🔌 OpenAI Provider**: Complete GPT integration
 - **🔌 Anthropic Provider**: Complete Claude integration
 - **🔌 Custom Providers**: OpenAI-compatible API support
@@ -490,25 +573,29 @@ This project is open source. Feel free to use, modify, and distribute as needed.
 ### Common Issues
 
 **"No models available in Ollama"**
+
 - Ensure Ollama is running: `ollama serve`
 - Install a model: `ollama pull llama3.2`
 
 **"Provider ollama is not properly configured"**
+
 - Check Ollama is running on `http://localhost:11434`
 - Set `OLLAMA_URL` environment variable if using different URL
 
 **"Clipboard not supported"**
+
 - Linux: Install `xclip` or `xsel`: `sudo apt install xclip`
 - The script will still be displayed for manual copying
 
 **"Permission denied executing script"**
+
 - Linux/macOS: Scripts are automatically made executable
 - Windows: Run PowerShell as administrator if needed
 
 ### Getting Help
 
 - Check the configuration file location for your platform
-- Verify Ollama connectivity: `ollama list` 
+- Verify Ollama connectivity: `ollama list`
 - Review generated scripts before execution
 - Use environment variables to override defaults
 - Check `please --help` for usage information
@@ -516,6 +603,7 @@ This project is open source. Feel free to use, modify, and distribute as needed.
 ### Migration from OohLama
 
 If you're upgrading from OohLama, Please will:
+
 - Automatically migrate your existing configuration
 - Continue to support `OOHLAMA_*` environment variables (with deprecation warnings)
 - Maintain backward compatibility with the `ol` command
