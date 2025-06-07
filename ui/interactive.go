@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"please/script"
 	"please/types"
@@ -102,9 +103,15 @@ func getSingleKeyUnix() rune {
 
 // handleUserChoice processes the user's menu selection and returns true if should exit
 func handleUserChoice(choice string, response *types.ScriptResponse) bool {
-	// Handle special characters that should be ignored
-	if len(choice) == 0 || choice == "\r" || choice == "\n" || choice == " " {
-		return false // Ignore empty, Enter, or space - continue showing menu
+	// Handle Enter key as immediate exit
+	if choice == "\r" || choice == "\n" {
+		fmt.Printf("%s✨ Quick exit! Thanks for using Please! 🎉%s\n", ColorGreen, ColorReset)
+		return true // Exit immediately on Enter
+	}
+	
+	// Handle other special characters that should be ignored
+	if len(choice) == 0 || choice == " " {
+		return false // Ignore empty or space - continue showing menu
 	}
 	
 	switch choice {
@@ -148,8 +155,10 @@ func copyToClipboard(response *types.ScriptResponse) {
 	}
 }
 
-// executeScript executes the script with smart safety levels
+// executeScript executes the script with smart safety levels and automatic error recovery
 func executeScript(response *types.ScriptResponse) {
+	executed := false
+	
 	// Get script warnings and determine risk level
 	warnings := script.ValidateScript(response)
 	riskLevel := determineRiskLevel(warnings)
@@ -158,8 +167,11 @@ func executeScript(response *types.ScriptResponse) {
 	case "green":
 		// Low risk - execute immediately with brief message
 		fmt.Printf("%s✅ Executing safe script...%s\n", ColorGreen, ColorReset)
+		executed = true
 		if err := script.ExecuteScript(response); err != nil {
 			fmt.Printf("%s❌ Script execution failed: %v%s\n", ColorRed, err, ColorReset)
+			// Attempt automatic fix
+			tryAutoFix(response, err.Error())
 		} else {
 			fmt.Printf("%s✅ Script execution completed!%s\n", ColorGreen, ColorReset)
 		}
@@ -180,8 +192,11 @@ func executeScript(response *types.ScriptResponse) {
 		
 		if choice == 'y' || choice == 'Y' {
 			fmt.Printf("%s▶️  Executing script...%s\n", ColorGreen, ColorReset)
+			executed = true
 			if err := script.ExecuteScript(response); err != nil {
 				fmt.Printf("%s❌ Script execution failed: %v%s\n", ColorRed, err, ColorReset)
+				// Attempt automatic fix
+				tryAutoFix(response, err.Error())
 			} else {
 				fmt.Printf("%s✅ Script execution completed!%s\n", ColorGreen, ColorReset)
 			}
@@ -205,8 +220,16 @@ func executeScript(response *types.ScriptResponse) {
 		
 		if strings.TrimSpace(input) == "EXECUTE" {
 			fmt.Printf("%s⚠️  Executing high-risk script...%s\n", ColorRed, ColorReset)
+			executed = true
 			if err := script.ExecuteScript(response); err != nil {
 				fmt.Printf("%s❌ Script execution failed: %v%s\n", ColorRed, err, ColorReset)
+				// For high-risk scripts, ask before attempting auto-fix
+				fmt.Printf("%s❓ Attempt automatic fix? Press 'y' to try or any other key to skip: %s", ColorBold+ColorYellow, ColorReset)
+				fixChoice := getSingleKeyInput()
+				fmt.Printf("%c\n", fixChoice)
+				if fixChoice == 'y' || fixChoice == 'Y' {
+					tryAutoFix(response, err.Error())
+				}
 			} else {
 				fmt.Printf("%s✅ Script execution completed!%s\n", ColorGreen, ColorReset)
 			}
@@ -215,8 +238,10 @@ func executeScript(response *types.ScriptResponse) {
 		}
 	}
 	
-	// Save as last script after execution attempt
-	saveLastScript(response)
+	// Save to history if executed (whether successful or not)
+	if executed {
+		saveToHistory(response)
+	}
 }
 
 // determineRiskLevel analyzes warnings to determine overall risk level
@@ -461,4 +486,118 @@ func extractJSONField(content, field string) string {
 	// Unescape quotes
 	value = strings.ReplaceAll(value, `\"`, `"`)
 	return value
+}
+
+// tryAutoFix attempts to automatically fix a failed script using AI
+func tryAutoFix(originalResponse *types.ScriptResponse, errorMessage string) {
+	fmt.Printf("%s🔧 Auto-fixing script...%s\n", ColorYellow, ColorReset)
+	
+	// For now, we'll use a simple approach - in a real implementation, 
+	// you'd call the same AI provider that generated the original script
+	fmt.Printf("%s💭 Analyzing error and generating fix...%s\n", ColorDim, ColorReset)
+	
+	// Simulate AI call (in real implementation, use providers.GenerateScript)
+	// For demo purposes, create a simple fix response
+	fixedResponse := &types.ScriptResponse{
+		TaskDescription: "Auto-fix for: " + originalResponse.TaskDescription,
+		Script:         generateSimpleFix(originalResponse.Script, errorMessage),
+		ScriptType:     originalResponse.ScriptType,
+		Model:          originalResponse.Model,
+		Provider:       originalResponse.Provider,
+	}
+	
+	// Display the fixed script
+	fmt.Printf("\n%s✨ Generated automatic fix:%s\n", ColorGreen, ColorReset)
+	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("─", 60), ColorReset)
+	
+	lines := strings.Split(fixedResponse.Script, "\n")
+	for i, line := range lines {
+		fmt.Printf("%s%3d│%s %s\n", ColorDim, i+1, ColorReset, line)
+	}
+	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("─", 60), ColorReset)
+	
+	// Execute the fixed script automatically
+	fmt.Printf("%s🚀 Testing fixed script...%s\n", ColorGreen, ColorReset)
+	if err := script.ExecuteScript(fixedResponse); err != nil {
+		fmt.Printf("%s❌ Fixed script also failed: %v%s\n", ColorRed, err, ColorReset)
+		fmt.Printf("%s💡 Manual intervention may be required.%s\n", ColorDim, ColorReset)
+	} else {
+		fmt.Printf("%s🎉 Fixed script executed successfully!%s\n", ColorGreen, ColorReset)
+		// Update the original response with the fixed version
+		originalResponse.Script = fixedResponse.Script
+		originalResponse.TaskDescription = fixedResponse.TaskDescription
+	}
+}
+
+// generateSimpleFix creates a basic fix for common script errors
+func generateSimpleFix(originalScript, errorMessage string) string {
+	// Simple error fixing logic - in production, this would be handled by AI
+	lowerError := strings.ToLower(errorMessage)
+	
+	if strings.Contains(lowerError, "execution policy") {
+		// PowerShell execution policy error
+		return fmt.Sprintf("# Auto-fix: Added execution policy bypass\nSet-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force\n\n%s", originalScript)
+	}
+	
+	if strings.Contains(lowerError, "command not found") || strings.Contains(lowerError, "not recognized") {
+		// Command not found - try to add error handling
+		return fmt.Sprintf("# Auto-fix: Added error handling and verification\ntry {\n    %s\n} catch {\n    Write-Host \"Error: $_\"\n    Write-Host \"Please check if the required command is installed\"\n    exit 1\n}", 
+			strings.ReplaceAll(originalScript, "\n", "\n    "))
+	}
+	
+	if strings.Contains(lowerError, "permission denied") || strings.Contains(lowerError, "access denied") {
+		// Permission error
+		if strings.Contains(originalScript, "#!/bin/bash") || strings.Contains(originalScript, "#!/bin/sh") {
+			return fmt.Sprintf("#!/bin/bash\n# Auto-fix: Added sudo for permission issues\nsudo %s", 
+				strings.TrimPrefix(originalScript, "#!/bin/bash\n"))
+		} else {
+			return fmt.Sprintf("# Auto-fix: Running as Administrator\nif (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] \"Administrator\")) {\n    Write-Host \"Restarting as Administrator...\"\n    Start-Process PowerShell -Verb RunAs -ArgumentList \"-Command\", \"%s\"\n    exit\n}\n\n%s", 
+				strings.ReplaceAll(originalScript, `"`, `\"`), originalScript)
+		}
+	}
+	
+	// Default: add basic error handling
+	if strings.Contains(originalScript, "powershell") || strings.Contains(originalScript, "PowerShell") {
+		return fmt.Sprintf("# Auto-fix: Added comprehensive error handling\ntry {\n    %s\n} catch {\n    Write-Host \"Script failed with error: $_\" -ForegroundColor Red\n    Write-Host \"Please check the script and try again.\" -ForegroundColor Yellow\n    exit 1\n}", 
+			strings.ReplaceAll(originalScript, "\n", "\n    "))
+	} else {
+		return fmt.Sprintf("#!/bin/bash\n# Auto-fix: Added error handling\nset -e  # Exit on any error\n\n%s\n\necho \"Script completed successfully!\"", originalScript)
+	}
+}
+
+// saveToHistory saves the script to the execution history
+func saveToHistory(response *types.ScriptResponse) {
+	configDir, err := getConfigDir()
+	if err != nil {
+		return // Silently fail
+	}
+	
+	historyDir := filepath.Join(configDir, "history")
+	if err := os.MkdirAll(historyDir, 0755); err != nil {
+		return // Silently fail
+	}
+	
+	// Create filename with timestamp
+	timestamp := fmt.Sprintf("%d", time.Now().Unix())
+	historyFile := filepath.Join(historyDir, fmt.Sprintf("script_%s.json", timestamp))
+	
+	// Create enhanced JSON with timestamp and execution info
+	jsonContent := fmt.Sprintf(`{
+  "timestamp": %s,
+  "task_description": "%s",
+  "script": "%s",
+  "script_type": "%s",
+  "model": "%s",
+  "provider": "%s",
+  "executed_at": "%s"
+}`, 
+		timestamp,
+		strings.ReplaceAll(response.TaskDescription, `"`, `\"`),
+		strings.ReplaceAll(response.Script, `"`, `\"`),
+		response.ScriptType,
+		response.Model,
+		response.Provider,
+		time.Now().Format("2006-01-02 15:04:05"))
+	
+	os.WriteFile(historyFile, []byte(jsonContent), 0644)
 }
