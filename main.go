@@ -38,9 +38,10 @@ func main() {
 		}
 	}
 
+	// If no arguments provided, show interactive main menu
 	if len(os.Args) < 2 {
-		ui.ShowHelp()
-		os.Exit(1)
+		ui.ShowMainMenu()
+		return
 	}
 
 	// Join all arguments after the program name as the task description

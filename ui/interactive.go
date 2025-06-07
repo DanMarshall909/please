@@ -14,6 +14,129 @@ import (
 	"please/types"
 )
 
+// ShowMainMenu displays the main interactive menu when Please is run without arguments
+func ShowMainMenu() {
+	// Show banner
+	fmt.Printf("╔══════════════════════════════════════════════════════════════════════════════╗\n")
+	fmt.Printf("║                           🤖 Please Script Generator                         ║\n")
+	fmt.Printf("╚══════════════════════════════════════════════════════════════════════════════╝\n\n")
+	
+	for {
+		fmt.Printf("%s🎯 What would you like to do?%s\n\n", ColorBold+ColorCyan, ColorReset)
+		
+		// Show main menu options
+		fmt.Printf("  %s1.%s %s📖 Show help & usage%s\n", ColorGreen, ColorReset, ColorCyan, ColorReset)
+		fmt.Printf("  %s2.%s %s✨ Generate new script%s\n", ColorGreen, ColorReset, ColorYellow, ColorReset)
+		fmt.Printf("  %s3.%s %s🔄 Load last script%s\n", ColorGreen, ColorReset, ColorMagenta, ColorReset)
+		fmt.Printf("  %s4.%s %s📚 Browse history%s\n", ColorGreen, ColorReset, ColorBlue, ColorReset)
+		fmt.Printf("  %s5.%s %s⚙️  Show configuration%s\n", ColorGreen, ColorReset, ColorPurple, ColorReset)
+		fmt.Printf("  %s6.%s %s🚪 Exit%s\n\n", ColorGreen, ColorReset, ColorDim, ColorReset)
+		
+		// Get user choice with single-key input
+		fmt.Printf("%sPress 1-6: %s", ColorBold+ColorYellow, ColorReset)
+		choice := getSingleKeyInput()
+		fmt.Printf("%c\n", choice) // Echo the pressed key
+		
+		if handleMainMenuChoice(string(choice)) {
+			break // Exit if user chose exit
+		}
+	}
+}
+
+// handleMainMenuChoice processes the main menu selection and returns true if should exit
+func handleMainMenuChoice(choice string) bool {
+	// Handle Enter key as immediate exit
+	if choice == "\r" || choice == "\n" {
+		fmt.Printf("%s✨ Quick exit! Thanks for using Please! 🎉%s\n", ColorGreen, ColorReset)
+		return true // Exit immediately on Enter
+	}
+	
+	// Handle other special characters that should be ignored
+	if len(choice) == 0 || choice == " " {
+		return false // Ignore empty or space - continue showing menu
+	}
+	
+	switch choice {
+	case "1":
+		ShowHelp()
+		return false // Continue showing main menu
+	case "2":
+		generateNewScript()
+		return false // Continue showing main menu
+	case "3":
+		loadLastScript()
+		return false // Continue showing main menu
+	case "4":
+		browseHistory()
+		return false // Continue showing main menu
+	case "5":
+		showConfiguration()
+		return false // Continue showing main menu
+	case "6":
+		fmt.Printf("%s✨ Ta-da! Thanks for using Please! Happy scripting! 🎉%s\n", ColorGreen, ColorReset)
+		return true // Exit
+	default:
+		fmt.Printf("%s❌ Invalid choice. Please try again.%s\n", ColorRed, ColorReset)
+		return false // Continue showing main menu
+	}
+}
+
+// generateNewScript prompts for task description and generates a script
+func generateNewScript() {
+	fmt.Printf("\n%s✨ Generate New Script%s\n", ColorBold+ColorCyan, ColorReset)
+	fmt.Printf("%s═══════════════════════════════════════%s\n\n", ColorCyan, ColorReset)
+	
+	fmt.Printf("%sDescribe what you want your script to do: %s", ColorYellow, ColorReset)
+	reader := bufio.NewReader(os.Stdin)
+	taskDescription, _ := reader.ReadString('\n')
+	taskDescription = strings.TrimSpace(taskDescription)
+	
+	if taskDescription == "" {
+		fmt.Printf("%s❌ No task description provided.%s\n", ColorRed, ColorReset)
+		return
+	}
+	
+	fmt.Printf("\n%s🚀 Generating script for: %s%s\n", ColorGreen, taskDescription, ColorReset)
+	fmt.Printf("%s💭 This feature will be implemented to call the main script generation flow...%s\n", ColorDim, ColorReset)
+	fmt.Printf("%s💡 For now, use: please %s%s\n", ColorDim, taskDescription, ColorReset)
+}
+
+// browseHistory shows the script history browser
+func browseHistory() {
+	fmt.Printf("\n%s📚 Script History Browser%s\n", ColorBold+ColorCyan, ColorReset)
+	fmt.Printf("%s═══════════════════════════════════════%s\n\n", ColorCyan, ColorReset)
+	fmt.Printf("%s🔄 History browser feature coming soon!%s\n", ColorPurple, ColorReset)
+	fmt.Printf("%s💡 Will show last 20 scripts with timestamps and quick selection.%s\n", ColorDim, ColorReset)
+}
+
+// showConfiguration displays current Please configuration
+func showConfiguration() {
+	fmt.Printf("\n%s⚙️ Please Configuration%s\n", ColorBold+ColorCyan, ColorReset)
+	fmt.Printf("%s═══════════════════════════════════════%s\n\n", ColorCyan, ColorReset)
+	
+	// Show basic configuration info
+	fmt.Printf("%s🔧 Current Settings:%s\n", ColorBold+ColorYellow, ColorReset)
+	fmt.Printf("  %s• Config directory:%s ~/.please/\n", ColorDim, ColorReset)
+	fmt.Printf("  %s• Default provider:%s %s\n", ColorDim, ColorReset, "ollama (auto-detected)")
+	fmt.Printf("  %s• Default model:%s %s\n", ColorDim, ColorReset, "deepseek-coder:6.7b")
+	fmt.Printf("  %s• Script type:%s %s\n", ColorDim, ColorReset, "powershell (Windows)")
+	
+	fmt.Printf("\n%s🔗 Environment Variables:%s\n", ColorBold+ColorYellow, ColorReset)
+	
+	pleaseProvider := os.Getenv("PLEASE_PROVIDER")
+	oohllamaProvider := os.Getenv("OOHLAMA_PROVIDER")
+	
+	if pleaseProvider != "" {
+		fmt.Printf("  %s• PLEASE_PROVIDER:%s %s\n", ColorDim, ColorReset, pleaseProvider)
+	} else if oohllamaProvider != "" {
+		fmt.Printf("  %s• OOHLAMA_PROVIDER:%s %s %s(legacy)%s\n", ColorDim, ColorReset, oohllamaProvider, ColorYellow, ColorReset)
+	} else {
+		fmt.Printf("  %s• No provider environment variables set%s\n", ColorDim, ColorReset)
+	}
+	
+	fmt.Printf("\n%s💡 Tip: Set PLEASE_PROVIDER environment variable to change default provider%s\n", ColorDim, ColorReset)
+}
+
 // ShowScriptMenu displays an interactive menu after script generation
 func ShowScriptMenu(response *types.ScriptResponse) {
 	for {
