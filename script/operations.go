@@ -170,33 +170,153 @@ func GetSuggestedFilename(response *types.ScriptResponse) string {
 	}
 }
 
-// ValidateScript performs basic validation on the generated script
+// ValidateScript performs intelligent validation on the generated script with severity levels
 func ValidateScript(response *types.ScriptResponse) []string {
 	warnings := []string{}
-	script := response.Script
+	script := strings.ToLower(response.Script)
+	lines := strings.Split(response.Script, "\n")
 	
-	// Check for potentially dangerous commands
-	dangerousCommands := []string{
-		"rm -rf /", "del /", "format", "mkfs", "dd if=", 
-		"shutdown", "reboot", "halt", "init 0", "init 6",
-		"chmod 777", "chown root", "sudo su", "su -",
+	// Critical dangers - These will definitely cause problems
+	criticalPatterns := map[string]string{
+		`rm -rf /`:        "⛔ CRITICAL: Attempts to delete entire filesystem",
+		`rm -rf /*`:       "⛔ CRITICAL: Attempts to delete entire filesystem", 
+		`del /s /q c:\*`:  "⛔ CRITICAL: Attempts to delete entire C: drive",
+		`format c:`:       "⛔ CRITICAL: Attempts to format C: drive",
+		`format /dev/`:    "⛔ CRITICAL: Attempts to format system devices",
+		`dd if=/dev/zero`: "⛔ CRITICAL: Attempts to overwrite data with zeros",
+		`mkfs`:           "⛔ CRITICAL: Attempts to create new filesystem (destroys data)",
 	}
 	
-	for _, dangerous := range dangerousCommands {
-		if strings.Contains(strings.ToLower(script), strings.ToLower(dangerous)) {
-			warnings = append(warnings, fmt.Sprintf("⚠️  Contains potentially dangerous command: %s", dangerous))
+	// High risk warnings - Potentially dangerous but context matters
+	highRiskPatterns := map[string]string{
+		`shutdown`:     "🔴 WARNING: Will shutdown the system",
+		`reboot`:       "🔴 WARNING: Will restart the system", 
+		`halt`:         "🔴 WARNING: Will halt the system",
+		`init 0`:       "🔴 WARNING: Will shutdown the system",
+		`init 6`:       "🔴 WARNING: Will restart the system",
+		`sudo su`:      "🔴 WARNING: Escalates to root privileges",
+		`chmod 777`:    "🔴 WARNING: Makes files world-writable (security risk)",
+		`chown root`:   "🔴 WARNING: Changes ownership to root",
+	}
+	
+	// Medium risk - Things to be cautious about
+	mediumRiskPatterns := map[string]string{
+		`rm -rf`:       "🟡 CAUTION: Recursive deletion - verify target path carefully",
+		`del /s /q`:    "🟡 CAUTION: Recursive deletion - verify target path carefully",
+		`crontab -r`:   "🟡 CAUTION: Removes all cron jobs",
+		`systemctl stop`: "🟡 CAUTION: Stops system services",
+		`service stop`: "🟡 CAUTION: Stops system services",
+	}
+	
+	// Check critical patterns first
+	for pattern, warning := range criticalPatterns {
+		if containsCommand(script, pattern) {
+			warnings = append(warnings, warning)
 		}
 	}
 	
-	// Check for missing shebangs in bash scripts
-	if response.ScriptType == "bash" && !strings.HasPrefix(script, "#!") {
-		warnings = append(warnings, "💡 Consider adding a shebang line (#!/bin/bash) at the top")
+	// Check high risk patterns
+	for pattern, warning := range highRiskPatterns {
+		if containsCommand(script, pattern) {
+			warnings = append(warnings, warning)
+		}
+	}
+	
+	// Check medium risk patterns
+	for pattern, warning := range mediumRiskPatterns {
+		if containsCommand(script, pattern) {
+			warnings = append(warnings, warning)
+		}
+	}
+	
+	// Info level checks
+	if response.ScriptType == "bash" && !strings.HasPrefix(response.Script, "#!") {
+		warnings = append(warnings, "🟢 INFO: Consider adding a shebang line (#!/bin/bash) at the top")
 	}
 	
 	// Check for very short scripts (might be incomplete)
-	if len(strings.TrimSpace(script)) < 20 {
-		warnings = append(warnings, "🤔 Script seems very short - it might be incomplete")
+	if len(strings.TrimSpace(response.Script)) < 20 {
+		warnings = append(warnings, "🟢 INFO: Script seems very short - it might be incomplete")
+	}
+	
+	// Check for scripts with no error handling
+	hasErrorHandling := false
+	for _, line := range lines {
+		lowerLine := strings.TrimSpace(strings.ToLower(line))
+		if strings.Contains(lowerLine, "try {") || 
+		   strings.Contains(lowerLine, "catch") ||
+		   strings.Contains(lowerLine, "trap") ||
+		   strings.Contains(lowerLine, "|| ") ||
+		   strings.Contains(lowerLine, "&& ") ||
+		   strings.Contains(lowerLine, "if [ $? -") {
+			hasErrorHandling = true
+			break
+		}
+	}
+	
+	if !hasErrorHandling && len(lines) > 5 {
+		warnings = append(warnings, "🟢 INFO: Script has no error handling - consider adding try/catch or error checks")
 	}
 	
 	return warnings
+}
+
+// containsCommand checks if a command appears as an actual command, not as part of a parameter or string
+func containsCommand(script, pattern string) bool {
+	// Skip if it's clearly a parameter (preceded by -)
+	if strings.Contains(script, "-"+pattern) {
+		return false
+	}
+	
+	// Skip PowerShell format parameters
+	if strings.Contains(script, "-format") && pattern == "format" {
+		return false
+	}
+	
+	// More sophisticated quoted string detection
+	lines := strings.Split(script, "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		
+		// Skip empty lines and comments
+		if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, "//") {
+			continue
+		}
+		
+		// Check if the pattern appears outside of quotes
+		if containsPatternOutsideQuotes(line, pattern) {
+			return true
+		}
+	}
+	
+	return false
+}
+
+// containsPatternOutsideQuotes checks if a pattern appears outside of quoted strings
+func containsPatternOutsideQuotes(line, pattern string) bool {
+	inDoubleQuotes := false
+	inSingleQuotes := false
+	
+	for i := 0; i < len(line)-len(pattern)+1; i++ {
+		char := line[i]
+		
+		// Toggle quote states
+		if char == '"' && !inSingleQuotes {
+			inDoubleQuotes = !inDoubleQuotes
+			continue
+		}
+		if char == '\'' && !inDoubleQuotes {
+			inSingleQuotes = !inSingleQuotes
+			continue
+		}
+		
+		// If we're not in quotes, check for pattern match
+		if !inDoubleQuotes && !inSingleQuotes {
+			if i+len(pattern) <= len(line) && strings.ToLower(line[i:i+len(pattern)]) == pattern {
+				return true
+			}
+		}
+	}
+	
+	return false
 }
