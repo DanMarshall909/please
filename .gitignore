@@ -1,6 +1,6 @@
 # Binaries for programs and plugins
 *.exe
-!oohlama.exe
+!please.exe
 *.exe~
 *.dll
 *.so

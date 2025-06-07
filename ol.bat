@@ -1,2 +1,2 @@
 @echo off
-"C:\Code\oohlama\oohlama.exe" %*
+"C:\Code\oohlama\please.exe" %*
