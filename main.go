@@ -51,6 +51,12 @@ func main() {
 	// Join all arguments after the program name as the task description
 	taskDescription := strings.Join(os.Args[1:], " ")
 
+	// Check for natural language history/last script commands
+	if isLastScriptCommand(taskDescription) {
+		ui.RunLastScriptFromCLI()
+		return
+	}
+
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
@@ -223,6 +229,38 @@ func uninstallAlias() {
 	} else {
 		fmt.Printf("%s✅ Successfully removed ol.bat%s\n", ui.ColorGreen, ui.ColorReset)
 	}
+}
+
+// isLastScriptCommand checks if the command is requesting to run the last script
+func isLastScriptCommand(command string) bool {
+	lower := strings.ToLower(command)
+	
+	// Check for various natural language patterns
+	lastScriptPatterns := []string{
+		"run my last script",
+		"run last script", 
+		"execute my last script",
+		"execute last script",
+		"run the last script",
+		"execute the last script",
+		"run my previous script",
+		"run previous script",
+		"run last",
+		"last script",
+		"previous script",
+		"run again",
+		"do it again",
+		"repeat last",
+		"repeat",
+	}
+	
+	for _, pattern := range lastScriptPatterns {
+		if strings.Contains(lower, pattern) {
+			return true
+		}
+	}
+	
+	return false
 }
 
 // runTestMonitor executes AI-powered test monitoring

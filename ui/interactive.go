@@ -539,12 +539,42 @@ func saveLastScript(response *types.ScriptResponse) {
 	os.WriteFile(lastScriptPath, []byte(jsonContent), 0644)
 }
 
-// loadLastScript loads and displays the last generated script
+// loadLastScript loads and displays the last generated script with execution options
 func loadLastScript() {
+	response := loadLastScriptData()
+	if response == nil {
+		return
+	}
+
+	// Display the loaded script
+	fmt.Printf("\n%s🔄 Loading last script...%s\n", ColorMagenta, ColorReset)
+	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("═", 78), ColorReset)
+	fmt.Printf("\n%s📝 Task:%s %s\n", ColorBold+ColorCyan, ColorReset, response.TaskDescription)
+	fmt.Printf("%s🧠 Model:%s %s (%s)\n", ColorBold+ColorCyan, ColorReset, response.Model, response.Provider)
+	fmt.Printf("%s🖥️  Platform:%s %s script\n", ColorBold+ColorCyan, ColorReset, response.ScriptType)
+
+	fmt.Printf("\n%s%s%s\n", ColorDim, strings.Repeat("═", 78), ColorReset)
+	fmt.Printf("%s                              📋 Last Generated Script                             %s\n", ColorBold+ColorCyan, ColorReset)
+	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("═", 78), ColorReset)
+
+	// Display script with line numbers
+	lines := strings.Split(response.Script, "\n")
+	for i, line := range lines {
+		fmt.Printf("%s%3d│%s %s\n", ColorDim, i+1, ColorReset, line)
+	}
+
+	fmt.Printf("\n%s✅ Last script loaded successfully!%s\n", ColorGreen, ColorReset)
+	
+	// Show the script menu for this loaded script
+	ShowScriptMenu(response)
+}
+
+// loadLastScriptData loads the last script data and returns a ScriptResponse, or nil if not found
+func loadLastScriptData() *types.ScriptResponse {
 	configDir, err := getConfigDir()
 	if err != nil {
 		fmt.Printf("%s❌ Could not access config directory: %v%s\n", ColorRed, err, ColorReset)
-		return
+		return nil
 	}
 
 	lastScriptPath := filepath.Join(configDir, "last_script.json")
@@ -552,13 +582,13 @@ func loadLastScript() {
 	if _, err := os.Stat(lastScriptPath); os.IsNotExist(err) {
 		fmt.Printf("%s📭 No previous script found.%s\n", ColorYellow, ColorReset)
 		fmt.Printf("%s💡 Generate a script first, then use this option to reload it.%s\n", ColorDim, ColorReset)
-		return
+		return nil
 	}
 
 	data, err := os.ReadFile(lastScriptPath)
 	if err != nil {
 		fmt.Printf("%s❌ Could not read last script: %v%s\n", ColorRed, err, ColorReset)
-		return
+		return nil
 	}
 
 	// For simplicity, we'll parse this manually (in production, use proper JSON)
@@ -580,24 +610,73 @@ func loadLastScript() {
 		Provider:        provider,
 	}
 
-	// Display the loaded script
-	fmt.Printf("\n%s🔄 Loading last script...%s\n", ColorMagenta, ColorReset)
-	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("═", 78), ColorReset)
+	return response
+}
+
+// runLastScript directly executes the last script with safety checks
+func runLastScript() {
+	response := loadLastScriptData()
+	if response == nil {
+		return
+	}
+
+	fmt.Printf("\n%s🚀 Running last script: %s%s\n", ColorGreen, response.TaskDescription, ColorReset)
+	
+	// Show a brief preview
+	lines := strings.Split(response.Script, "\n")
+	previewLines := 3
+	if len(lines) > previewLines {
+		fmt.Printf("%s💡 Script preview (first %d lines):%s\n", ColorDim, previewLines, ColorReset)
+		for i := 0; i < previewLines; i++ {
+			fmt.Printf("%s  %d│ %s%s\n", ColorDim, i+1, lines[i], ColorReset)
+		}
+		fmt.Printf("%s  ... (%d more lines)%s\n", ColorDim, len(lines)-previewLines, ColorReset)
+	} else {
+		fmt.Printf("%s💡 Script content:%s\n", ColorDim, ColorReset)
+		for i, line := range lines {
+			fmt.Printf("%s  %d│ %s%s\n", ColorDim, i+1, line, ColorReset)
+		}
+	}
+
+	// Execute with safety validation
+	executeScript(response)
+}
+
+// RunLastScriptFromCLI executes the last script directly from command line interface
+func RunLastScriptFromCLI() {
+	response := loadLastScriptData()
+	if response == nil {
+		return
+	}
+
+	fmt.Printf("╔══════════════════════════════════════════════════════════════════════════════╗\n")
+	fmt.Printf("║                           🤖 Please Script Generator                         ║\n")
+	fmt.Printf("╚══════════════════════════════════════════════════════════════════════════════╝\n\n")
+
+	fmt.Printf("%s🔄 Running last script from command line...%s\n", ColorMagenta, ColorReset)
 	fmt.Printf("\n%s📝 Task:%s %s\n", ColorBold+ColorCyan, ColorReset, response.TaskDescription)
 	fmt.Printf("%s🧠 Model:%s %s (%s)\n", ColorBold+ColorCyan, ColorReset, response.Model, response.Provider)
 	fmt.Printf("%s🖥️  Platform:%s %s script\n", ColorBold+ColorCyan, ColorReset, response.ScriptType)
 
-	fmt.Printf("\n%s%s%s\n", ColorDim, strings.Repeat("═", 78), ColorReset)
-	fmt.Printf("%s                              📋 Last Generated Script                             %s\n", ColorBold+ColorCyan, ColorReset)
-	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("═", 78), ColorReset)
-
-	// Display script with line numbers
+	// Show a brief preview of the script
 	lines := strings.Split(response.Script, "\n")
-	for i, line := range lines {
-		fmt.Printf("%s%3d│%s %s\n", ColorDim, i+1, ColorReset, line)
+	previewLines := 5
+	fmt.Printf("\n%s💡 Script preview:%s\n", ColorDim, ColorReset)
+	if len(lines) > previewLines {
+		for i := 0; i < previewLines; i++ {
+			fmt.Printf("%s  %d│ %s%s\n", ColorDim, i+1, lines[i], ColorReset)
+		}
+		fmt.Printf("%s  ... (%d more lines)%s\n", ColorDim, len(lines)-previewLines, ColorReset)
+	} else {
+		for i, line := range lines {
+			fmt.Printf("%s  %d│ %s%s\n", ColorDim, i+1, line, ColorReset)
+		}
 	}
 
-	fmt.Printf("\n%s✅ Last script loaded successfully!%s\n", ColorGreen, ColorReset)
+	fmt.Printf("\n%s🚀 Executing script...%s\n", ColorGreen, ColorReset)
+	
+	// Execute with safety validation
+	executeScript(response)
 }
 
 // getConfigDir returns the configuration directory for Please
