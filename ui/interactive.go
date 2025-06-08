@@ -10,35 +10,37 @@ import (
 	"strings"
 	"time"
 
+	"please/localization"
 	"please/script"
 	"please/types"
 )
 
+var locManager *localization.LocalizationManager // Global for now
+
 // ShowMainMenu displays the main interactive menu when Please is run without arguments
 func ShowMainMenu() {
+	if locManager == nil {
+		// In real use, pass config dir; here, use current dir for stub
+		mgr, _ := localization.NewLocalizationManager(".")
+		locManager = mgr
+	}
 	// Show banner
 	fmt.Printf("╔══════════════════════════════════════════════════════════════════════════════╗\n")
 	fmt.Printf("║                           🤖 Please Script Generator                         ║\n")
 	fmt.Printf("╚══════════════════════════════════════════════════════════════════════════════╝\n\n")
-	
 	for {
-		fmt.Printf("%s🎯 What would you like to do?%s\n\n", ColorBold+ColorCyan, ColorReset)
-		
-		// Show main menu options
-		fmt.Printf("  %s1.%s %s📖 Show help & usage%s\n", ColorGreen, ColorReset, ColorCyan, ColorReset)
-		fmt.Printf("  %s2.%s %s✨ Generate new script%s\n", ColorGreen, ColorReset, ColorYellow, ColorReset)
-		fmt.Printf("  %s3.%s %s🔄 Load last script%s\n", ColorGreen, ColorReset, ColorMagenta, ColorReset)
-		fmt.Printf("  %s4.%s %s📚 Browse history%s\n", ColorGreen, ColorReset, ColorBlue, ColorReset)
-		fmt.Printf("  %s5.%s %s⚙️  Show configuration%s\n", ColorGreen, ColorReset, ColorPurple, ColorReset)
-		fmt.Printf("  %s6.%s %s🚪 Exit%s\n\n", ColorGreen, ColorReset, ColorDim, ColorReset)
-		
-		// Get user choice with single-key input
+		fmt.Printf("%s%s%s\n\n", ColorBold+ColorCyan, locManager.System.Get("menus.main_prompt"), ColorReset)
+		fmt.Printf("  %s1.%s %s📖 %s%s\n", ColorGreen, ColorReset, ColorCyan, locManager.System.Get("menus.show_help"), ColorReset)
+		fmt.Printf("  %s2.%s %s✨ %s%s\n", ColorGreen, ColorReset, ColorYellow, locManager.System.Get("menus.generate_script"), ColorReset)
+		fmt.Printf("  %s3.%s %s🔄 %s%s\n", ColorGreen, ColorReset, ColorMagenta, locManager.System.Get("menus.load_last"), ColorReset)
+		fmt.Printf("  %s4.%s %s📚 %s%s\n", ColorGreen, ColorReset, ColorBlue, locManager.System.Get("menus.browse_history"), ColorReset)
+		fmt.Printf("  %s5.%s %s⚙️  %s%s\n", ColorGreen, ColorReset, ColorPurple, locManager.System.Get("menus.show_config"), ColorReset)
+		fmt.Printf("  %s6.%s %s🚪 %s%s\n\n", ColorGreen, ColorReset, ColorDim, locManager.System.Get("menus.exit"), ColorReset)
 		fmt.Printf("%sPress 1-6: %s", ColorBold+ColorYellow, ColorReset)
 		choice := getSingleKeyInput()
-		fmt.Printf("%c\n", choice) // Echo the pressed key
-		
+		fmt.Printf("%c\n", choice)
 		if handleMainMenuChoice(string(choice)) {
-			break // Exit if user chose exit
+			break
 		}
 	}
 }
@@ -47,15 +49,15 @@ func ShowMainMenu() {
 func handleMainMenuChoice(choice string) bool {
 	// Handle Enter key as immediate exit
 	if choice == "\r" || choice == "\n" {
-		fmt.Printf("%s✨ Quick exit! Thanks for using Please! 🎉%s\n", ColorGreen, ColorReset)
+		fmt.Printf("%s%s%s\n", ColorGreen, locManager.System.Get("success.exit_quick"), ColorReset)
 		return true // Exit immediately on Enter
 	}
-	
+
 	// Handle other special characters that should be ignored
 	if len(choice) == 0 || choice == " " {
 		return false // Ignore empty or space - continue showing menu
 	}
-	
+
 	switch choice {
 	case "1":
 		ShowHelp()
@@ -73,10 +75,10 @@ func handleMainMenuChoice(choice string) bool {
 		showConfiguration()
 		return false // Continue showing main menu
 	case "6":
-		fmt.Printf("%s✨ Ta-da! Thanks for using Please! Happy scripting! 🎉%s\n", ColorGreen, ColorReset)
+		fmt.Printf("%s%s%s\n", ColorGreen, locManager.System.Get("success.exit"), ColorReset)
 		return true // Exit
 	default:
-		fmt.Printf("%s❌ Invalid choice. Please try again.%s\n", ColorRed, ColorReset)
+		fmt.Printf("%s%s%s\n", ColorRed, locManager.System.Get("errors.invalid_choice"), ColorReset)
 		return false // Continue showing main menu
 	}
 }
@@ -85,17 +87,17 @@ func handleMainMenuChoice(choice string) bool {
 func generateNewScript() {
 	fmt.Printf("\n%s✨ Generate New Script%s\n", ColorBold+ColorCyan, ColorReset)
 	fmt.Printf("%s═══════════════════════════════════════%s\n\n", ColorCyan, ColorReset)
-	
+
 	fmt.Printf("%sDescribe what you want your script to do: %s", ColorYellow, ColorReset)
 	reader := bufio.NewReader(os.Stdin)
 	taskDescription, _ := reader.ReadString('\n')
 	taskDescription = strings.TrimSpace(taskDescription)
-	
+
 	if taskDescription == "" {
 		fmt.Printf("%s❌ No task description provided.%s\n", ColorRed, ColorReset)
 		return
 	}
-	
+
 	fmt.Printf("\n%s🚀 Generating script for: %s%s\n", ColorGreen, taskDescription, ColorReset)
 	fmt.Printf("%s💭 This feature will be implemented to call the main script generation flow...%s\n", ColorDim, ColorReset)
 	fmt.Printf("%s💡 For now, use: please %s%s\n", ColorDim, taskDescription, ColorReset)
@@ -113,19 +115,19 @@ func browseHistory() {
 func showConfiguration() {
 	fmt.Printf("\n%s⚙️ Please Configuration%s\n", ColorBold+ColorCyan, ColorReset)
 	fmt.Printf("%s═══════════════════════════════════════%s\n\n", ColorCyan, ColorReset)
-	
+
 	// Show basic configuration info
 	fmt.Printf("%s🔧 Current Settings:%s\n", ColorBold+ColorYellow, ColorReset)
 	fmt.Printf("  %s• Config directory:%s ~/.please/\n", ColorDim, ColorReset)
 	fmt.Printf("  %s• Default provider:%s %s\n", ColorDim, ColorReset, "ollama (auto-detected)")
 	fmt.Printf("  %s• Default model:%s %s\n", ColorDim, ColorReset, "deepseek-coder:6.7b")
 	fmt.Printf("  %s• Script type:%s %s\n", ColorDim, ColorReset, "powershell (Windows)")
-	
+
 	fmt.Printf("\n%s🔗 Environment Variables:%s\n", ColorBold+ColorYellow, ColorReset)
-	
+
 	pleaseProvider := os.Getenv("PLEASE_PROVIDER")
 	oohllamaProvider := os.Getenv("OOHLAMA_PROVIDER")
-	
+
 	if pleaseProvider != "" {
 		fmt.Printf("  %s• PLEASE_PROVIDER:%s %s\n", ColorDim, ColorReset, pleaseProvider)
 	} else if oohllamaProvider != "" {
@@ -133,7 +135,7 @@ func showConfiguration() {
 	} else {
 		fmt.Printf("  %s• No provider environment variables set%s\n", ColorDim, ColorReset)
 	}
-	
+
 	fmt.Printf("\n%s💡 Tip: Set PLEASE_PROVIDER environment variable to change default provider%s\n", ColorDim, ColorReset)
 }
 
@@ -184,7 +186,7 @@ func getSingleKeyWindows() rune {
 		}
 		return '7'
 	}
-	
+
 	if len(output) > 0 {
 		return rune(output[0])
 	}
@@ -205,22 +207,22 @@ func getSingleKeyUnix() rune {
 		}
 		return '7'
 	}
-	
+
 	// Set terminal to raw mode (single character, no echo)
 	exec.Command("stty", "cbreak", "-echo").Run()
-	
+
 	// Restore terminal settings when done
 	defer func() {
 		exec.Command("stty", string(originalSettings)).Run()
 	}()
-	
+
 	// Read single character
 	reader := bufio.NewReader(os.Stdin)
 	char, _, err := reader.ReadRune()
 	if err != nil {
 		return '7'
 	}
-	
+
 	return char
 }
 
@@ -231,12 +233,12 @@ func handleUserChoice(choice string, response *types.ScriptResponse) bool {
 		fmt.Printf("%s✨ Quick exit! Thanks for using Please! 🎉%s\n", ColorGreen, ColorReset)
 		return true // Exit immediately on Enter
 	}
-	
+
 	// Handle other special characters that should be ignored
 	if len(choice) == 0 || choice == " " {
 		return false // Ignore empty or space - continue showing menu
 	}
-	
+
 	switch choice {
 	case "1":
 		copyToClipboard(response)
@@ -268,7 +270,7 @@ func handleUserChoice(choice string, response *types.ScriptResponse) bool {
 // copyToClipboard copies the script to the system clipboard
 func copyToClipboard(response *types.ScriptResponse) {
 	fmt.Printf("%s📋 Copying script to clipboard...%s\n", ColorCyan, ColorReset)
-	
+
 	if err := script.CopyToClipboard(response.Script); err != nil {
 		fmt.Printf("%s❌ Failed to copy to clipboard: %v%s\n", ColorRed, err, ColorReset)
 		fmt.Printf("%s💡 You can manually copy the script above%s\n", ColorDim, ColorReset)
@@ -281,11 +283,11 @@ func copyToClipboard(response *types.ScriptResponse) {
 // executeScript executes the script with smart safety levels and automatic error recovery
 func executeScript(response *types.ScriptResponse) {
 	executed := false
-	
+
 	// Get script warnings and determine risk level
 	warnings := script.ValidateScript(response)
 	riskLevel := determineRiskLevel(warnings)
-	
+
 	switch riskLevel {
 	case "green":
 		// Low risk - execute immediately with brief message
@@ -298,7 +300,7 @@ func executeScript(response *types.ScriptResponse) {
 		} else {
 			fmt.Printf("%s✅ Script execution completed!%s\n", ColorGreen, ColorReset)
 		}
-		
+
 	case "yellow":
 		// Medium risk - single confirmation
 		if len(warnings) > 0 {
@@ -312,7 +314,7 @@ func executeScript(response *types.ScriptResponse) {
 		fmt.Printf("%s❓ Press 'y' to continue or any other key to cancel: %s", ColorBold+ColorYellow, ColorReset)
 		choice := getSingleKeyInput()
 		fmt.Printf("%c\n", choice)
-		
+
 		if choice == 'y' || choice == 'Y' {
 			fmt.Printf("%s▶️  Executing script...%s\n", ColorGreen, ColorReset)
 			executed = true
@@ -326,7 +328,7 @@ func executeScript(response *types.ScriptResponse) {
 		} else {
 			fmt.Printf("%s🚫 Script execution cancelled.%s\n", ColorYellow, ColorReset)
 		}
-		
+
 	case "red":
 		// High risk - detailed warning flow
 		fmt.Printf("%s🚨 HIGH RISK SCRIPT DETECTED!%s\n", ColorRed+ColorBold, ColorReset)
@@ -337,10 +339,10 @@ func executeScript(response *types.ScriptResponse) {
 		}
 		fmt.Printf("\n%s🛡️  SAFETY WARNING: This script contains potentially dangerous operations!%s\n", ColorRed+ColorBold, ColorReset)
 		fmt.Printf("%s❓ Type 'EXECUTE' to proceed or anything else to cancel: %s", ColorBold+ColorRed, ColorReset)
-		
+
 		reader := bufio.NewReader(os.Stdin)
 		input, _ := reader.ReadString('\n')
-		
+
 		if strings.TrimSpace(input) == "EXECUTE" {
 			fmt.Printf("%s⚠️  Executing high-risk script...%s\n", ColorRed, ColorReset)
 			executed = true
@@ -360,7 +362,7 @@ func executeScript(response *types.ScriptResponse) {
 			fmt.Printf("%s🚫 Script execution cancelled for safety.%s\n", ColorYellow, ColorReset)
 		}
 	}
-	
+
 	// Save to history if executed (whether successful or not)
 	if executed {
 		saveToHistory(response)
@@ -371,7 +373,7 @@ func executeScript(response *types.ScriptResponse) {
 func determineRiskLevel(warnings []string) string {
 	hasRed := false
 	hasYellow := false
-	
+
 	for _, warning := range warnings {
 		if strings.HasPrefix(warning, "⛔") || strings.HasPrefix(warning, "🔴") {
 			hasRed = true
@@ -379,7 +381,7 @@ func determineRiskLevel(warnings []string) string {
 			hasYellow = true
 		}
 	}
-	
+
 	if hasRed {
 		return "red"
 	} else if hasYellow {
@@ -391,19 +393,19 @@ func determineRiskLevel(warnings []string) string {
 // saveToFile saves the script to a file
 func saveToFile(response *types.ScriptResponse) {
 	fmt.Printf("%s💾 Saving script to file...%s\n", ColorBlue, ColorReset)
-	
+
 	// Get suggested filename from script package
 	defaultFilename := script.GetSuggestedFilename(response)
 	fmt.Printf("%sEnter filename (press Enter for '%s'): %s", ColorYellow, defaultFilename, ColorReset)
-	
+
 	reader := bufio.NewReader(os.Stdin)
 	input, _ := reader.ReadString('\n')
 	filename := strings.TrimSpace(input)
-	
+
 	if filename == "" {
 		filename = defaultFilename
 	}
-	
+
 	// Save using script package
 	if err := script.SaveToFile(response.Script, filename); err != nil {
 		fmt.Printf("%s❌ Failed to save script: %v%s\n", ColorRed, err, ColorReset)
@@ -411,7 +413,7 @@ func saveToFile(response *types.ScriptResponse) {
 		fmt.Printf("%s✅ Script saved as '%s'!%s\n", ColorGreen, filename, ColorReset)
 		fmt.Printf("%s💡 File is ready to use%s\n", ColorDim, ColorReset)
 	}
-	
+
 	// Save as last script
 	saveLastScript(response)
 }
@@ -420,17 +422,17 @@ func saveToFile(response *types.ScriptResponse) {
 func editScript(response *types.ScriptResponse) {
 	fmt.Printf("%s✏️  Edit Script%s\n", ColorBold+ColorPurple, ColorReset)
 	fmt.Printf("%s═══════════════════════════════════════%s\n\n", ColorPurple, ColorReset)
-	
+
 	// Offer editing options
 	fmt.Printf("%sChoose editing method:%s\n\n", ColorBold+ColorYellow, ColorReset)
 	fmt.Printf("  %s1.%s %sOpen in external editor (recommended)%s\n", ColorGreen, ColorReset, ColorCyan, ColorReset)
 	fmt.Printf("  %s2.%s %sInline editing (line-by-line)%s\n", ColorGreen, ColorReset, ColorBlue, ColorReset)
 	fmt.Printf("  %s3.%s %sCancel editing%s\n\n", ColorGreen, ColorReset, ColorDim, ColorReset)
-	
+
 	fmt.Printf("%sPress 1-3: %s", ColorBold+ColorYellow, ColorReset)
 	choice := getSingleKeyInput()
 	fmt.Printf("%c\n", choice)
-	
+
 	switch string(choice) {
 	case "1":
 		// External editor
@@ -442,7 +444,7 @@ func editScript(response *types.ScriptResponse) {
 			*response = *editedResponse
 			fmt.Printf("%s🎯 Updated script is now active in the menu%s\n", ColorGreen, ColorReset)
 		}
-		
+
 	case "2":
 		// Inline editing
 		if editedResponse, err := script.OfferInlineEditing(response); err != nil {
@@ -452,10 +454,10 @@ func editScript(response *types.ScriptResponse) {
 			*response = *editedResponse
 			fmt.Printf("%s🎯 Updated script is now active in the menu%s\n", ColorGreen, ColorReset)
 		}
-		
+
 	case "3":
 		fmt.Printf("%s🚫 Editing cancelled%s\n", ColorYellow, ColorReset)
-		
+
 	default:
 		fmt.Printf("%s❌ Invalid choice%s\n", ColorRed, ColorReset)
 	}
@@ -465,18 +467,18 @@ func editScript(response *types.ScriptResponse) {
 func showDetailedExplanation(response *types.ScriptResponse) {
 	fmt.Printf("\n%s📖 Detailed Script Explanation%s\n", ColorBold+ColorCyan, ColorReset)
 	fmt.Printf("%s═══════════════════════════════════════%s\n\n", ColorCyan, ColorReset)
-	
+
 	fmt.Printf("%s🎯 Task Analysis:%s\n", ColorBold+ColorYellow, ColorReset)
 	fmt.Printf("  %s• Original request:%s %s\n", ColorDim, ColorReset, response.TaskDescription)
 	fmt.Printf("  %s• Script type:%s %s\n", ColorDim, ColorReset, response.ScriptType)
 	fmt.Printf("  %s• AI model used:%s %s (%s)\n", ColorDim, ColorReset, response.Model, response.Provider)
-	
+
 	fmt.Printf("\n%s🔍 Script Analysis:%s\n", ColorBold+ColorYellow, ColorReset)
-	
+
 	lines := strings.Split(response.Script, "\n")
 	commentCount := 0
 	commandCount := 0
-	
+
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
 		if response.ScriptType == "powershell" {
@@ -493,11 +495,11 @@ func showDetailedExplanation(response *types.ScriptResponse) {
 			}
 		}
 	}
-	
+
 	fmt.Printf("  %s• Total lines:%s %d\n", ColorDim, ColorReset, len(lines))
 	fmt.Printf("  %s• Comment lines:%s %d\n", ColorDim, ColorReset, commentCount)
 	fmt.Printf("  %s• Command lines:%s %d\n", ColorDim, ColorReset, commandCount)
-	
+
 	fmt.Printf("\n%s💡 Usage Tips:%s\n", ColorBold+ColorYellow, ColorReset)
 	if response.ScriptType == "powershell" {
 		fmt.Printf("  %s• Run in PowerShell with:%s ./script.ps1\n", ColorDim, ColorReset)
@@ -515,9 +517,9 @@ func saveLastScript(response *types.ScriptResponse) {
 	if err != nil {
 		return // Silently fail
 	}
-	
+
 	lastScriptPath := filepath.Join(configDir, "last_script.json")
-	
+
 	// Create a simple JSON representation
 	jsonContent := fmt.Sprintf(`{
   "task_description": "%s",
@@ -525,13 +527,13 @@ func saveLastScript(response *types.ScriptResponse) {
   "script_type": "%s",
   "model": "%s",
   "provider": "%s"
-}`, 
+}`,
 		strings.ReplaceAll(response.TaskDescription, `"`, `\"`),
 		strings.ReplaceAll(response.Script, `"`, `\"`),
 		response.ScriptType,
 		response.Model,
 		response.Provider)
-	
+
 	os.WriteFile(lastScriptPath, []byte(jsonContent), 0644)
 }
 
@@ -542,57 +544,57 @@ func loadLastScript() {
 		fmt.Printf("%s❌ Could not access config directory: %v%s\n", ColorRed, err, ColorReset)
 		return
 	}
-	
+
 	lastScriptPath := filepath.Join(configDir, "last_script.json")
-	
+
 	if _, err := os.Stat(lastScriptPath); os.IsNotExist(err) {
 		fmt.Printf("%s📭 No previous script found.%s\n", ColorYellow, ColorReset)
 		fmt.Printf("%s💡 Generate a script first, then use this option to reload it.%s\n", ColorDim, ColorReset)
 		return
 	}
-	
+
 	data, err := os.ReadFile(lastScriptPath)
 	if err != nil {
 		fmt.Printf("%s❌ Could not read last script: %v%s\n", ColorRed, err, ColorReset)
 		return
 	}
-	
+
 	// For simplicity, we'll parse this manually (in production, use proper JSON)
 	content := string(data)
-	
+
 	// Extract fields (simplified parsing)
 	taskDesc := extractJSONField(content, "task_description")
 	script := extractJSONField(content, "script")
 	scriptType := extractJSONField(content, "script_type")
 	model := extractJSONField(content, "model")
 	provider := extractJSONField(content, "provider")
-	
+
 	// Create response object
 	response := &types.ScriptResponse{
 		TaskDescription: taskDesc,
-		Script:         script,
-		ScriptType:     scriptType,
-		Model:          model,
-		Provider:       provider,
+		Script:          script,
+		ScriptType:      scriptType,
+		Model:           model,
+		Provider:        provider,
 	}
-	
+
 	// Display the loaded script
 	fmt.Printf("\n%s🔄 Loading last script...%s\n", ColorMagenta, ColorReset)
 	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("═", 78), ColorReset)
 	fmt.Printf("\n%s📝 Task:%s %s\n", ColorBold+ColorCyan, ColorReset, response.TaskDescription)
 	fmt.Printf("%s🧠 Model:%s %s (%s)\n", ColorBold+ColorCyan, ColorReset, response.Model, response.Provider)
 	fmt.Printf("%s🖥️  Platform:%s %s script\n", ColorBold+ColorCyan, ColorReset, response.ScriptType)
-	
+
 	fmt.Printf("\n%s%s%s\n", ColorDim, strings.Repeat("═", 78), ColorReset)
 	fmt.Printf("%s                              📋 Last Generated Script                             %s\n", ColorBold+ColorCyan, ColorReset)
 	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("═", 78), ColorReset)
-	
+
 	// Display script with line numbers
 	lines := strings.Split(response.Script, "\n")
 	for i, line := range lines {
 		fmt.Printf("%s%3d│%s %s\n", ColorDim, i+1, ColorReset, line)
 	}
-	
+
 	fmt.Printf("\n%s✅ Last script loaded successfully!%s\n", ColorGreen, ColorReset)
 }
 
@@ -638,12 +640,12 @@ func extractJSONField(content, field string) string {
 		return ""
 	}
 	start += len(fieldPattern)
-	
+
 	end := strings.Index(content[start:], `"`)
 	if end == -1 {
 		return ""
 	}
-	
+
 	value := content[start : start+end]
 	// Unescape quotes
 	value = strings.ReplaceAll(value, `\"`, `"`)
@@ -653,31 +655,31 @@ func extractJSONField(content, field string) string {
 // tryAutoFix attempts to automatically fix a failed script using AI
 func tryAutoFix(originalResponse *types.ScriptResponse, errorMessage string) {
 	fmt.Printf("%s🔧 Auto-fixing script...%s\n", ColorYellow, ColorReset)
-	
-	// For now, we'll use a simple approach - in a real implementation, 
+
+	// For now, we'll use a simple approach - in a real implementation,
 	// you'd call the same AI provider that generated the original script
 	fmt.Printf("%s💭 Analyzing error and generating fix...%s\n", ColorDim, ColorReset)
-	
+
 	// Simulate AI call (in real implementation, use providers.GenerateScript)
 	// For demo purposes, create a simple fix response
 	fixedResponse := &types.ScriptResponse{
 		TaskDescription: "Auto-fix for: " + originalResponse.TaskDescription,
-		Script:         generateSimpleFix(originalResponse.Script, errorMessage),
-		ScriptType:     originalResponse.ScriptType,
-		Model:          originalResponse.Model,
-		Provider:       originalResponse.Provider,
+		Script:          generateSimpleFix(originalResponse.Script, errorMessage),
+		ScriptType:      originalResponse.ScriptType,
+		Model:           originalResponse.Model,
+		Provider:        originalResponse.Provider,
 	}
-	
+
 	// Display the fixed script
 	fmt.Printf("\n%s✨ Generated automatic fix:%s\n", ColorGreen, ColorReset)
 	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("─", 60), ColorReset)
-	
+
 	lines := strings.Split(fixedResponse.Script, "\n")
 	for i, line := range lines {
 		fmt.Printf("%s%3d│%s %s\n", ColorDim, i+1, ColorReset, line)
 	}
 	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("─", 60), ColorReset)
-	
+
 	// Execute the fixed script automatically
 	fmt.Printf("%s🚀 Testing fixed script...%s\n", ColorGreen, ColorReset)
 	if err := script.ExecuteScript(fixedResponse); err != nil {
@@ -695,32 +697,32 @@ func tryAutoFix(originalResponse *types.ScriptResponse, errorMessage string) {
 func generateSimpleFix(originalScript, errorMessage string) string {
 	// Simple error fixing logic - in production, this would be handled by AI
 	lowerError := strings.ToLower(errorMessage)
-	
+
 	if strings.Contains(lowerError, "execution policy") {
 		// PowerShell execution policy error
 		return fmt.Sprintf("# Auto-fix: Added execution policy bypass\nSet-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force\n\n%s", originalScript)
 	}
-	
+
 	if strings.Contains(lowerError, "command not found") || strings.Contains(lowerError, "not recognized") {
 		// Command not found - try to add error handling
-		return fmt.Sprintf("# Auto-fix: Added error handling and verification\ntry {\n    %s\n} catch {\n    Write-Host \"Error: $_\"\n    Write-Host \"Please check if the required command is installed\"\n    exit 1\n}", 
+		return fmt.Sprintf("# Auto-fix: Added error handling and verification\ntry {\n    %s\n} catch {\n    Write-Host \"Error: $_\"\n    Write-Host \"Please check if the required command is installed\"\n    exit 1\n}",
 			strings.ReplaceAll(originalScript, "\n", "\n    "))
 	}
-	
+
 	if strings.Contains(lowerError, "permission denied") || strings.Contains(lowerError, "access denied") {
 		// Permission error
 		if strings.Contains(originalScript, "#!/bin/bash") || strings.Contains(originalScript, "#!/bin/sh") {
-			return fmt.Sprintf("#!/bin/bash\n# Auto-fix: Added sudo for permission issues\nsudo %s", 
+			return fmt.Sprintf("#!/bin/bash\n# Auto-fix: Added sudo for permission issues\nsudo %s",
 				strings.TrimPrefix(originalScript, "#!/bin/bash\n"))
 		} else {
-			return fmt.Sprintf("# Auto-fix: Running as Administrator\nif (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] \"Administrator\")) {\n    Write-Host \"Restarting as Administrator...\"\n    Start-Process PowerShell -Verb RunAs -ArgumentList \"-Command\", \"%s\"\n    exit\n}\n\n%s", 
+			return fmt.Sprintf("# Auto-fix: Running as Administrator\nif (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] \"Administrator\")) {\n    Write-Host \"Restarting as Administrator...\"\n    Start-Process PowerShell -Verb RunAs -ArgumentList \"-Command\", \"%s\"\n    exit\n}\n\n%s",
 				strings.ReplaceAll(originalScript, `"`, `\"`), originalScript)
 		}
 	}
-	
+
 	// Default: add basic error handling
 	if strings.Contains(originalScript, "powershell") || strings.Contains(originalScript, "PowerShell") {
-		return fmt.Sprintf("# Auto-fix: Added comprehensive error handling\ntry {\n    %s\n} catch {\n    Write-Host \"Script failed with error: $_\" -ForegroundColor Red\n    Write-Host \"Please check the script and try again.\" -ForegroundColor Yellow\n    exit 1\n}", 
+		return fmt.Sprintf("# Auto-fix: Added comprehensive error handling\ntry {\n    %s\n} catch {\n    Write-Host \"Script failed with error: $_\" -ForegroundColor Red\n    Write-Host \"Please check the script and try again.\" -ForegroundColor Yellow\n    exit 1\n}",
 			strings.ReplaceAll(originalScript, "\n", "\n    "))
 	} else {
 		return fmt.Sprintf("#!/bin/bash\n# Auto-fix: Added error handling\nset -e  # Exit on any error\n\n%s\n\necho \"Script completed successfully!\"", originalScript)
@@ -733,16 +735,16 @@ func saveToHistory(response *types.ScriptResponse) {
 	if err != nil {
 		return // Silently fail
 	}
-	
+
 	historyDir := filepath.Join(configDir, "history")
 	if err := os.MkdirAll(historyDir, 0755); err != nil {
 		return // Silently fail
 	}
-	
+
 	// Create filename with timestamp
 	timestamp := fmt.Sprintf("%d", time.Now().Unix())
 	historyFile := filepath.Join(historyDir, fmt.Sprintf("script_%s.json", timestamp))
-	
+
 	// Create enhanced JSON with timestamp and execution info
 	jsonContent := fmt.Sprintf(`{
   "timestamp": %s,
@@ -752,7 +754,7 @@ func saveToHistory(response *types.ScriptResponse) {
   "model": "%s",
   "provider": "%s",
   "executed_at": "%s"
-}`, 
+}`,
 		timestamp,
 		strings.ReplaceAll(response.TaskDescription, `"`, `\"`),
 		strings.ReplaceAll(response.Script, `"`, `\"`),
@@ -760,6 +762,6 @@ func saveToHistory(response *types.ScriptResponse) {
 		response.Model,
 		response.Provider,
 		time.Now().Format("2006-01-02 15:04:05"))
-	
+
 	os.WriteFile(historyFile, []byte(jsonContent), 0644)
 }
