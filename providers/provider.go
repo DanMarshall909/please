@@ -24,6 +24,7 @@ func CreatePrompt(taskDescription, scriptType string) string {
 ` + taskDescription + `
 
 Requirements:
+- ***CRITICAL*** ANY POTENTIALLY DANGEROUS OR UNKNOWN COMMANDS SHOULD BE HIGHLIGHTED WITH COMMENTS EXPLAINING WHY THEY ARE DANGEROUS TO ENSURE THAT THEY ARE CHECKED BY THE USER BEFORE RUNNING
 - Write clean, well-commented Bash code
 - Include error handling where appropriate
 - Use Bash best practices
@@ -41,6 +42,7 @@ Bash Script:`
 ` + taskDescription + `
 
 Requirements:
+- ***CRITICAL*** ANY POTENTIALLY DANGEROUS OR UNKNOWN COMMANDS SHOULD BE HIGHLIGHTED WITH COMMENTS EXPLAINING WHY THEY ARE DANGEROUS TO ENSURE THAT THEY ARE CHECKED BY THE USER BEFORE RUNNING
 - Write clean, well-commented PowerShell code
 - Include error handling where appropriate
 - Use PowerShell best practices
