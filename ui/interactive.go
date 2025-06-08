@@ -10,7 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"please/config"
 	"please/localization"
+	"please/providers"
 	"please/script"
 	"please/types"
 )
@@ -656,15 +658,29 @@ func extractJSONField(content, field string) string {
 func tryAutoFix(originalResponse *types.ScriptResponse, errorMessage string) {
 	fmt.Printf("%s🔧 Auto-fixing script...%s\n", ColorYellow, ColorReset)
 
-	// For now, we'll use a simple approach - in a real implementation,
-	// you'd call the same AI provider that generated the original script
-	fmt.Printf("%s💭 Analyzing error and generating fix...%s\n", ColorDim, ColorReset)
+	// Load config for provider
+	cfg, err := config.Load()
+	if err != nil {
+		fmt.Printf("%s❌ Could not load config for auto-fix: %v%s\n", ColorRed, err, ColorReset)
+		return
+	}
 
-	// Simulate AI call (in real implementation, use providers.GenerateScript)
-	// For demo purposes, create a simple fix response
+	// Call the AI provider to generate a fixed script
+	fixedScript, err := providers.GenerateFixedScript(
+		originalResponse.Script,
+		errorMessage,
+		originalResponse.ScriptType,
+		originalResponse.Model,
+		originalResponse.Provider,
+		cfg,
+	)
+	if err != nil {
+		fmt.Printf("%s❌ Auto-fix failed: %v%s\n", ColorRed, err, ColorReset)
+		return
+	}
 	fixedResponse := &types.ScriptResponse{
 		TaskDescription: "Auto-fix for: " + originalResponse.TaskDescription,
-		Script:          generateSimpleFix(originalResponse.Script, errorMessage),
+		Script:          fixedScript,
 		ScriptType:      originalResponse.ScriptType,
 		Model:           originalResponse.Model,
 		Provider:        originalResponse.Provider,
@@ -690,42 +706,6 @@ func tryAutoFix(originalResponse *types.ScriptResponse, errorMessage string) {
 		// Update the original response with the fixed version
 		originalResponse.Script = fixedResponse.Script
 		originalResponse.TaskDescription = fixedResponse.TaskDescription
-	}
-}
-
-// generateSimpleFix creates a basic fix for common script errors
-func generateSimpleFix(originalScript, errorMessage string) string {
-	// Simple error fixing logic - in production, this would be handled by AI
-	lowerError := strings.ToLower(errorMessage)
-
-	if strings.Contains(lowerError, "execution policy") {
-		// PowerShell execution policy error
-		return fmt.Sprintf("# Auto-fix: Added execution policy bypass\nSet-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force\n\n%s", originalScript)
-	}
-
-	if strings.Contains(lowerError, "command not found") || strings.Contains(lowerError, "not recognized") {
-		// Command not found - try to add error handling
-		return fmt.Sprintf("# Auto-fix: Added error handling and verification\ntry {\n    %s\n} catch {\n    Write-Host \"Error: $_\"\n    Write-Host \"Please check if the required command is installed\"\n    exit 1\n}",
-			strings.ReplaceAll(originalScript, "\n", "\n    "))
-	}
-
-	if strings.Contains(lowerError, "permission denied") || strings.Contains(lowerError, "access denied") {
-		// Permission error
-		if strings.Contains(originalScript, "#!/bin/bash") || strings.Contains(originalScript, "#!/bin/sh") {
-			return fmt.Sprintf("#!/bin/bash\n# Auto-fix: Added sudo for permission issues\nsudo %s",
-				strings.TrimPrefix(originalScript, "#!/bin/bash\n"))
-		} else {
-			return fmt.Sprintf("# Auto-fix: Running as Administrator\nif (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] \"Administrator\")) {\n    Write-Host \"Restarting as Administrator...\"\n    Start-Process PowerShell -Verb RunAs -ArgumentList \"-Command\", \"%s\"\n    exit\n}\n\n%s",
-				strings.ReplaceAll(originalScript, `"`, `\"`), originalScript)
-		}
-	}
-
-	// Default: add basic error handling
-	if strings.Contains(originalScript, "powershell") || strings.Contains(originalScript, "PowerShell") {
-		return fmt.Sprintf("# Auto-fix: Added comprehensive error handling\ntry {\n    %s\n} catch {\n    Write-Host \"Script failed with error: $_\" -ForegroundColor Red\n    Write-Host \"Please check the script and try again.\" -ForegroundColor Yellow\n    exit 1\n}",
-			strings.ReplaceAll(originalScript, "\n", "\n    "))
-	} else {
-		return fmt.Sprintf("#!/bin/bash\n# Auto-fix: Added error handling\nset -e  # Exit on any error\n\n%s\n\necho \"Script completed successfully!\"", originalScript)
 	}
 }
 

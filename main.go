@@ -9,6 +9,7 @@ import (
 	"please/config"
 	"please/models"
 	"please/providers"
+	"please/script"
 	"please/types"
 	"please/ui"
 )
@@ -34,6 +35,9 @@ func main() {
 			return
 		case "--help", "-h":
 			ui.ShowHelp()
+			return
+		case "--test-monitor", "--monitor-tests":
+			runTestMonitor()
 			return
 		}
 	}
@@ -142,7 +146,7 @@ func displayScriptAndConfirm(response *types.ScriptResponse) {
 	}
 
 	fmt.Printf("\n✅ Script generated successfully!\n")
-	
+
 	// Show interactive menu
 	ui.ShowScriptMenu(response)
 }
@@ -151,7 +155,7 @@ func displayScriptAndConfirm(response *types.ScriptResponse) {
 func installAlias() {
 	ui.PrintRainbowBanner()
 	fmt.Printf("\n%s🔧 Installing 'pls' alias (with 'ol' for backwards compatibility)...%s\n\n", ui.ColorBold+ui.ColorYellow, ui.ColorReset)
-	
+
 	// Get current executable path
 	execPath, err := os.Executable()
 	if err != nil {
@@ -195,7 +199,7 @@ func uninstallAlias() {
 	}
 
 	dir := filepath.Dir(execPath)
-	
+
 	// Remove pls.bat
 	plsBatPath := filepath.Join(dir, "pls.bat")
 	if err := os.Remove(plsBatPath); err != nil {
@@ -218,5 +222,50 @@ func uninstallAlias() {
 		}
 	} else {
 		fmt.Printf("%s✅ Successfully removed ol.bat%s\n", ui.ColorGreen, ui.ColorReset)
+	}
+}
+
+// runTestMonitor executes AI-powered test monitoring
+func runTestMonitor() {
+	// Load configuration
+	cfg, err := config.Load()
+	if err != nil {
+		// Create default config if none exists
+		cfg = config.CreateDefault()
+		config.Save(cfg) // Ignore errors for config saving
+	}
+
+	// Determine provider
+	providerName := config.DetermineProvider(cfg)
+
+	// Create the appropriate provider
+	var provider providers.Provider
+	switch providerName {
+	case "ollama":
+		provider = providers.NewOllamaProvider(cfg)
+	case "openai":
+		provider = providers.NewOpenAIProvider(cfg)
+	case "anthropic":
+		provider = providers.NewAnthropicProvider(cfg)
+	default:
+		fmt.Fprintf(os.Stderr, "Error: Unsupported provider: %s\n", providerName)
+		os.Exit(1)
+	}
+
+	if !provider.IsConfigured(cfg) {
+		fmt.Fprintf(os.Stderr, "Error: Provider %s is not properly configured\n", providerName)
+		os.Exit(1)
+	}
+
+	// Parse test pattern from command line arguments
+	testPattern := ""
+	if len(os.Args) >= 3 {
+		testPattern = os.Args[2]
+	}
+
+	// Run the test monitor
+	if err := script.RunMonitoredTests(provider, cfg, testPattern); err != nil {
+		fmt.Fprintf(os.Stderr, "Error running monitored tests: %v\n", err)
+		os.Exit(1)
 	}
 }

@@ -8,10 +8,10 @@ import (
 type Provider interface {
 	// GenerateScript generates a script using the provider's AI service
 	GenerateScript(request *types.ScriptRequest) (*types.ScriptResponse, error)
-	
+
 	// Name returns the name of the provider
 	Name() string
-	
+
 	// IsConfigured returns true if the provider is properly configured
 	IsConfigured(config *types.Config) bool
 }
@@ -54,4 +54,25 @@ Requirements:
 
 PowerShell Script:`
 	}
+}
+
+// GenerateFixedScript generates a fixed script using the provider's AI service, given the original script and error message
+func GenerateFixedScript(originalScript, errorMessage, scriptType, model, provider string, config *types.Config) (string, error) {
+	// Compose a prompt for the LLM to fix the script based on the error
+	prompt := "The following script failed with this error:\n\nScript:\n" + originalScript + "\n\nError:\n" + errorMessage + "\n\nPlease suggest a corrected version of the script. Return ONLY the fixed script, no explanations or markdown formatting."
+
+	request := &types.ScriptRequest{
+		TaskDescription: prompt,
+		ScriptType:      scriptType,
+		Provider:        provider,
+		Model:           model,
+	}
+
+	// Select provider (for now, only OpenAI is implemented here)
+	openai := NewOpenAIProvider(config)
+	resp, err := openai.GenerateScript(request)
+	if err != nil {
+		return "", err
+	}
+	return resp.Script, nil
 }

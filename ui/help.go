@@ -29,6 +29,11 @@ func ShowHelp() {
 	fmt.Printf("  %s--version%s         %sShow version information%s\n", ColorGreen, ColorReset, ColorDim, ColorReset)
 	fmt.Printf("  %s--help, -h%s        %sShow this help message%s\n\n", ColorGreen, ColorReset, ColorDim, ColorReset)
 
+	fmt.Printf("%s🧪 Test Monitoring:%s\n", ColorBold+ColorYellow, ColorReset)
+	fmt.Printf("  %s--test-monitor%s     %sRun tests with AI failure analysis%s\n", ColorGreen, ColorReset, ColorDim, ColorReset)
+	fmt.Printf("  %s--monitor-tests%s    %sAlias for --test-monitor%s\n", ColorGreen, ColorReset, ColorDim, ColorReset)
+	fmt.Printf("  %spls --test-monitor TestName%s %sAnalyze specific test pattern%s\n\n", ColorGreen, ColorReset, ColorDim, ColorReset)
+
 	fmt.Printf("%s🎨 Features:%s\n", ColorBold+ColorYellow, ColorReset)
 	fmt.Printf("  %s🌍 Cross-platform%s (Windows PowerShell, Linux/macOS Bash)\n", ColorCyan, ColorReset)
 	fmt.Printf("  %s🧠 Multiple AI providers%s (Ollama, OpenAI, Anthropic)\n", ColorCyan, ColorReset)
