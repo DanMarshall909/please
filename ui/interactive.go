@@ -151,12 +151,13 @@ func ShowScriptMenu(response *types.ScriptResponse) {
 		fmt.Printf("  %s2.%s %s▶️  Execute script now%s\n", ColorGreen, ColorReset, ColorYellow, ColorReset)
 		fmt.Printf("  %s3.%s %s💾 Save to file%s\n", ColorGreen, ColorReset, ColorBlue, ColorReset)
 		fmt.Printf("  %s4.%s %s✏️  Edit script%s\n", ColorGreen, ColorReset, ColorPurple, ColorReset)
-		fmt.Printf("  %s5.%s %s📖 Show detailed explanation%s\n", ColorGreen, ColorReset, ColorWhite, ColorReset)
-		fmt.Printf("  %s6.%s %s🔄 Load last script%s\n", ColorGreen, ColorReset, ColorMagenta, ColorReset)
-		fmt.Printf("  %s7.%s %s🚪 Exit%s\n\n", ColorGreen, ColorReset, ColorDim, ColorReset)
+		fmt.Printf("  %s5.%s %s🧠 Refine script with AI%s\n", ColorGreen, ColorReset, ColorMagenta, ColorReset)
+		fmt.Printf("  %s6.%s %s📖 Show detailed explanation%s\n", ColorGreen, ColorReset, ColorWhite, ColorReset)
+		fmt.Printf("  %s7.%s %s🔄 Load last script%s\n", ColorGreen, ColorReset, ColorMagenta, ColorReset)
+		fmt.Printf("  %s8.%s %s🚪 Exit%s\n\n", ColorGreen, ColorReset, ColorDim, ColorReset)
 
 		// Get user choice with single-key input
-		fmt.Printf("%sPress 1-7: %s", ColorBold+ColorYellow, ColorReset)
+		fmt.Printf("%sPress 1-8: %s", ColorBold+ColorYellow, ColorReset)
 		choice := getSingleKeyInput()
 		fmt.Printf("%c\n", choice) // Echo the pressed key
 
@@ -255,12 +256,15 @@ func handleUserChoice(choice string, response *types.ScriptResponse) bool {
 		editScript(response)
 		return false // Continue showing menu
 	case "5":
-		showDetailedExplanation(response)
+		refineScript(response)
 		return false // Continue showing menu
 	case "6":
-		loadLastScript()
+		showDetailedExplanation(response)
 		return false // Continue showing menu
 	case "7":
+		loadLastScript()
+		return false // Continue showing menu
+	case "8":
 		fmt.Printf("%s✨ Ta-da! Thanks for using Please! Happy scripting! 🎉%s\n", ColorGreen, ColorReset)
 		return true // Exit
 	default:
@@ -735,14 +739,16 @@ func extractJSONField(content, field string) string {
 
 // tryAutoFix attempts to automatically fix a failed script using AI
 func tryAutoFix(originalResponse *types.ScriptResponse, errorMessage string) {
-	fmt.Printf("%s🔧 Auto-fixing script...%s\n", ColorYellow, ColorReset)
-
 	// Load config for provider
 	cfg, err := config.Load()
 	if err != nil {
 		fmt.Printf("%s❌ Could not load config for auto-fix: %v%s\n", ColorRed, err, ColorReset)
 		return
 	}
+
+	// Show detailed progress for auto-fix operation
+	stopProgress := ShowProviderProgress(originalResponse.Provider, "Auto-fixing script")
+	defer stopProgress()
 
 	// Call the AI provider to generate a fixed script
 	fixedScript, err := providers.GenerateFixedScript(
@@ -753,6 +759,10 @@ func tryAutoFix(originalResponse *types.ScriptResponse, errorMessage string) {
 		originalResponse.Provider,
 		cfg,
 	)
+	
+	// Stop progress before showing results
+	stopProgress()
+	
 	if err != nil {
 		fmt.Printf("%s❌ Auto-fix failed: %v%s\n", ColorRed, err, ColorReset)
 		return
@@ -786,6 +796,80 @@ func tryAutoFix(originalResponse *types.ScriptResponse, errorMessage string) {
 		originalResponse.Script = fixedResponse.Script
 		originalResponse.TaskDescription = fixedResponse.TaskDescription
 	}
+}
+
+// refineScript allows the user to refine the script using AI
+func refineScript(response *types.ScriptResponse) {
+	fmt.Printf("%s🧠 Refine Script with AI%s\n", ColorBold+ColorMagenta, ColorReset)
+	fmt.Printf("%s═══════════════════════════════════════%s\n\n", ColorMagenta, ColorReset)
+
+	// Show helpful suggestions
+	fmt.Printf("%s💡 Refinement suggestions (or type your own):%s\n\n", ColorBold+ColorYellow, ColorReset)
+	suggestions := script.GetRefinementPromptSuggestions()
+	for i, suggestion := range suggestions {
+		if i >= 5 { // Show only first 5 suggestions
+			break
+		}
+		fmt.Printf("  %s%d.%s %s%s\n", ColorGreen, i+1, ColorReset, suggestion, ColorReset)
+	}
+	
+	fmt.Printf("\n%sEnter refinement request (or number 1-5): %s", ColorYellow, ColorReset)
+	reader := bufio.NewReader(os.Stdin)
+	input, _ := reader.ReadString('\n')
+	refinementRequest := strings.TrimSpace(input)
+
+	if refinementRequest == "" {
+		fmt.Printf("%s❌ No refinement request provided.%s\n", ColorRed, ColorReset)
+		return
+	}
+
+	// Check if user selected a number
+	if len(refinementRequest) == 1 && refinementRequest >= "1" && refinementRequest <= "5" {
+		suggestionIndex := int(refinementRequest[0] - '1')
+		if suggestionIndex < len(suggestions) {
+			refinementRequest = suggestions[suggestionIndex]
+			fmt.Printf("%s✅ Using suggestion: %s%s\n", ColorGreen, refinementRequest, ColorReset)
+		}
+	}
+
+	// Load configuration
+	cfg, err := config.Load()
+	if err != nil {
+		fmt.Printf("%s❌ Could not load config for refinement: %v%s\n", ColorRed, err, ColorReset)
+		return
+	}
+
+	// Show progress indication
+	stopProgress := ShowProviderProgress(response.Provider, "Refining script")
+	
+	// Call the refinement function
+	refinedResponse, err := script.RefineScript(response, refinementRequest, cfg)
+	
+	// Stop progress before showing results
+	stopProgress()
+	
+	if err != nil {
+		fmt.Printf("%s❌ Script refinement failed: %v%s\n", ColorRed, err, ColorReset)
+		return
+	}
+
+	// Display the refined script
+	fmt.Printf("\n%s✨ Refined Script:%s\n", ColorGreen, ColorReset)
+	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("═", 78), ColorReset)
+	fmt.Printf("%s📝 Task:%s %s\n", ColorBold+ColorCyan, ColorReset, refinedResponse.TaskDescription)
+	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("═", 78), ColorReset)
+
+	// Display refined script with line numbers
+	lines := strings.Split(refinedResponse.Script, "\n")
+	for i, line := range lines {
+		fmt.Printf("%s%3d│%s %s\n", ColorDim, i+1, ColorReset, line)
+	}
+
+	fmt.Printf("\n%s✅ Script refined successfully!%s\n", ColorGreen, ColorReset)
+	
+	// Update the original response with the refined version
+	*response = *refinedResponse
+	fmt.Printf("%s🎯 Refined script is now active in the menu%s\n", ColorGreen, ColorReset)
 }
 
 // saveToHistory saves the script to the execution history

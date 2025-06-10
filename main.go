@@ -115,6 +115,10 @@ func generateScript(cfg *types.Config, request *types.ScriptRequest) (*types.Scr
 		return nil, fmt.Errorf("provider %s is not properly configured", request.Provider)
 	}
 
+	// Show progress indication during script generation
+	stopProgress := ui.ShowProviderProgress(request.Provider, "Generating script")
+	defer stopProgress()
+
 	return provider.GenerateScript(request)
 }
 
