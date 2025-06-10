@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"fmt"
 	"please/types"
 )
 
@@ -68,9 +69,20 @@ func GenerateFixedScript(originalScript, errorMessage, scriptType, model, provid
 		Model:           model,
 	}
 
-	// Select provider (for now, only OpenAI is implemented here)
-	openai := NewOpenAIProvider(config)
-	resp, err := openai.GenerateScript(request)
+	// Select the correct provider based on the provider parameter, not hard-coded OpenAI
+	var providerInstance Provider
+	switch provider {
+	case "openai":
+		providerInstance = NewOpenAIProvider(config)
+	case "anthropic":
+		providerInstance = NewAnthropicProvider(config)
+	case "ollama":
+		providerInstance = NewOllamaProvider(config)
+	default:
+		return "", fmt.Errorf("unsupported provider: %s", provider)
+	}
+
+	resp, err := providerInstance.GenerateScript(request)
 	if err != nil {
 		return "", err
 	}
