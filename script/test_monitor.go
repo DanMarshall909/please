@@ -148,45 +148,58 @@ func (tm *TestMonitor) parseTestFailures(output, command string) []TestFailure {
 	errorPattern := regexp.MustCompile(`^\s+(.+\.go:\d+):\s+(.+)$`)
 	
 	lines := strings.Split(output, "\n")
-	var currentTest *TestFailure
+	var currentTestName string
 	var errorLines []string
+	var currentSourceFile string
+	var currentLineNumber int
 	
 	for i, line := range lines {
-		// Check for test failure header
-		if matches := failPattern.FindStringSubmatch(line); len(matches) > 1 {
-			// Save previous test if exists
-			if currentTest != nil {
-				currentTest.ErrorMessage = strings.Join(errorLines, "\n")
-				failures = append(failures, *currentTest)
+		// Collect error lines between test start and test fail
+		if matches := errorPattern.FindStringSubmatch(line); len(matches) > 2 {
+			// This is an error line - collect it and set file/line info
+			// Use first occurrence for source file and line number
+			if currentSourceFile == "" {
+				currentSourceFile = tm.extractFilePath(matches[1])
+				currentLineNumber = tm.extractLineNumber(matches[1])
+			}
+			errorLines = append(errorLines, matches[2])
+		} else if strings.HasPrefix(line, "=== RUN   ") {
+			// New test starting - reset error collection
+			currentTestName = strings.TrimSpace(strings.TrimPrefix(line, "=== RUN   "))
+			errorLines = []string{}
+			currentSourceFile = ""
+			currentLineNumber = 0
+		} else if matches := failPattern.FindStringSubmatch(line); len(matches) > 1 {
+			// Test failed - create failure record
+			testName := matches[1]
+			
+			failure := TestFailure{
+				TestName:     testName,
+				PackageName:  tm.extractPackageName(output, i),
+				Timestamp:    time.Now(),
+				Command:      command,
+				FullOutput:   output,
+				SourceFile:   currentSourceFile,
+				LineNumber:   currentLineNumber,
+				ErrorMessage: strings.Join(errorLines, "\n"),
 			}
 			
-			// Start new test failure
-			currentTest = &TestFailure{
-				TestName:    matches[1],
-				PackageName: tm.extractPackageName(output, i),
-				Timestamp:   time.Now(),
-				Command:     command,
-				FullOutput:  output,
-			}
+			failures = append(failures, failure)
+			
+			// Reset for next test
 			errorLines = []string{}
+			currentSourceFile = ""
+			currentLineNumber = 0
+		} else if strings.TrimSpace(line) != "" && 
+				  !strings.HasPrefix(line, "=== ") && 
+				  !strings.HasPrefix(line, "--- ") &&
+				  !strings.HasPrefix(line, "FAIL") &&
+				  !strings.HasPrefix(line, "ok") &&
+				  !strings.HasPrefix(line, "?") &&
+				  currentTestName != "" {
+			// Additional error line for current test
+			errorLines = append(errorLines, strings.TrimSpace(line))
 		}
-		
-		// Collect error lines for current test
-		if currentTest != nil && strings.Contains(line, ".go:") {
-			if matches := errorPattern.FindStringSubmatch(line); len(matches) > 2 {
-				currentTest.SourceFile = tm.extractFilePath(matches[1])
-				currentTest.LineNumber = tm.extractLineNumber(matches[1])
-				errorLines = append(errorLines, matches[2])
-			} else if strings.TrimSpace(line) != "" && !strings.HasPrefix(line, "=== ") && !strings.HasPrefix(line, "--- ") {
-				errorLines = append(errorLines, strings.TrimSpace(line))
-			}
-		}
-	}
-	
-	// Save last test if exists
-	if currentTest != nil {
-		currentTest.ErrorMessage = strings.Join(errorLines, "\n")
-		failures = append(failures, *currentTest)
 	}
 	
 	return failures
@@ -450,7 +463,7 @@ func (tm *TestMonitor) truncateOutput(text string, maxLength int) string {
 	if len(text) <= maxLength {
 		return text
 	}
-	return text[:maxLength] + "\n... (truncated)"
+	return text[:maxLength] + "... (truncated)"
 }
 
 // RunMonitoredTests is the main entry point for AI-monitored testing
