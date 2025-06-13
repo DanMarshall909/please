@@ -18,41 +18,6 @@ import (
 
 var locManager *localization.LocalizationManager // Global for now
 
-// MenuItem represents a single menu option
-// Action returns true if the menu should exit after this action
-// (for main menu, script menu, etc)
-type MenuItem struct {
-	Label  string
-	Icon   string
-	Color  string
-	Action func() bool
-}
-
-// renderMenu displays a menu from a slice of MenuItem and handles user input
-func renderMenu(title, prompt string, items []MenuItem) {
-	for {
-		fmt.Printf("\n%s%s%s\n\n", ColorBold+ColorCyan, title, ColorReset)
-		for idx, item := range items {
-			fmt.Printf("  %s%d.%s %s%s %s%s\n", ColorGreen, idx+1, ColorReset, item.Color, item.Icon, item.Label, ColorReset)
-		}
-		fmt.Printf("\n%s%s%s", ColorBold+ColorYellow, prompt, ColorReset)
-		choice := getSingleKeyInput()
-		fmt.Printf("%c\n", choice)
-		if choice == '\r' || choice == '\n' {
-			fmt.Printf("%s✨ Quick exit!%s\n", ColorGreen, ColorReset)
-			return
-		}
-		if choice >= '1' && int(choice-'1') < len(items) {
-			shouldExit := items[int(choice-'1')].Action()
-			if shouldExit {
-				return
-			}
-		} else {
-			fmt.Printf("%s❌ Invalid choice. Please try again.%s\n", ColorRed, ColorReset)
-		}
-	}
-}
-
 // ShowMainMenu displays the main interactive menu when Please is run without arguments
 func ShowMainMenu() {
 	if locManager == nil {
@@ -416,7 +381,7 @@ func editScript(response *types.ScriptResponse) {
 			}
 			return true
 		}},
-		{"2", "Inline editing (line-by-line)", "🔤", ColorBlue, func() bool {
+		{Label: "Inline editing (line-by-line)", Icon: "🔤", Color: ColorBlue, Action: func() bool {
 			if editedResponse, err := script.OfferInlineEditing(response); err != nil {
 				fmt.Printf("%s❌ Inline editing failed: %v%s\n", ColorRed, err, ColorReset)
 			} else if editedResponse != response {
@@ -425,9 +390,14 @@ func editScript(response *types.ScriptResponse) {
 			}
 			return true
 		}},
-		{"3", "Cancel editing", "🚫", ColorDim, func() bool { fmt.Printf("%s🚫 Editing cancelled%s\n", ColorYellow, ColorReset); return true }},
+		{Label: "Cancel editing", Icon: "🚫", Color: ColorDim, Action: func() bool { fmt.Printf("%s🚫 Editing cancelled%s\n", ColorYellow, ColorReset); return true }},
 	}
 	renderMenu("✏️  Edit Script", "Press 1-3: ", items)
+}
+
+// Stub for refineScript to allow menu to compile and work
+func refineScript(response *types.ScriptResponse) {
+	fmt.Printf("%s🧠 Refine script with AI feature coming soon!%s\n", ColorMagenta, ColorReset)
 }
 
 // showDetailedExplanation shows a detailed breakdown of the script
