@@ -568,7 +568,7 @@ func loadLastScript() {
 	}
 
 	fmt.Printf("\n%s✅ Last script loaded successfully!%s\n", ColorGreen, ColorReset)
-	
+
 	// Show the script menu for this loaded script
 	ShowScriptMenu(response)
 }
@@ -625,7 +625,7 @@ func runLastScript() {
 	}
 
 	fmt.Printf("\n%s🚀 Running last script: %s%s\n", ColorGreen, response.TaskDescription, ColorReset)
-	
+
 	// Show a brief preview
 	lines := strings.Split(response.Script, "\n")
 	previewLines := 3
@@ -678,7 +678,7 @@ func RunLastScriptFromCLI() {
 	}
 
 	fmt.Printf("\n%s🚀 Executing script...%s\n", ColorGreen, ColorReset)
-	
+
 	// Execute with safety validation
 	executeScript(response)
 }
@@ -759,10 +759,10 @@ func tryAutoFix(originalResponse *types.ScriptResponse, errorMessage string) {
 		originalResponse.Provider,
 		cfg,
 	)
-	
+
 	// Stop progress before showing results
 	stopProgress()
-	
+
 	if err != nil {
 		fmt.Printf("%s❌ Auto-fix failed: %v%s\n", ColorRed, err, ColorReset)
 		return
@@ -812,7 +812,7 @@ func refineScript(response *types.ScriptResponse) {
 		}
 		fmt.Printf("  %s%d.%s %s%s\n", ColorGreen, i+1, ColorReset, suggestion, ColorReset)
 	}
-	
+
 	fmt.Printf("\n%sEnter refinement request (or number 1-5): %s", ColorYellow, ColorReset)
 	reader := bufio.NewReader(os.Stdin)
 	input, _ := reader.ReadString('\n')
@@ -841,13 +841,13 @@ func refineScript(response *types.ScriptResponse) {
 
 	// Show progress indication
 	stopProgress := ShowProviderProgress(response.Provider, "Refining script")
-	
+
 	// Call the refinement function
 	refinedResponse, err := script.RefineScript(response, refinementRequest, cfg)
-	
+
 	// Stop progress before showing results
 	stopProgress()
-	
+
 	if err != nil {
 		fmt.Printf("%s❌ Script refinement failed: %v%s\n", ColorRed, err, ColorReset)
 		return
@@ -866,7 +866,7 @@ func refineScript(response *types.ScriptResponse) {
 	}
 
 	fmt.Printf("\n%s✅ Script refined successfully!%s\n", ColorGreen, ColorReset)
-	
+
 	// Update the original response with the refined version
 	*response = *refinedResponse
 	fmt.Printf("%s🎯 Refined script is now active in the menu%s\n", ColorGreen, ColorReset)
