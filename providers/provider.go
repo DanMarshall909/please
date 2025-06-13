@@ -59,6 +59,10 @@ PowerShell Script:`
 
 // GenerateFixedScript generates a fixed script using the provider's AI service, given the original script and error message
 func GenerateFixedScript(originalScript, errorMessage, scriptType, model, provider string, config *types.Config) (string, error) {
+	// Debug: Print provider and config info
+	fmt.Printf("[DEBUG] GenerateFixedScript called with provider: %s, model: %s\n", provider, model)
+	fmt.Printf("[DEBUG] Config: Provider=%s, OpenAIKey='%s', OllamaURL='%s'\n", config.Provider, config.OpenAIAPIKey, config.OllamaURL)
+
 	// Compose a prompt for the LLM to fix the script based on the error
 	prompt := "The following script failed with this error:\n\nScript:\n" + originalScript + "\n\nError:\n" + errorMessage + "\n\nPlease suggest a corrected version of the script. Return ONLY the fixed script, no explanations or markdown formatting."
 
