@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"time"
 
 	"please/config"
 	"please/localization"
@@ -18,6 +17,41 @@ import (
 )
 
 var locManager *localization.LocalizationManager // Global for now
+
+// MenuItem represents a single menu option
+// Action returns true if the menu should exit after this action
+// (for main menu, script menu, etc)
+type MenuItem struct {
+	Label  string
+	Icon   string
+	Color  string
+	Action func() bool
+}
+
+// renderMenu displays a menu from a slice of MenuItem and handles user input
+func renderMenu(title, prompt string, items []MenuItem) {
+	for {
+		fmt.Printf("\n%s%s%s\n\n", ColorBold+ColorCyan, title, ColorReset)
+		for idx, item := range items {
+			fmt.Printf("  %s%d.%s %s%s %s%s\n", ColorGreen, idx+1, ColorReset, item.Color, item.Icon, item.Label, ColorReset)
+		}
+		fmt.Printf("\n%s%s%s", ColorBold+ColorYellow, prompt, ColorReset)
+		choice := getSingleKeyInput()
+		fmt.Printf("%c\n", choice)
+		if choice == '\r' || choice == '\n' {
+			fmt.Printf("%s✨ Quick exit!%s\n", ColorGreen, ColorReset)
+			return
+		}
+		if choice >= '1' && int(choice-'1') < len(items) {
+			shouldExit := items[int(choice-'1')].Action()
+			if shouldExit {
+				return
+			}
+		} else {
+			fmt.Printf("%s❌ Invalid choice. Please try again.%s\n", ColorRed, ColorReset)
+		}
+	}
+}
 
 // ShowMainMenu displays the main interactive menu when Please is run without arguments
 func ShowMainMenu() {
@@ -30,21 +64,18 @@ func ShowMainMenu() {
 	fmt.Printf("╔══════════════════════════════════════════════════════════════════════════════╗\n")
 	fmt.Printf("║                           🤖 Please Script Generator                         ║\n")
 	fmt.Printf("╚══════════════════════════════════════════════════════════════════════════════╝\n\n")
-	for {
-		fmt.Printf("%s%s%s\n\n", ColorBold+ColorCyan, locManager.System.Get("menus.main_prompt"), ColorReset)
-		fmt.Printf("  %s1.%s %s📖 %s%s\n", ColorGreen, ColorReset, ColorCyan, locManager.System.Get("menus.show_help"), ColorReset)
-		fmt.Printf("  %s2.%s %s✨ %s%s\n", ColorGreen, ColorReset, ColorYellow, locManager.System.Get("menus.generate_script"), ColorReset)
-		fmt.Printf("  %s3.%s %s🔄 %s%s\n", ColorGreen, ColorReset, ColorMagenta, locManager.System.Get("menus.load_last"), ColorReset)
-		fmt.Printf("  %s4.%s %s📚 %s%s\n", ColorGreen, ColorReset, ColorBlue, locManager.System.Get("menus.browse_history"), ColorReset)
-		fmt.Printf("  %s5.%s %s⚙️  %s%s\n", ColorGreen, ColorReset, ColorPurple, locManager.System.Get("menus.show_config"), ColorReset)
-		fmt.Printf("  %s6.%s %s🚪 %s%s\n\n", ColorGreen, ColorReset, ColorDim, locManager.System.Get("menus.exit"), ColorReset)
-		fmt.Printf("%sPress 1-6: %s", ColorBold+ColorYellow, ColorReset)
-		choice := getSingleKeyInput()
-		fmt.Printf("%c\n", choice)
-		if handleMainMenuChoice(string(choice)) {
-			break
-		}
+	items := []MenuItem{
+		{Label: locManager.System.Get("menus.show_help"), Icon: "📖", Color: ColorCyan, Action: func() bool { ShowHelp(); return false }},
+		{Label: locManager.System.Get("menus.generate_script"), Icon: "✨", Color: ColorYellow, Action: func() bool { generateNewScript(); return false }},
+		{Label: locManager.System.Get("menus.load_last"), Icon: "🔄", Color: ColorMagenta, Action: func() bool { loadLastScript(); return false }},
+		{Label: locManager.System.Get("menus.browse_history"), Icon: "📚", Color: ColorBlue, Action: func() bool { browseHistory(); return false }},
+		{Label: locManager.System.Get("menus.show_config"), Icon: "⚙️ ", Color: ColorPurple, Action: func() bool { showConfiguration(); return false }},
+		{Label: locManager.System.Get("menus.exit"), Icon: "🚪", Color: ColorDim, Action: func() bool {
+			fmt.Printf("%s%s%s\n", ColorGreen, locManager.System.Get("success.exit"), ColorReset)
+			return true
+		}},
 	}
+	renderMenu(locManager.System.Get("menus.main_prompt"), "Press 1-6: ", items)
 }
 
 // handleMainMenuChoice processes the main menu selection and returns true if should exit
@@ -143,28 +174,20 @@ func showConfiguration() {
 
 // ShowScriptMenu displays an interactive menu after script generation
 func ShowScriptMenu(response *types.ScriptResponse) {
-	for {
-		fmt.Printf("\n%s🎯 What would you like to do with this script?%s\n\n", ColorBold+ColorCyan, ColorReset)
-
-		// Show menu options
-		fmt.Printf("  %s1.%s %s📋 Copy to clipboard%s\n", ColorGreen, ColorReset, ColorCyan, ColorReset)
-		fmt.Printf("  %s2.%s %s▶️  Execute script now%s\n", ColorGreen, ColorReset, ColorYellow, ColorReset)
-		fmt.Printf("  %s3.%s %s💾 Save to file%s\n", ColorGreen, ColorReset, ColorBlue, ColorReset)
-		fmt.Printf("  %s4.%s %s✏️  Edit script%s\n", ColorGreen, ColorReset, ColorPurple, ColorReset)
-		fmt.Printf("  %s5.%s %s🧠 Refine script with AI%s\n", ColorGreen, ColorReset, ColorMagenta, ColorReset)
-		fmt.Printf("  %s6.%s %s📖 Show detailed explanation%s\n", ColorGreen, ColorReset, ColorWhite, ColorReset)
-		fmt.Printf("  %s7.%s %s🔄 Load last script%s\n", ColorGreen, ColorReset, ColorMagenta, ColorReset)
-		fmt.Printf("  %s8.%s %s🚪 Exit%s\n\n", ColorGreen, ColorReset, ColorDim, ColorReset)
-
-		// Get user choice with single-key input
-		fmt.Printf("%sPress 1-8: %s", ColorBold+ColorYellow, ColorReset)
-		choice := getSingleKeyInput()
-		fmt.Printf("%c\n", choice) // Echo the pressed key
-
-		if handleUserChoice(string(choice), response) {
-			break // Exit if user chose exit or completed an action
-		}
+	items := []MenuItem{
+		{Label: "Copy to clipboard", Icon: "📋", Color: ColorCyan, Action: func() bool { copyToClipboard(response); return false }},
+		{Label: "Execute script now", Icon: "▶️ ", Color: ColorYellow, Action: func() bool { executeScript(response); return false }},
+		{Label: "Save to file", Icon: "💾", Color: ColorBlue, Action: func() bool { saveToFile(response); return false }},
+		{Label: "Edit script", Icon: "✏️ ", Color: ColorPurple, Action: func() bool { editScript(response); return false }},
+		{Label: "Refine script with AI", Icon: "🧠", Color: ColorMagenta, Action: func() bool { refineScript(response); return false }},
+		{Label: "Show detailed explanation", Icon: "📖", Color: ColorWhite, Action: func() bool { showDetailedExplanation(response); return false }},
+		{Label: "Load last script", Icon: "🔄", Color: ColorMagenta, Action: func() bool { loadLastScript(); return false }},
+		{Label: "Exit", Icon: "🚪", Color: ColorDim, Action: func() bool {
+			fmt.Printf("%s✨ Ta-da! Thanks for using Please! Happy scripting! 🎉%s\n", ColorGreen, ColorReset)
+			return true
+		}},
 	}
+	renderMenu("🎯 What would you like to do with this script?", "Press 1-8: ", items)
 }
 
 // getSingleKeyInput captures a single keypress without requiring Enter
@@ -227,50 +250,6 @@ func getSingleKeyUnix() rune {
 	}
 
 	return char
-}
-
-// handleUserChoice processes the user's menu selection and returns true if should exit
-func handleUserChoice(choice string, response *types.ScriptResponse) bool {
-	// Handle Enter key as immediate exit
-	if choice == "\r" || choice == "\n" {
-		fmt.Printf("%s✨ Quick exit! Thanks for using Please! 🎉%s\n", ColorGreen, ColorReset)
-		return true // Exit immediately on Enter
-	}
-
-	// Handle other special characters that should be ignored
-	if len(choice) == 0 || choice == " " {
-		return false // Ignore empty or space - continue showing menu
-	}
-
-	switch choice {
-	case "1":
-		copyToClipboard(response)
-		return false // Continue showing menu
-	case "2":
-		executeScript(response)
-		return false // Continue showing menu
-	case "3":
-		saveToFile(response)
-		return false // Continue showing menu
-	case "4":
-		editScript(response)
-		return false // Continue showing menu
-	case "5":
-		refineScript(response)
-		return false // Continue showing menu
-	case "6":
-		showDetailedExplanation(response)
-		return false // Continue showing menu
-	case "7":
-		loadLastScript()
-		return false // Continue showing menu
-	case "8":
-		fmt.Printf("%s✨ Ta-da! Thanks for using Please! Happy scripting! 🎉%s\n", ColorGreen, ColorReset)
-		return true // Exit
-	default:
-		fmt.Printf("%s❌ Invalid choice. Please try again.%s\n", ColorRed, ColorReset)
-		return false // Continue showing menu
-	}
 }
 
 // copyToClipboard copies the script to the system clipboard
@@ -426,53 +405,35 @@ func saveToFile(response *types.ScriptResponse) {
 
 // editScript allows the user to edit the script
 func editScript(response *types.ScriptResponse) {
-	fmt.Printf("%s✏️  Edit Script%s\n", ColorBold+ColorPurple, ColorReset)
-	fmt.Printf("%s═══════════════════════════════════════%s\n\n", ColorPurple, ColorReset)
-
-	// Offer editing options
-	fmt.Printf("%sChoose editing method:%s\n\n", ColorBold+ColorYellow, ColorReset)
-	fmt.Printf("  %s1.%s %sOpen in external editor (recommended)%s\n", ColorGreen, ColorReset, ColorCyan, ColorReset)
-	fmt.Printf("  %s2.%s %sInline editing (line-by-line)%s\n", ColorGreen, ColorReset, ColorBlue, ColorReset)
-	fmt.Printf("  %s3.%s %sCancel editing%s\n\n", ColorGreen, ColorReset, ColorDim, ColorReset)
-
-	fmt.Printf("%sPress 1-3: %s", ColorBold+ColorYellow, ColorReset)
-	choice := getSingleKeyInput()
-	fmt.Printf("%c\n", choice)
-
-	switch string(choice) {
-	case "1":
-		// External editor
-		if editedResponse, err := script.EditScript(response); err != nil {
-			fmt.Printf("%s❌ Editor failed: %v%s\n", ColorRed, err, ColorReset)
-			fmt.Printf("%s💡 Tip: Set EDITOR environment variable or install VS Code%s\n", ColorDim, ColorReset)
-		} else if editedResponse != response {
-			// Script was modified, update the response and continue with new script
-			*response = *editedResponse
-			fmt.Printf("%s🎯 Updated script is now active in the menu%s\n", ColorGreen, ColorReset)
-		}
-
-	case "2":
-		// Inline editing
-		if editedResponse, err := script.OfferInlineEditing(response); err != nil {
-			fmt.Printf("%s❌ Inline editing failed: %v%s\n", ColorRed, err, ColorReset)
-		} else if editedResponse != response {
-			// Script was modified, update the response
-			*response = *editedResponse
-			fmt.Printf("%s🎯 Updated script is now active in the menu%s\n", ColorGreen, ColorReset)
-		}
-
-	case "3":
-		fmt.Printf("%s🚫 Editing cancelled%s\n", ColorYellow, ColorReset)
-
-	default:
-		fmt.Printf("%s❌ Invalid choice%s\n", ColorRed, ColorReset)
+	items := []MenuItem{
+		{Label: "Open in external editor (recommended)", Icon: "", Color: ColorCyan, Action: func() bool {
+			if editedResponse, err := script.EditScript(response); err != nil {
+				fmt.Printf("%s❌ Editor failed: %v%s\n", ColorRed, err, ColorReset)
+				fmt.Printf("%s💡 Tip: Set EDITOR environment variable or install VS Code%s\n", ColorDim, ColorReset)
+			} else if editedResponse != response {
+				*response = *editedResponse
+				fmt.Printf("%s🎯 Updated script is now active in the menu%s\n", ColorGreen, ColorReset)
+			}
+			return true
+		}},
+		{"2", "Inline editing (line-by-line)", "🔤", ColorBlue, func() bool {
+			if editedResponse, err := script.OfferInlineEditing(response); err != nil {
+				fmt.Printf("%s❌ Inline editing failed: %v%s\n", ColorRed, err, ColorReset)
+			} else if editedResponse != response {
+				*response = *editedResponse
+				fmt.Printf("%s🎯 Updated script is now active in the menu%s\n", ColorGreen, ColorReset)
+			}
+			return true
+		}},
+		{"3", "Cancel editing", "🚫", ColorDim, func() bool { fmt.Printf("%s🚫 Editing cancelled%s\n", ColorYellow, ColorReset); return true }},
 	}
+	renderMenu("✏️  Edit Script", "Press 1-3: ", items)
 }
 
 // showDetailedExplanation shows a detailed breakdown of the script
 func showDetailedExplanation(response *types.ScriptResponse) {
 	fmt.Printf("\n%s📖 Detailed Script Explanation%s\n", ColorBold+ColorCyan, ColorReset)
-	fmt.Printf("%s═══════════════════════════════════════%s\n\n", ColorCyan, ColorReset)
+	fmt.Printf("%s%s%s\n\n", ColorCyan, strings.Repeat("═", 50), ColorReset)
 
 	fmt.Printf("%s🎯 Task Analysis:%s\n", ColorBold+ColorYellow, ColorReset)
 	fmt.Printf("  %s• Original request:%s %s\n", ColorDim, ColorReset, response.TaskDescription)
@@ -482,27 +443,22 @@ func showDetailedExplanation(response *types.ScriptResponse) {
 	fmt.Printf("\n%s🔍 Script Analysis:%s\n", ColorBold+ColorYellow, ColorReset)
 
 	lines := strings.Split(response.Script, "\n")
-	commentCount := 0
-	commandCount := 0
+	commentCount, commandCount := 0, 0
 
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
-		if response.ScriptType == "powershell" {
-			if strings.HasPrefix(trimmed, "#") {
-				commentCount++
-			} else if trimmed != "" {
-				commandCount++
-			}
-		} else { // bash
-			if strings.HasPrefix(trimmed, "#") {
-				commentCount++
-			} else if trimmed != "" {
-				commandCount++
-			}
+		if trimmed == "" {
+			continue
+		}
+		if strings.HasPrefix(trimmed, "#") {
+			commentCount++
+		} else {
+			commandCount++
 		}
 	}
 
-	fmt.Printf("  %s• Total lines:%s %d\n", ColorDim, ColorReset, len(lines))
+	totalLines := len(lines)
+	fmt.Printf("  %s• Total lines:%s %d\n", ColorDim, ColorReset, totalLines)
 	fmt.Printf("  %s• Comment lines:%s %d\n", ColorDim, ColorReset, commentCount)
 	fmt.Printf("  %s• Command lines:%s %d\n", ColorDim, ColorReset, commandCount)
 
@@ -515,6 +471,13 @@ func showDetailedExplanation(response *types.ScriptResponse) {
 		fmt.Printf("  %s• Run with:%s ./script.sh\n", ColorDim, ColorReset)
 	}
 	fmt.Printf("  %s• Always review scripts before execution%s\n", ColorDim, ColorReset)
+
+	fmt.Printf("\n%sScript Preview:%s\n", ColorBold+ColorCyan, ColorReset)
+	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("─", 50), ColorReset)
+	for i, line := range lines {
+		fmt.Printf("%s%3d│%s %s\n", ColorDim, i+1, ColorReset, line)
+	}
+	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("─", 50), ColorReset)
 }
 
 // saveLastScript saves the current script as the last script
@@ -737,20 +700,17 @@ func extractJSONField(content, field string) string {
 	return value
 }
 
-// tryAutoFix attempts to automatically fix a failed script using AI
+// Show clear success/failure summaries and actionable suggestions after auto-fix
 func tryAutoFix(originalResponse *types.ScriptResponse, errorMessage string) {
-	// Load config for provider
 	cfg, err := config.Load()
 	if err != nil {
-		fmt.Printf("%s❌ Could not load config for auto-fix: %v%s\n", ColorRed, err, ColorReset)
+		printAutoFixError(err, originalResponse)
 		return
 	}
 
-	// Show detailed progress for auto-fix operation
 	stopProgress := ShowProviderProgress(originalResponse.Provider, "Auto-fixing script")
 	defer stopProgress()
 
-	// Call the AI provider to generate a fixed script
 	fixedScript, err := providers.GenerateFixedScript(
 		originalResponse.Script,
 		errorMessage,
@@ -760,11 +720,10 @@ func tryAutoFix(originalResponse *types.ScriptResponse, errorMessage string) {
 		cfg,
 	)
 
-	// Stop progress before showing results
 	stopProgress()
 
 	if err != nil {
-		fmt.Printf("%s❌ Auto-fix failed: %v%s\n", ColorRed, err, ColorReset)
+		printAutoFixError(err, originalResponse)
 		return
 	}
 	fixedResponse := &types.ScriptResponse{
@@ -775,136 +734,46 @@ func tryAutoFix(originalResponse *types.ScriptResponse, errorMessage string) {
 		Provider:        originalResponse.Provider,
 	}
 
-	// Display the fixed script
-	fmt.Printf("\n%s✨ Generated automatic fix:%s\n", ColorGreen, ColorReset)
-	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("─", 60), ColorReset)
+	printAutoFixSuccess(fixedResponse)
 
-	lines := strings.Split(fixedResponse.Script, "\n")
-	for i, line := range lines {
-		fmt.Printf("%s%3d│%s %s\n", ColorDim, i+1, ColorReset, line)
-	}
-	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("─", 60), ColorReset)
-
-	// Execute the fixed script automatically
-	fmt.Printf("%s🚀 Testing fixed script...%s\n", ColorGreen, ColorReset)
 	if err := script.ExecuteScript(fixedResponse); err != nil {
-		fmt.Printf("%s❌ Fixed script also failed: %v%s\n", ColorRed, err, ColorReset)
-		fmt.Printf("%s💡 Manual intervention may be required.%s\n", ColorDim, ColorReset)
+		printAutoFixError(err, fixedResponse)
 	} else {
-		fmt.Printf("%s🎉 Fixed script executed successfully!%s\n", ColorGreen, ColorReset)
-		// Update the original response with the fixed version
+		fmt.Printf("%s✅ Fixed script executed successfully!%s\n", ColorGreen, ColorReset)
 		originalResponse.Script = fixedResponse.Script
 		originalResponse.TaskDescription = fixedResponse.TaskDescription
 	}
 }
 
-// refineScript allows the user to refine the script using AI
-func refineScript(response *types.ScriptResponse) {
-	fmt.Printf("%s🧠 Refine Script with AI%s\n", ColorBold+ColorMagenta, ColorReset)
-	fmt.Printf("%s═══════════════════════════════════════%s\n\n", ColorMagenta, ColorReset)
+// Print auto-fix error and suggestions, then show next-step menu
+func printAutoFixError(err error, response *types.ScriptResponse) {
+	fmt.Printf("%s❌ Auto-fix failed: %v%s\n", ColorRed, err, ColorReset)
+	fmt.Printf("%s💡 Suggestions:%s\n", ColorBold+ColorYellow, ColorReset)
+	fmt.Printf("  • Try editing the script manually\n")
+	fmt.Printf("  • Ask AI to explain the error\n")
+	fmt.Printf("  • View documentation or help\n")
+	showPostActionMenu(response)
+}
 
-	// Show helpful suggestions
-	fmt.Printf("%s💡 Refinement suggestions (or type your own):%s\n\n", ColorBold+ColorYellow, ColorReset)
-	suggestions := script.GetRefinementPromptSuggestions()
-	for i, suggestion := range suggestions {
-		if i >= 5 { // Show only first 5 suggestions
-			break
-		}
-		fmt.Printf("  %s%d.%s %s%s\n", ColorGreen, i+1, ColorReset, suggestion, ColorReset)
-	}
-
-	fmt.Printf("\n%sEnter refinement request (or number 1-5): %s", ColorYellow, ColorReset)
-	reader := bufio.NewReader(os.Stdin)
-	input, _ := reader.ReadString('\n')
-	refinementRequest := strings.TrimSpace(input)
-
-	if refinementRequest == "" {
-		fmt.Printf("%s❌ No refinement request provided.%s\n", ColorRed, ColorReset)
-		return
-	}
-
-	// Check if user selected a number
-	if len(refinementRequest) == 1 && refinementRequest >= "1" && refinementRequest <= "5" {
-		suggestionIndex := int(refinementRequest[0] - '1')
-		if suggestionIndex < len(suggestions) {
-			refinementRequest = suggestions[suggestionIndex]
-			fmt.Printf("%s✅ Using suggestion: %s%s\n", ColorGreen, refinementRequest, ColorReset)
-		}
-	}
-
-	// Load configuration
-	cfg, err := config.Load()
-	if err != nil {
-		fmt.Printf("%s❌ Could not load config for refinement: %v%s\n", ColorRed, err, ColorReset)
-		return
-	}
-
-	// Show progress indication
-	stopProgress := ShowProviderProgress(response.Provider, "Refining script")
-
-	// Call the refinement function
-	refinedResponse, err := script.RefineScript(response, refinementRequest, cfg)
-
-	// Stop progress before showing results
-	stopProgress()
-
-	if err != nil {
-		fmt.Printf("%s❌ Script refinement failed: %v%s\n", ColorRed, err, ColorReset)
-		return
-	}
-
-	// Display the refined script
-	fmt.Printf("\n%s✨ Refined Script:%s\n", ColorGreen, ColorReset)
-	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("═", 78), ColorReset)
-	fmt.Printf("%s📝 Task:%s %s\n", ColorBold+ColorCyan, ColorReset, refinedResponse.TaskDescription)
-	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("═", 78), ColorReset)
-
-	// Display refined script with line numbers
-	lines := strings.Split(refinedResponse.Script, "\n")
+// Print auto-fix success and show the fixed script
+func printAutoFixSuccess(fixedResponse *types.ScriptResponse) {
+	fmt.Printf("\n%s✨ Auto-fix applied. Please review the new script below.%s\n", ColorGreen, ColorReset)
+	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("─", 60), ColorReset)
+	lines := strings.Split(fixedResponse.Script, "\n")
 	for i, line := range lines {
 		fmt.Printf("%s%3d│%s %s\n", ColorDim, i+1, ColorReset, line)
 	}
-
-	fmt.Printf("\n%s✅ Script refined successfully!%s\n", ColorGreen, ColorReset)
-
-	// Update the original response with the refined version
-	*response = *refinedResponse
-	fmt.Printf("%s🎯 Refined script is now active in the menu%s\n", ColorGreen, ColorReset)
+	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("─", 60), ColorReset)
+	fmt.Printf("%s🚀 Testing fixed script...%s\n", ColorGreen, ColorReset)
 }
 
-// saveToHistory saves the script to the execution history
-func saveToHistory(response *types.ScriptResponse) {
-	configDir, err := getConfigDir()
-	if err != nil {
-		return // Silently fail
+// Show a next-step menu after auto-fix or error
+func showPostActionMenu(response *types.ScriptResponse) {
+	items := []MenuItem{
+		{Label: "Retry", Icon: "", Color: ColorGreen, Action: func() bool { executeScript(response); return true }},
+		{Label: "Edit script", Icon: "", Color: ColorGreen, Action: func() bool { editScript(response); return true }},
+		{Label: "Return to main menu", Icon: "", Color: ColorGreen, Action: func() bool { ShowMainMenu(); return true }},
+		{Label: "Exit", Icon: "", Color: ColorGreen, Action: func() bool { fmt.Printf("%s✨ Goodbye!%s\n", ColorGreen, ColorReset); os.Exit(0); return true }},
 	}
-
-	historyDir := filepath.Join(configDir, "history")
-	if err := os.MkdirAll(historyDir, 0755); err != nil {
-		return // Silently fail
-	}
-
-	// Create filename with timestamp
-	timestamp := fmt.Sprintf("%d", time.Now().Unix())
-	historyFile := filepath.Join(historyDir, fmt.Sprintf("script_%s.json", timestamp))
-
-	// Create enhanced JSON with timestamp and execution info
-	jsonContent := fmt.Sprintf(`{
-  "timestamp": %s,
-  "task_description": "%s",
-  "script": "%s",
-  "script_type": "%s",
-  "model": "%s",
-  "provider": "%s",
-  "executed_at": "%s"
-}`,
-		timestamp,
-		strings.ReplaceAll(response.TaskDescription, `"`, `\"`),
-		strings.ReplaceAll(response.Script, `"`, `\"`),
-		response.ScriptType,
-		response.Model,
-		response.Provider,
-		time.Now().Format("2006-01-02 15:04:05"))
-
-	os.WriteFile(historyFile, []byte(jsonContent), 0644)
+	renderMenu("What would you like to do next?", "Press 1-4: ", items)
 }

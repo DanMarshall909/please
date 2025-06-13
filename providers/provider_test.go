@@ -1,17 +1,17 @@
 package providers_test
 
 import (
-	"testing"
 	"please/providers"
 	"please/types"
+	"testing"
 )
 
 // TestGenerateFixedScript_Ollama_NoOpenAIKey ensures that using Ollama as provider does not require an OpenAI key
 func TestGenerateFixedScript_Ollama_NoOpenAIKey(t *testing.T) {
 	config := &types.Config{
-		Provider:      "ollama",
-		OpenAIAPIKey:  "", // No OpenAI key
-		OllamaURL:     "http://localhost:11434", // Default Ollama URL
+		Provider:     "ollama",
+		OpenAIAPIKey: "",                       // No OpenAI key
+		OllamaURL:    "http://localhost:11434", // Default Ollama URL
 	}
 
 	script := "echo 'broken script'"
