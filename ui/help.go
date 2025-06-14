@@ -3,14 +3,7 @@ package ui
 import (
 	"fmt"
 	"runtime"
-
-	"please/localization"
 )
-
-// SetLocalizationManager exposes manager for help messages
-func SetLocalizationManagerForHelp(mgr *localization.LocalizationManager) {
-	locMgr = mgr
-}
 
 // ShowHelp displays colorful help information
 func ShowHelp() {
@@ -22,13 +15,12 @@ func showHelpWithBanner(bannerFunc func()) {
 	bannerFunc()
 	title := "🤖 Please - Your Overly Helpful Digital Assistant"
 	subtitle := "✨ Politely Silly AI-Powered Cross-Platform Script Generation"
-	if locMgr != nil {
-		if t := locMgr.GetMessage("banner.title"); t != "" {
-			title = t
-		}
-		if s := locMgr.GetMessage("banner.subtitle"); s != "" {
-			subtitle = s
-		}
+	
+	if t := GetLocalizedMessage("banner.title"); t != "" {
+		title = t
+	}
+	if s := GetLocalizedMessage("banner.subtitle"); s != "" {
+		subtitle = s
 	}
 	fmt.Printf("\n%s%s%s%s\n", ColorBold, ColorCyan, title, ColorReset)
 	fmt.Printf("%s%s%s%s\n\n", ColorBold, ColorPurple, subtitle, ColorReset)

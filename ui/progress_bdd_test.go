@@ -10,7 +10,7 @@ import (
 )
 
 func TestWhenGettingProviderStatusMessageUnknown_ShouldUseDefaultMessage(t *testing.T) {
-	SetLocalizationManager(nil)
+	SetGlobalLocalizationManager(nil)
 	msg := GetProviderStatusMessage("unknown")
 	if !strings.Contains(msg, "AI provider") {
 		t.Errorf("expected default provider message, got %s", msg)

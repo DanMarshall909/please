@@ -17,6 +17,22 @@ import (
 	"please/types"
 )
 
+// Global localization manager for backward compatibility
+var globalLocManager *localization.LocalizationManager
+
+// SetGlobalLocalizationManager sets the global localization manager
+func SetGlobalLocalizationManager(mgr *localization.LocalizationManager) {
+	globalLocManager = mgr
+}
+
+// GetLocalizedMessage retrieves a localized message using the global manager
+func GetLocalizedMessage(key string) string {
+	if globalLocManager != nil {
+		return globalLocManager.GetMessage(key)
+	}
+	return ""
+}
+
 // UIService encapsulates dependencies for UI operations
 type UIService struct {
 	LocManager *localization.LocalizationManager

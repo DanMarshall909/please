@@ -105,11 +105,9 @@ func GetProviderStatusMessage(provider string) string {
 	default:
 		key = "default"
 	}
-	if locMgr != nil {
-		msg := locMgr.GetMessage("provider." + key)
-		if msg != "" {
-			return msg
-		}
+	msg := GetLocalizedMessage("provider." + key)
+	if msg != "" {
+		return msg
 	}
 	switch key {
 	case "ollama":

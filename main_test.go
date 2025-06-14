@@ -41,7 +41,7 @@ func Test_when_ui_localization_manager_gets_message_should_return_localized_text
 	locMgr.SetLanguage("test-lang")
 
 	// Set up localization in UI
-	ui.SetLocalizationManager(locMgr)
+	ui.SetGlobalLocalizationManager(locMgr)
 
 	// Act: Get localized messages
 	taskLabel := ui.GetLocalizedMessage("script_display.task_label")
@@ -91,7 +91,7 @@ func Test_when_display_script_with_localization_should_use_localized_strings(t *
 	locMgr.SetLanguage("test-lang")
 
 	// Set up localization in UI
-	ui.SetLocalizationManager(locMgr)
+	ui.SetGlobalLocalizationManager(locMgr)
 
 	// Verify localization is working before testing display
 	taskLabel := ui.GetLocalizedMessage("script_display.task_label")

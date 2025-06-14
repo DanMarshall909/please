@@ -33,8 +33,9 @@ func main() {
 	locMgr.LoadTheme(theme, themeData)
 	locMgr.SetLanguage(lang)
 	locMgr.SetTheme(theme)
-	ui.SetLocalizationManager(locMgr)
-	ui.SetLocalizationManagerForHelp(locMgr)
+	
+	// Set the global manager for backward compatibility bridge
+	ui.SetGlobalLocalizationManager(locMgr)
 
 	// Check if we're being run as "pls" with special flags
 	programName := filepath.Base(os.Args[0])

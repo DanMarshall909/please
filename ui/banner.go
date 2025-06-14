@@ -3,16 +3,8 @@ package ui
 import (
 	"fmt"
 	"time"
-
-	"please/localization"
 )
 
-var locMgr *localization.LocalizationManager
-
-// SetLocalizationManager sets the manager for banner messages
-func SetLocalizationManager(mgr *localization.LocalizationManager) {
-	locMgr = mgr
-}
 
 // PrintRainbowBanner displays a colorful animated banner
 func PrintRainbowBanner() {
@@ -40,15 +32,13 @@ func PrintRainbowBannerWithDelay(delay time.Duration) {
 		}
 	}
 
-	if locMgr != nil {
-		title := locMgr.GetMessage("banner.title")
-		subtitle := locMgr.GetMessage("banner.subtitle")
-		if title != "" {
-			fmt.Printf("%s%s%s\n", ColorCyan, title, ColorReset)
-		}
-		if subtitle != "" {
-			fmt.Printf("%s%s%s\n", ColorPurple, subtitle, ColorReset)
-		}
+	title := GetLocalizedMessage("banner.title")
+	subtitle := GetLocalizedMessage("banner.subtitle")
+	if title != "" {
+		fmt.Printf("%s%s%s\n", ColorCyan, title, ColorReset)
+	}
+	if subtitle != "" {
+		fmt.Printf("%s%s%s\n", ColorPurple, subtitle, ColorReset)
 	}
 }
 
@@ -57,16 +47,15 @@ func PrintInstallationSuccess() {
 	success := "🎉 Installation complete! 🎉"
 	tryIt := "🚀 Try it out:"
 	magic := "✨ Magic happens with just 3 letters: 'pls' ✨"
-	if locMgr != nil {
-		if v := locMgr.GetMessage("installation.success"); v != "" {
-			success = v
-		}
-		if v := locMgr.GetMessage("installation.try_it"); v != "" {
-			tryIt = v
-		}
-		if v := locMgr.GetMessage("installation.magic"); v != "" {
-			magic = v
-		}
+	
+	if v := GetLocalizedMessage("installation.success"); v != "" {
+		success = v
+	}
+	if v := GetLocalizedMessage("installation.try_it"); v != "" {
+		tryIt = v
+	}
+	if v := GetLocalizedMessage("installation.magic"); v != "" {
+		magic = v
 	}
 
 	fmt.Printf("%s%s%s\n\n", ColorBold+ColorGreen, success, ColorReset)
@@ -82,13 +71,12 @@ func PrintInstallationSuccess() {
 func PrintFooter() {
 	tips := "💡 Tips:"
 	happy := "🌟 Happy scripting! 🌟"
-	if locMgr != nil {
-		if v := locMgr.GetMessage("footer.tips"); v != "" {
-			tips = v
-		}
-		if v := locMgr.GetMessage("footer.happy"); v != "" {
-			happy = v
-		}
+	
+	if v := GetLocalizedMessage("footer.tips"); v != "" {
+		tips = v
+	}
+	if v := GetLocalizedMessage("footer.happy"); v != "" {
+		happy = v
 	}
 
 	fmt.Printf("%s%s%s\n", ColorBold+ColorYellow, tips, ColorReset)
