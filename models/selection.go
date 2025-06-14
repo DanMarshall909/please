@@ -95,6 +95,13 @@ func CategorizeTask(description string) string {
 		return "coding"
 	}
 
+	// Network/web related tasks (check before file management since download can involve files)
+	if strings.Contains(desc, "web") || strings.Contains(desc, "http") ||
+		strings.Contains(desc, "url") || strings.Contains(desc, "download") ||
+		strings.Contains(desc, "network") || strings.Contains(desc, "api") {
+		return "network"
+	}
+
 	// System administration tasks
 	if strings.Contains(desc, "system") || strings.Contains(desc, "server") ||
 		strings.Contains(desc, "service") || strings.Contains(desc, "process") ||
@@ -107,13 +114,6 @@ func CategorizeTask(description string) string {
 		strings.Contains(desc, "directory") || strings.Contains(desc, "copy") ||
 		strings.Contains(desc, "move") || strings.Contains(desc, "delete") {
 		return "filemanagement"
-	}
-
-	// Network/web related tasks
-	if strings.Contains(desc, "web") || strings.Contains(desc, "http") ||
-		strings.Contains(desc, "url") || strings.Contains(desc, "download") ||
-		strings.Contains(desc, "network") || strings.Contains(desc, "api") {
-		return "network"
 	}
 
 	return "general"
