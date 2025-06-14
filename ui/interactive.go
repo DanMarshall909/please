@@ -729,12 +729,34 @@ func extractJSONField(content, field string) string {
 	}
 	start += len(fieldPattern)
 
-	end := strings.Index(content[start:], `"`)
-	if end == -1 {
+	// Find the end quote, handling escaped quotes
+	pos := start
+	for pos < len(content) {
+		if content[pos] == '"' {
+			// Check if this quote is escaped
+			if pos > 0 && content[pos-1] == '\\' {
+				// Count consecutive backslashes to determine if quote is actually escaped
+				backslashCount := 0
+				for i := pos - 1; i >= 0 && content[i] == '\\'; i-- {
+					backslashCount++
+				}
+				// If odd number of backslashes, the quote is escaped
+				if backslashCount%2 == 1 {
+					pos++
+					continue
+				}
+			}
+			// Found unescaped closing quote
+			break
+		}
+		pos++
+	}
+
+	if pos >= len(content) {
 		return ""
 	}
 
-	value := content[start : start+end]
+	value := content[start:pos]
 	// Unescape quotes
 	value = strings.ReplaceAll(value, `\"`, `"`)
 	return value
