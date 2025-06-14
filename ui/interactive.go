@@ -46,6 +46,12 @@ func ShowMainMenu() {
 
 // handleMainMenuChoice processes the main menu selection and returns true if should exit
 func handleMainMenuChoice(choice string) bool {
+	// Initialize locManager if not already done
+	if locManager == nil {
+		mgr, _ := localization.NewLocalizationManager(".")
+		locManager = mgr
+	}
+
 	// Handle Enter key as immediate exit
 	if choice == "\r" || choice == "\n" {
 		fmt.Printf("%s%s%s\n", ColorGreen, locManager.System.Get("success.exit_quick"), ColorReset)
@@ -757,8 +763,9 @@ func extractJSONField(content, field string) string {
 	}
 
 	value := content[start:pos]
-	// Unescape quotes
+	// Unescape quotes and backslashes
 	value = strings.ReplaceAll(value, `\"`, `"`)
+	value = strings.ReplaceAll(value, `\\`, `\`)
 	return value
 }
 
