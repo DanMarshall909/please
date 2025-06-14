@@ -109,6 +109,7 @@ func TestWhenSettingLocalizationManager_ShouldStoreManager(t *testing.T) {
 		t.Fatalf("manager init: %v", err)
 	}
 	SetGlobalLocalizationManager(mgr)
+	defer SetGlobalLocalizationManager(nil)
 	// Test that the function can be called without error
 	// We can't easily test the internal state without exposing it
 }
@@ -126,6 +127,7 @@ func TestWhenBannerUsesLocalization_ShouldDisplayTitleAndSubtitle(t *testing.T) 
 	mgr.LoadLanguage("en-test", langPath)
 	mgr.SetLanguage("en-test")
 	SetGlobalLocalizationManager(mgr)
+	defer SetGlobalLocalizationManager(nil)
 	output := captureStdout(func() { PrintRainbowBannerWithDelay(0) })
 	if !strings.Contains(output, "Hello") || !strings.Contains(output, "World") {
 		t.Errorf("expected localized title and subtitle, got: %s", output)

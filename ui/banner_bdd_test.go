@@ -47,6 +47,7 @@ func TestWhenPrintingBannerWithLocalization_ShouldUseProvidedMessages(t *testing
 	mgr.LoadLanguage("test", langPath)
 	mgr.SetLanguage("test")
 	SetGlobalLocalizationManager(mgr)
+	defer SetGlobalLocalizationManager(nil)
 	out := captureBannerOutput(func() { PrintRainbowBannerWithDelay(0) })
 	if !strings.Contains(out, "Hola") || !strings.Contains(out, "Mundo") {
 		t.Errorf("expected localized messages in banner output: %s", out)

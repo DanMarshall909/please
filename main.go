@@ -18,13 +18,17 @@ import (
 func main() {
 	lang := "en-us"
 	theme := "default"
+	args := []string{}
 	for _, arg := range os.Args[1:] {
 		if strings.HasPrefix(arg, "--language=") {
 			lang = strings.SplitN(arg, "=", 2)[1]
+			continue
 		}
 		if strings.HasPrefix(arg, "--theme=") {
 			theme = strings.SplitN(arg, "=", 2)[1]
+			continue
 		}
+		args = append(args, arg)
 	}
 
 	locMgr, _ := localization.NewLocalizationManager(".")
@@ -33,7 +37,7 @@ func main() {
 	locMgr.LoadTheme(theme, themeData)
 	locMgr.SetLanguage(lang)
 	locMgr.SetTheme(theme)
-	
+
 	// Set the global manager for backward compatibility bridge
 	ui.SetGlobalLocalizationManager(locMgr)
 
@@ -44,8 +48,8 @@ func main() {
 	}
 
 	// Handle special commands
-	if len(os.Args) >= 2 {
-		switch os.Args[1] {
+	if len(args) >= 1 {
+		switch args[0] {
 		case "--install-alias":
 			installAlias()
 			return
@@ -65,13 +69,13 @@ func main() {
 	}
 
 	// If no arguments provided, show interactive main menu
-	if len(os.Args) < 2 {
+	if len(args) < 1 {
 		ui.ShowMainMenu()
 		return
 	}
 
 	// Join all arguments after the program name as the task description
-	taskDescription := strings.Join(os.Args[1:], " ")
+	taskDescription := strings.Join(args, " ")
 
 	// Check for natural language history/last script commands
 	if isLastScriptCommand(taskDescription) {
@@ -167,12 +171,12 @@ func displayScriptAndConfirm(response *types.ScriptResponse) {
 	if taskLabel == "" {
 		taskLabel = "📝 Task:"
 	}
-	
+
 	modelLabel := ui.GetLocalizedMessage("script_display.model_label")
 	if modelLabel == "" {
 		modelLabel = "🧠 Model:"
 	}
-	
+
 	platformLabel := ui.GetLocalizedMessage("script_display.platform_label")
 	if platformLabel == "" {
 		platformLabel = "🖥️ Platform:"
