@@ -352,3 +352,310 @@ func Test_when_generating_fixed_script_prompt_construction_should_include_all_el
 		})
 	}
 }
+
+// Provider Instance Tests
+func Test_when_creating_openai_provider_should_initialize_correctly(t *testing.T) {
+	// Arrange
+	config := &types.Config{
+		OpenAIAPIKey: "test-key",
+		Provider:     "openai",
+	}
+
+	// Act
+	provider := NewOpenAIProvider(config)
+
+	// Assert
+	if provider == nil {
+		t.Error("NewOpenAIProvider should return non-nil provider")
+	}
+	if provider.Name() != "openai" {
+		t.Errorf("Expected provider name 'openai', got '%s'", provider.Name())
+	}
+}
+
+func Test_when_creating_anthropic_provider_should_initialize_correctly(t *testing.T) {
+	// Arrange
+	config := &types.Config{
+		AnthropicAPIKey: "test-key",
+		Provider:        "anthropic",
+	}
+
+	// Act
+	provider := NewAnthropicProvider(config)
+
+	// Assert
+	if provider == nil {
+		t.Error("NewAnthropicProvider should return non-nil provider")
+	}
+	if provider.Name() != "anthropic" {
+		t.Errorf("Expected provider name 'anthropic', got '%s'", provider.Name())
+	}
+}
+
+func Test_when_creating_ollama_provider_should_initialize_correctly(t *testing.T) {
+	// Arrange
+	config := &types.Config{
+		OllamaURL: "http://localhost:11434",
+		Provider:  "ollama",
+	}
+
+	// Act
+	provider := NewOllamaProvider(config)
+
+	// Assert
+	if provider == nil {
+		t.Error("NewOllamaProvider should return non-nil provider")
+	}
+	if provider.Name() != "ollama" {
+		t.Errorf("Expected provider name 'ollama', got '%s'", provider.Name())
+	}
+}
+
+func Test_when_checking_openai_configuration_should_validate_api_key(t *testing.T) {
+	provider := NewOpenAIProvider(&types.Config{})
+
+	tests := []struct {
+		name      string
+		config    *types.Config
+		expected  bool
+	}{
+		{
+			name:     "Valid API key",
+			config:   &types.Config{OpenAIAPIKey: "sk-test123"},
+			expected: true,
+		},
+		{
+			name:     "Empty API key",
+			config:   &types.Config{OpenAIAPIKey: ""},
+			expected: false,
+		},
+		{
+			name:     "Nil config",
+			config:   &types.Config{},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := provider.IsConfigured(tt.config)
+			if result != tt.expected {
+				t.Errorf("IsConfigured() = %v, want %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func Test_when_checking_anthropic_configuration_should_validate_api_key(t *testing.T) {
+	provider := NewAnthropicProvider(&types.Config{})
+
+	tests := []struct {
+		name      string
+		config    *types.Config
+		expected  bool
+	}{
+		{
+			name:     "Valid API key",
+			config:   &types.Config{AnthropicAPIKey: "sk-ant-test123"},
+			expected: true,
+		},
+		{
+			name:     "Empty API key",
+			config:   &types.Config{AnthropicAPIKey: ""},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := provider.IsConfigured(tt.config)
+			if result != tt.expected {
+				t.Errorf("IsConfigured() = %v, want %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func Test_when_checking_ollama_configuration_should_always_return_true(t *testing.T) {
+	provider := NewOllamaProvider(&types.Config{})
+
+	tests := []struct {
+		name      string
+		config    *types.Config
+		expected  bool
+		desc      string
+	}{
+		{
+			name:     "Valid URL",
+			config:   &types.Config{OllamaURL: "http://localhost:11434"},
+			expected: true,
+			desc:     "Ollama should be considered configured with valid URL",
+		},
+		{
+			name:     "Empty URL",
+			config:   &types.Config{OllamaURL: ""},
+			expected: true,
+			desc:     "Ollama should be considered configured even with empty URL (uses default)",
+		},
+		{
+			name:     "Custom URL",
+			config:   &types.Config{OllamaURL: "http://remote:8080"},
+			expected: true,
+			desc:     "Ollama should be considered configured with custom URL",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := provider.IsConfigured(tt.config)
+			if result != tt.expected {
+				t.Errorf("IsConfigured() = %v, want %v: %s", result, tt.expected, tt.desc)
+			}
+		})
+	}
+}
+
+func Test_when_openai_provider_not_configured_should_return_error(t *testing.T) {
+	// Arrange
+	config := &types.Config{OpenAIAPIKey: ""} // No API key
+	provider := NewOpenAIProvider(config)
+	request := &types.ScriptRequest{
+		TaskDescription: "test task",
+		ScriptType:      "bash",
+		Provider:        "openai",
+	}
+
+	// Act
+	result, err := provider.GenerateScript(request)
+
+	// Assert
+	if err == nil {
+		t.Error("Expected error when OpenAI is not configured")
+	}
+	if result != nil {
+		t.Error("Expected nil result when OpenAI is not configured")
+	}
+	if !strings.Contains(err.Error(), "API key not configured") {
+		t.Errorf("Expected error about API key, got: %s", err.Error())
+	}
+}
+
+func Test_when_anthropic_provider_not_configured_should_return_error(t *testing.T) {
+	// Arrange
+	config := &types.Config{AnthropicAPIKey: ""} // No API key
+	provider := NewAnthropicProvider(config)
+	request := &types.ScriptRequest{
+		TaskDescription: "test task",
+		ScriptType:      "bash",
+		Provider:        "anthropic",
+	}
+
+	// Act
+	result, err := provider.GenerateScript(request)
+
+	// Assert
+	if err == nil {
+		t.Error("Expected error when Anthropic is not configured")
+	}
+	if result != nil {
+		t.Error("Expected nil result when Anthropic is not configured")
+	}
+	if !strings.Contains(err.Error(), "API key not configured") {
+		t.Errorf("Expected error about API key, got: %s", err.Error())
+	}
+}
+
+func Test_when_getting_openai_available_models_should_return_model_list(t *testing.T) {
+	// Arrange
+	provider := NewOpenAIProvider(&types.Config{})
+
+	// Act
+	models := provider.GetAvailableModels()
+
+	// Assert
+	if len(models) == 0 {
+		t.Error("Expected non-empty list of available models")
+	}
+	
+	// Check for expected models
+	expectedModels := []string{"gpt-4", "gpt-3.5-turbo"}
+	for _, expected := range expectedModels {
+		found := false
+		for _, model := range models {
+			if model == expected {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("Expected model '%s' not found in available models", expected)
+		}
+	}
+}
+
+func Test_when_getting_anthropic_available_models_should_return_model_list(t *testing.T) {
+	// Arrange
+	provider := NewAnthropicProvider(&types.Config{})
+
+	// Act
+	models := provider.GetAvailableModels()
+
+	// Assert
+	if len(models) == 0 {
+		t.Error("Expected non-empty list of available models")
+	}
+	
+	// Check for Claude models
+	found := false
+	for _, model := range models {
+		if strings.Contains(model, "claude") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Expected at least one Claude model in Anthropic available models")
+	}
+}
+
+func Test_when_testing_provider_interface_implementation_should_satisfy_interface(t *testing.T) {
+	// This test ensures all providers implement the Provider interface correctly
+	configs := []*types.Config{
+		{OpenAIAPIKey: "test"},
+		{AnthropicAPIKey: "test"},
+		{OllamaURL: "http://localhost:11434"},
+	}
+
+	providers := []Provider{
+		NewOpenAIProvider(configs[0]),
+		NewAnthropicProvider(configs[1]),
+		NewOllamaProvider(configs[2]),
+	}
+
+	for i, provider := range providers {
+		t.Run(provider.Name(), func(t *testing.T) {
+			// Test Name() method
+			name := provider.Name()
+			if name == "" {
+				t.Error("Provider Name() should not return empty string")
+			}
+
+			// Test IsConfigured() method
+			configured := provider.IsConfigured(configs[i])
+			// Should return boolean without error
+			t.Logf("Provider %s configured: %t", name, configured)
+
+			// Test GenerateScript() method exists (will fail due to no real API)
+			request := &types.ScriptRequest{
+				TaskDescription: "test",
+				ScriptType:      "bash",
+				Provider:        name,
+			}
+			_, err := provider.GenerateScript(request)
+			// We expect an error due to invalid config/network, but method should exist
+			if err == nil {
+				t.Logf("Unexpected success from %s provider", name)
+			}
+		})
+	}
+}
