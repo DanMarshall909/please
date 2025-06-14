@@ -3,24 +3,38 @@
   "theme": "default",
   "messages": {
     "banner": {
-      "title": "🤖 Please - Your Overly Helpful Digital Assistant",
-      "subtitle": "AI-powered cross-platform script generator"
+      "title": "🤖 Please - Your overly helpful digital assistant",
+      "subtitle": "✨ Generating scripts so you don't have to think about it"
     },
     "errors": {
-      "provider_connection": "Failed to connect to AI provider",
-      "invalid_input": "Invalid input provided"
+      "provider_connection": "❌ Failed to connect to AI provider",
+      "invalid_input": "❌ Invalid input provided"
     },
     "prompts": {
-      "select_provider": "Select AI provider:",
-      "enter_request": "What would you like me to help with?"
+      "select_provider": "Select your AI provider:",
+      "enter_request": "Enter your request:"
+    },
+    "script_display": {
+      "task_label": "📝 Task:",
+      "model_label": "🧠 Model:",
+      "platform_label": "🖥️ Platform:",
+      "script_header": "📋 Generated Script",
+      "success_message": "✅ Script generated successfully!"
+    },
+    "menu": {
+      "generate_script": "✨ Generate new script",
+      "run_last": "🔄 Run last script", 
+      "help": "📖 Help",
+      "exit": "🚪 Exit"
     }
   },
   "themes": {
     "colors": {
       "primary": "#00ff41",
-      "secondary": "#ffffff",
-      "error": "#ff0000",
-      "warning": "#ffff00"
+      "secondary": "#00aaff", 
+      "success": "#00ff00",
+      "warning": "#ffaa00",
+      "error": "#ff5555"
     }
   }
 }

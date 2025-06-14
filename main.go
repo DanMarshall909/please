@@ -161,12 +161,38 @@ func displayScriptAndConfirm(response *types.ScriptResponse) {
 	fmt.Printf("║                           🤖 Please Script Generator                         ║\n")
 	fmt.Printf("╚══════════════════════════════════════════════════════════════════════════════╝\n\n")
 
-	fmt.Printf("📝 Task: %s\n", response.TaskDescription)
-	fmt.Printf("🧠 Model: %s (%s)\n", response.Model, response.Provider)
-	fmt.Printf("🖥️  Platform: %s script\n", response.ScriptType)
+	// Get localized labels, with fallbacks for missing translations
+	taskLabel := ui.GetLocalizedMessage("script_display.task_label")
+	if taskLabel == "" {
+		taskLabel = "📝 Task:"
+	}
+	
+	modelLabel := ui.GetLocalizedMessage("script_display.model_label")
+	if modelLabel == "" {
+		modelLabel = "🧠 Model:"
+	}
+	
+	platformLabel := ui.GetLocalizedMessage("script_display.platform_label")
+	if platformLabel == "" {
+		platformLabel = "🖥️ Platform:"
+	}
+
+	scriptHeader := ui.GetLocalizedMessage("script_display.script_header")
+	if scriptHeader == "" {
+		scriptHeader = "📋 Generated Script"
+	}
+
+	successMessage := ui.GetLocalizedMessage("script_display.success_message")
+	if successMessage == "" {
+		successMessage = "✅ Script generated successfully!"
+	}
+
+	fmt.Printf("%s %s\n", taskLabel, response.TaskDescription)
+	fmt.Printf("%s %s (%s)\n", modelLabel, response.Model, response.Provider)
+	fmt.Printf("%s %s script\n", platformLabel, response.ScriptType)
 
 	fmt.Printf("\n╔══════════════════════════════════════════════════════════════════════════════╗\n")
-	fmt.Printf("║                              📋 Generated Script                             ║\n")
+	fmt.Printf("║                              %s                             ║\n", scriptHeader)
 	fmt.Printf("╚══════════════════════════════════════════════════════════════════════════════╝\n\n")
 
 	// Display the script with line numbers
@@ -176,7 +202,7 @@ func displayScriptAndConfirm(response *types.ScriptResponse) {
 		fmt.Printf("\033[90m%s│\033[0m %s\n", lineNum, line)
 	}
 
-	fmt.Printf("\n✅ Script generated successfully!\n")
+	fmt.Printf("\n%s\n", successMessage)
 
 	// Show interactive menu
 	ui.ShowScriptMenu(response)
