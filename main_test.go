@@ -251,3 +251,118 @@ func Test_when_menu_items_created_should_use_localized_labels(t *testing.T) {
 		t.Errorf("Expected French menu label, got: %s", generateLabel)
 	}
 }
+
+func Test_when_banner_displays_with_localization_should_show_localized_title_and_subtitle(t *testing.T) {
+	// Arrange: Set up localization with German banner text
+	tempDir := t.TempDir()
+	locFile := filepath.Join(tempDir, "banner-test.json")
+	locContent := `{
+		"language": "de-de",
+		"messages": {
+			"banner": {
+				"title": "🤖 Bitte - Ihr übermäßig hilfreicher digitaler Assistent",
+				"subtitle": "✨ Skripte generieren, damit Sie nicht denken müssen"
+			}
+		}
+	}`
+	os.WriteFile(locFile, []byte(locContent), 0644)
+
+	locMgr, _ := localization.NewLocalizationManager(tempDir)
+	locMgr.LoadLanguage("de-de", locFile)
+	locMgr.SetLanguage("de-de")
+
+	// Set up localization in UI
+	ui.SetLocalizationManager(locMgr)
+
+	// Capture banner output using bytes.Buffer for more reliable capture
+	var output bytes.Buffer
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	done := make(chan bool)
+	go func() {
+		defer close(done)
+		// Read all output from pipe
+		buf := make([]byte, 1024)
+		for {
+			n, err := r.Read(buf)
+			if n > 0 {
+				output.Write(buf[:n])
+			}
+			if err != nil {
+				break
+			}
+		}
+	}()
+
+	// Act: Call banner function that should use localization
+	ui.PrintRainbowBannerWithDelay(0) // Use zero delay for faster test
+	w.Close()
+	<-done
+	r.Close()
+	os.Stdout = oldStdout
+
+	outputStr := output.String()
+
+	// Assert: Check that German text appears in banner output
+	if !strings.Contains(outputStr, "Bitte - Ihr übermäßig hilfreicher") {
+		t.Errorf("Expected German banner title in output, got: %s", outputStr)
+	}
+	
+	if !strings.Contains(outputStr, "Skripte generieren, damit Sie nicht denken") {
+		t.Errorf("Expected German banner subtitle in output, got: %s", outputStr)
+	}
+}
+
+func Test_when_help_displays_with_localization_should_show_localized_help_text(t *testing.T) {
+	// Arrange: Set up localization with Spanish help text  
+	tempDir := t.TempDir()
+	locFile := filepath.Join(tempDir, "help-test.json")
+	locContent := `{
+		"language": "es-es",
+		"messages": {
+			"help": {
+				"title": "🤖 Por favor - Su asistente digital excesivamente útil",
+				"usage_header": "📖 Uso en lenguaje natural:",
+				"examples_header": "🎯 Ejemplos:",
+				"features_header": "🎨 Características:"
+			}
+		}
+	}`
+	os.WriteFile(locFile, []byte(locContent), 0644)
+
+	locMgr, _ := localization.NewLocalizationManager(tempDir)
+	locMgr.LoadLanguage("es-es", locFile)
+	locMgr.SetLanguage("es-es")
+
+	// Set up localization in UI
+	ui.SetLocalizationManagerForHelp(locMgr)
+
+	// Capture help output
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	go func() {
+		defer w.Close()
+		// Act: Call help function that should use localization
+		ui.ShowHelp()
+	}()
+
+	// Read output
+	buffer := make([]byte, 4096)
+	n, _ := r.Read(buffer)
+	output := string(buffer[:n])
+	r.Close()
+	os.Stdout = oldStdout
+
+	// Assert: Check that Spanish text appears in help output
+	if !strings.Contains(output, "Por favor - Su asistente digital") {
+		t.Errorf("Expected Spanish help title in output, got: %s", output)
+	}
+	
+	if !strings.Contains(output, "Uso en lenguaje natural") {
+		t.Errorf("Expected Spanish usage header in output, got: %s", output)
+	}
+}

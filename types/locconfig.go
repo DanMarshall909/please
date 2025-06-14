@@ -18,11 +18,30 @@ type Prompts struct {
 	EnterRequest   string `json:"enter_request"`
 }
 
+// ScriptDisplay holds script display messages
+type ScriptDisplay struct {
+	TaskLabel      string `json:"task_label"`
+	ModelLabel     string `json:"model_label"`
+	PlatformLabel  string `json:"platform_label"`
+	ScriptHeader   string `json:"script_header"`
+	SuccessMessage string `json:"success_message"`
+}
+
+// Menu holds menu item labels
+type Menu struct {
+	GenerateScript string `json:"generate_script"`
+	RunLast        string `json:"run_last"`
+	Help           string `json:"help"`
+	Exit           string `json:"exit"`
+}
+
 // Messages groups all localized messages
 type Messages struct {
-	Banner  Banner  `json:"banner"`
-	Errors  Errors  `json:"errors"`
-	Prompts Prompts `json:"prompts"`
+	Banner        Banner        `json:"banner"`
+	Errors        Errors        `json:"errors"`
+	Prompts       Prompts       `json:"prompts"`
+	ScriptDisplay ScriptDisplay `json:"script_display"`
+	Menu          Menu          `json:"menu"`
 }
 
 // Theme defines color mappings

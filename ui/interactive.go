@@ -22,6 +22,14 @@ type UIService struct {
 	LocManager *localization.LocalizationManager
 }
 
+// GetLocalizedMessage returns a localized message using the global manager
+func GetLocalizedMessage(key string) string {
+	if locMgr != nil {
+		return locMgr.GetMessage(key)
+	}
+	return ""
+}
+
 // NewUIService creates a new UI service with initialized dependencies
 func NewUIService(configDir string) (*UIService, error) {
 	locManager, err := localization.NewLocalizationManager(configDir)
