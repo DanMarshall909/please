@@ -126,14 +126,11 @@ func showConfiguration() {
 	fmt.Printf("\n%s🔗 Environment Variables:%s\n", ColorBold+ColorYellow, ColorReset)
 
 	pleaseProvider := os.Getenv("PLEASE_PROVIDER")
-	legacyProvider := os.Getenv("OOHLAMA_PROVIDER")
 
 	if pleaseProvider != "" {
 		fmt.Printf("  %s• PLEASE_PROVIDER:%s %s\n", ColorDim, ColorReset, pleaseProvider)
-	} else if legacyProvider != "" {
-		fmt.Printf("  %s• OOHLAMA_PROVIDER:%s %s %s(legacy)%s\n", ColorDim, ColorReset, legacyProvider, ColorYellow, ColorReset)
 	} else {
-		fmt.Printf("  %s• No provider environment variables set%s\n", ColorDim, ColorReset)
+		fmt.Printf("  %s• PLEASE_PROVIDER:%s ollama (default)\n", ColorDim, ColorReset)
 	}
 
 	fmt.Printf("\n%s💡 Tip: Set PLEASE_PROVIDER environment variable to change default provider%s\n", ColorDim, ColorReset)
