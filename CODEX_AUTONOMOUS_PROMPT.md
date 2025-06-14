@@ -3,16 +3,26 @@
 ## CONTEXT:
 You're implementing comprehensive localization and theming for the Please v6 CLI tool. Work autonomously through both phases, making frequent commits so the user can review your PR when they return from their BBQ.
 
-## PHASE 1: ACHIEVE 95%+ UI COVERAGE (REQUIRED FIRST)
-Current: 45.5% coverage - MUST reach 95%+ before Phase 2
+## PHASE 1: MAXIMIZE TESTABLE UI COVERAGE (REQUIRED FIRST)
+Current: ~55% coverage - Focus on testable business logic, skip interactive I/O
+
+### Realistic Coverage Target:
+- **Target**: Test all business logic and non-interactive functions
+- **Skip**: Interactive terminal input functions that require user interaction
+- **Focus**: Message formatting, validation, data processing
 
 ### Tasks (Commit after each):
 1. **READ AGENTS.md and CODEX_CORRECTIVE_PROMPT.md** - Critical project context
-2. **ui/interactive.go** - Write comprehensive BDD tests (largest file, highest priority)
-3. **ui/menu.go** - Write comprehensive BDD tests  
-4. **ui/banner.go** - Complete missing function tests
-5. **ui/help.go** - Complete remaining function tests
-6. **Verify**: `go test ./ui -cover` shows 95%+
+2. **ui/banner.go** - Test all formatting and display functions (skip interactive parts)
+3. **ui/help.go** - Test message generation and formatting functions
+4. **ui/progress.go** - Test progress calculation and display logic
+5. **ui/colors.go** - Test color code generation and validation
+6. **Verify**: `go test ./ui -cover` shows maximum practical coverage
+
+### Functions to SKIP (require interactive terminal input):
+- `getSingleKeyInput()`, `getSingleKeyWindows()`, `getSingleKeyUnix()`
+- `ShowMainMenu()`, `ShowScriptMenu()` (require user interaction)
+- Any function that calls `fmt.Scanf()` or waits for keyboard input
 
 ### Test Format Required:
 ```go
@@ -118,7 +128,7 @@ themes/
 1. Work through Phase 1 completely first
 2. Commit after each file/component (DO NOT CREATE PRs)
 3. Verify tests pass after each commit
-4. Move to Phase 2 only after 95%+ UI coverage
+4. Move to Phase 2 only after maximum practical UI coverage achieved
 5. Follow TDD strictly - tests first, then implementation
 6. Continue through ALL of Phase 2 autonomously
 7. ONLY create PR when BOTH phases completely finished
@@ -126,7 +136,7 @@ themes/
 **CRITICAL**: Do NOT create pull requests until BOTH Phase 1 AND Phase 2 are 100% complete. Commit frequently but continue working autonomously through the entire implementation.
 
 ## SUCCESS CRITERIA:
-- ✅ 95%+ UI test coverage achieved
+- ✅ Maximum practical UI test coverage achieved (business logic only)
 - ✅ All text externalized to JSON files
 - ✅ Multiple language support working
 - ✅ Theme switching functional
