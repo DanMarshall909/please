@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -30,27 +31,36 @@ func NewProgressIndicator(message string) *ProgressIndicator {
 func (p *ProgressIndicator) Start() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	
+
 	if p.isRunning {
 		return // Already running
 	}
-	
+
 	p.isRunning = true
-	
+
 	go func() {
 		dots := 0
+		testMode := false
+		if v := os.Getenv("PROGRESS_TEST_MODE"); v == "1" {
+			testMode = true
+		}
+		testTimeout := time.After(2 * time.Second)
 		for {
 			select {
 			case <-p.stopChan:
 				// Clear the line and return
 				fmt.Print("\r" + strings.Repeat(" ", len(p.message)+10) + "\r")
 				return
+			case <-testTimeout:
+				if testMode {
+					p.Stop()
+					return
+				}
 			default:
 				// Display message with animated dots
 				dotStr := strings.Repeat(".", dots%4)
 				spaces := strings.Repeat(" ", 3-len(dotStr))
 				fmt.Printf("\r%s%s%s%s%s", ColorCyan, p.message, dotStr, spaces, ColorReset)
-				
 				dots++
 				time.Sleep(500 * time.Millisecond)
 			}
@@ -62,14 +72,14 @@ func (p *ProgressIndicator) Start() {
 func (p *ProgressIndicator) Stop() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	
+
 	if !p.isRunning {
 		return
 	}
-	
+
 	p.isRunning = false
 	p.stopChan <- true
-	
+
 	// Clear the line
 	fmt.Print("\r" + strings.Repeat(" ", len(p.message)+10) + "\r")
 }
@@ -78,7 +88,7 @@ func (p *ProgressIndicator) Stop() {
 func (p *ProgressIndicator) UpdateStatus(message string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	
+
 	p.message = message
 }
 
@@ -100,7 +110,7 @@ func GetProviderStatusMessage(provider string) string {
 func GetScriptGenerationProgressMessages(config *types.Config) []string {
 	provider := strings.ToLower(config.Provider)
 	model := config.PreferredModel
-	
+
 	messages := []string{
 		GetProviderStatusMessage(provider),
 		fmt.Sprintf("🧠 Initializing %s model: %s", provider, model),
@@ -108,16 +118,16 @@ func GetScriptGenerationProgressMessages(config *types.Config) []string {
 		"🔧 Optimizing script for your platform",
 		"✨ Finalizing script generation",
 	}
-	
+
 	// Add provider-specific messages
 	if provider == "ollama" {
 		messages = append([]string{
 			"🔍 Checking if Ollama is running locally",
 		}, messages...)
-		
+
 		messages = append(messages, "📦 Loading model into memory (first time may be slower)")
 	}
-	
+
 	return messages
 }
 
@@ -130,20 +140,20 @@ func GetAutoFixProgressMessages(originalScript, errorMessage, provider string) [
 		"🛠️ Generating corrected script",
 		"✅ Applying fixes and optimizations",
 	}
-	
+
 	// Add context-specific messages
 	if strings.Contains(errorMessage, "syntax") {
 		messages = append(messages, "📝 Fixing syntax errors")
 	}
-	
+
 	if strings.Contains(errorMessage, "permission") || strings.Contains(errorMessage, "access") {
 		messages = append(messages, "🔒 Addressing permission issues")
 	}
-	
+
 	if len(originalScript) > 500 {
 		messages = append(messages, "📄 Processing large script content")
 	}
-	
+
 	return messages
 }
 
@@ -153,14 +163,14 @@ func ShowProgressWithSteps(messages []string) {
 		if i > 0 {
 			time.Sleep(800 * time.Millisecond) // Brief pause between steps
 		}
-		
+
 		progress := NewProgressIndicator(message)
 		progress.Start()
-		
+
 		// Show each step for a moment
 		time.Sleep(1200 * time.Millisecond)
 		progress.Stop()
-		
+
 		// Show completion for this step
 		fmt.Printf("%s✓ %s%s\n", ColorGreen, message, ColorReset)
 	}
@@ -169,7 +179,7 @@ func ShowProgressWithSteps(messages []string) {
 // ShowProviderProgress displays provider-specific progress indication
 func ShowProviderProgress(provider, operation string) func() {
 	message := fmt.Sprintf("🤖 %s using %s", operation, provider)
-	
+
 	// Add provider-specific context
 	switch strings.ToLower(provider) {
 	case "ollama":
@@ -179,10 +189,10 @@ func ShowProviderProgress(provider, operation string) func() {
 	case "anthropic":
 		message += " (via Anthropic API)"
 	}
-	
+
 	progress := NewProgressIndicator(message)
 	progress.Start()
-	
+
 	// Return a function to stop the progress
 	return func() {
 		progress.Stop()
@@ -194,7 +204,7 @@ func ShowProviderProgress(provider, operation string) func() {
 func ShowSimpleProgress(message string) func() {
 	progress := NewProgressIndicator(message)
 	progress.Start()
-	
+
 	return func() {
 		progress.Stop()
 	}
