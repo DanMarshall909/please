@@ -46,7 +46,13 @@ ui                         8.0%     ❌ Critical gap
 - **Refactoring**: 95%+ coverage before changes
 - **Major Changes**: 95%+ coverage + integration tests
 
-### **3. Coverage Quality Standards**
+### **3. Behavior-Driven Test Requirements**
+- **Behavior-Focused**: Test what the software does, not how it does it
+- **Plain English**: Test names and scenarios in clear, readable sentences
+- **BDD Naming**: `TestWhen[Context]_Should[ExpectedBehavior]` format
+- **User-Centric**: Focus on observable outcomes and user scenarios
+
+### **4. Coverage Quality Standards**
 - **Unit Tests**: 85% line coverage minimum
 - **Integration Tests**: All critical user paths
 - **Error Paths**: 90% of error conditions tested
