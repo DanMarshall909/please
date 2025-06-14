@@ -104,6 +104,22 @@ func getFromConfig(cfg *types.LocalizationConfig, cat, field string) string {
 		if field == "enter_request" {
 			return cfg.Messages.Prompts.EnterRequest
 		}
+	case "installation":
+		switch field {
+		case "success":
+			return cfg.Messages.Installation.Success
+		case "try_it":
+			return cfg.Messages.Installation.TryIt
+		case "magic":
+			return cfg.Messages.Installation.Magic
+		}
+	case "footer":
+		switch field {
+		case "tips":
+			return cfg.Messages.Footer.Tips
+		case "happy":
+			return cfg.Messages.Footer.Happy
+		}
 	}
 	return ""
 }

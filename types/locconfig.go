@@ -2,8 +2,8 @@ package types
 
 // Banner holds banner title and subtitle
 type Banner struct {
-    Title    string `json:"title"`
-    Subtitle string `json:"subtitle"`
+	Title    string `json:"title"`
+	Subtitle string `json:"subtitle"`
 }
 
 // Errors holds error messages
@@ -18,11 +18,26 @@ type Prompts struct {
 	EnterRequest   string `json:"enter_request"`
 }
 
+// Installation holds installation messages
+type Installation struct {
+	Success string `json:"success"`
+	TryIt   string `json:"try_it"`
+	Magic   string `json:"magic"`
+}
+
+// Footer holds footer messages
+type Footer struct {
+	Tips  string `json:"tips"`
+	Happy string `json:"happy"`
+}
+
 // Messages groups all localized messages
 type Messages struct {
-	Banner  Banner  `json:"banner"`
-	Errors  Errors  `json:"errors"`
-	Prompts Prompts `json:"prompts"`
+	Banner       Banner       `json:"banner"`
+	Errors       Errors       `json:"errors"`
+	Prompts      Prompts      `json:"prompts"`
+	Installation Installation `json:"installation"`
+	Footer       Footer       `json:"footer"`
 }
 
 // Theme defines color mappings

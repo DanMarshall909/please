@@ -12,7 +12,7 @@
     },
     "prompts": {
       "select_provider": "Select your AI provider:",
-      "enter_request": "Enter your request:"
+      "enter_request": "What would you like me to help with?"
     },
     "script_display": {
       "task_label": "📝 Task:",
@@ -26,6 +26,15 @@
       "run_last": "🔄 Run last script", 
       "help": "📖 Help",
       "exit": "🚪 Exit"
+    },
+    "installation": {
+      "success": "🎉 Installation complete! 🎉",
+      "try_it": "🚀 Try it out:",
+      "magic": "✨ Magic happens with just 3 letters: 'pls' ✨"
+    },
+    "footer": {
+      "tips": "💡 Tips:",
+      "happy": "🌟 Happy scripting! 🌟"
     }
   },
   "themes": {
