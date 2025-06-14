@@ -7,6 +7,11 @@ import (
 
 // PrintRainbowBanner displays a colorful animated banner
 func PrintRainbowBanner() {
+	PrintRainbowBannerWithDelay(50 * time.Millisecond)
+}
+
+// PrintRainbowBannerWithDelay displays a colorful banner with configurable delay
+func PrintRainbowBannerWithDelay(delay time.Duration) {
 	banner := []string{
 		"██████╗ ██╗     ███████╗ █████╗ ███████╗███████╗",
 		"██╔══██╗██║     ██╔════╝██╔══██╗██╔════╝██╔════╝",
@@ -21,7 +26,9 @@ func PrintRainbowBanner() {
 	for i, line := range banner {
 		color := colors[i%len(colors)]
 		fmt.Printf("%s%s%s\n", color, line, ColorReset)
-		time.Sleep(50 * time.Millisecond) // Slight animation delay
+		if delay > 0 {
+			time.Sleep(delay)
+		}
 	}
 }
 
