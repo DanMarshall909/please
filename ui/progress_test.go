@@ -10,7 +10,7 @@ import (
 )
 
 // TestProgressIndicator_ShowsStatusMessages tests that progress indicators display status
-func TestProgressIndicator_ShowsStatusMessages(t *testing.T) {
+func Test_when_progress_indicator_then_shows_status_messages(t *testing.T) {
 	// Create a progress indicator
 	progress := NewProgressIndicator("Testing operation")
 
@@ -30,7 +30,7 @@ func TestProgressIndicator_ShowsStatusMessages(t *testing.T) {
 }
 
 // TestProgressIndicator_UpdateStatus tests status updates
-func TestProgressIndicator_UpdateStatus(t *testing.T) {
+func Test_when_progress_indicator_then_update_status(t *testing.T) {
 	progress := NewProgressIndicator("Initial message")
 
 	// Update the status
@@ -42,7 +42,7 @@ func TestProgressIndicator_UpdateStatus(t *testing.T) {
 }
 
 // TestProgressIndicator_StartStop tests start and stop functionality
-func TestProgressIndicator_StartStop(t *testing.T) {
+func Test_when_progress_indicator_then_start_stop(t *testing.T) {
 	progress := NewProgressIndicator("Test message")
 
 	// Start the progress indicator
@@ -146,21 +146,21 @@ func TestAutoFixProgress(t *testing.T) {
 	}
 }
 
-func TestWhenShowSimpleProgress_ShouldStopCleanly(t *testing.T) {
+func Test_when_show_simple_progress_then_stop_cleanly(t *testing.T) {
 	os.Setenv("PROGRESS_TEST_MODE", "1")
 	stop := ShowSimpleProgress("doing work")
 	time.Sleep(100 * time.Millisecond)
 	stop()
 }
 
-func TestWhenShowProviderProgress_ShouldStopCleanly(t *testing.T) {
+func Test_when_show_provider_progress_then_stop_cleanly(t *testing.T) {
 	os.Setenv("PROGRESS_TEST_MODE", "1")
 	stop := ShowProviderProgress("openai", "testing")
 	time.Sleep(100 * time.Millisecond)
 	stop()
 }
 
-func TestWhenShowProgressWithSteps_ShouldRunSteps(t *testing.T) {
+func Test_when_show_progress_with_steps_then_run_steps(t *testing.T) {
 	os.Setenv("PROGRESS_TEST_MODE", "1")
 	start := time.Now()
 	ShowProgressWithSteps([]string{"one"})
@@ -169,7 +169,7 @@ func TestWhenShowProgressWithSteps_ShouldRunSteps(t *testing.T) {
 	}
 }
 
-func TestWhenAutoFixErrorContainsPermission_ShouldAddPermissionMessage(t *testing.T) {
+func Test_when_auto_fix_error_contains_permission_then_add_permission_message(t *testing.T) {
 	messages := GetAutoFixProgressMessages(strings.Repeat("a", 100), "permission denied", "openai")
 	found := false
 	for _, m := range messages {
@@ -183,7 +183,7 @@ func TestWhenAutoFixErrorContainsPermission_ShouldAddPermissionMessage(t *testin
 	}
 }
 
-func TestWhenAutoFixScriptVeryLarge_ShouldAddLargeScriptMessage(t *testing.T) {
+func Test_when_auto_fix_script_very_large_then_add_large_script_message(t *testing.T) {
 	script := strings.Repeat("x", 600)
 	messages := GetAutoFixProgressMessages(script, "other", "anthropic")
 	last := messages[len(messages)-1]

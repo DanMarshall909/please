@@ -9,7 +9,7 @@ import (
 )
 
 // TestGenerateFixedScript_UsesCorrectProvider tests that auto-fix now uses the specified provider
-func TestGenerateFixedScript_UsesCorrectProvider(t *testing.T) {
+func Test_when_generate_fixed_script_then_uses_correct_provider(t *testing.T) {
 	// Test that the function now correctly uses different providers
 
 	originalScript := "echo 'broken script'"
@@ -58,7 +58,7 @@ func TestGenerateFixedScript_UsesCorrectProvider(t *testing.T) {
 }
 
 // TestGenerateFixedScript_ProperPrompt tests that the prompt includes proper context
-func TestGenerateFixedScript_ProperPrompt(t *testing.T) {
+func Test_when_generate_fixed_script_then_proper_prompt(t *testing.T) {
 	var receivedRequest *types.ScriptRequest
 
 	mockProvider := &MockProvider{
@@ -141,8 +141,8 @@ func generateFixedScriptWithProvider(
 	config *types.Config,
 ) (string, error) {
 	// This is what we need to implement to fix the hard-coded OpenAI issue
-	prompt := "The following script failed with this error:\n\nScript:\n" + 
-		originalScript + "\n\nError:\n" + errorMessage + 
+	prompt := "The following script failed with this error:\n\nScript:\n" +
+		originalScript + "\n\nError:\n" + errorMessage +
 		"\n\nPlease suggest a corrected version of the script. Return ONLY the fixed script, no explanations or markdown formatting."
 
 	request := &types.ScriptRequest{

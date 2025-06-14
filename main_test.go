@@ -2,13 +2,13 @@ package main
 
 import (
 	"os"
+	"please/types"
 	"strings"
 	"testing"
-	"please/types"
 )
 
 // Test getFallbackModel function
-func Test_when_provider_is_openai_should_return_gpt_3_5_turbo(t *testing.T) {
+func Test_when_provider_is_openai_then_return_gpt_3_5_turbo(t *testing.T) {
 	// Arrange
 	provider := "openai"
 	expected := "gpt-3.5-turbo"
@@ -22,7 +22,7 @@ func Test_when_provider_is_openai_should_return_gpt_3_5_turbo(t *testing.T) {
 	}
 }
 
-func Test_when_provider_is_anthropic_should_return_claude_3_haiku(t *testing.T) {
+func Test_when_provider_is_anthropic_then_return_claude_3_haiku(t *testing.T) {
 	// Arrange
 	provider := "anthropic"
 	expected := "claude-3-haiku-20240307"
@@ -36,7 +36,7 @@ func Test_when_provider_is_anthropic_should_return_claude_3_haiku(t *testing.T) 
 	}
 }
 
-func Test_when_provider_is_unknown_should_return_llama3_2(t *testing.T) {
+func Test_when_provider_is_unknown_then_return_llama3_2(t *testing.T) {
 	// Arrange
 	provider := "unknown"
 	expected := "llama3.2"
@@ -50,7 +50,7 @@ func Test_when_provider_is_unknown_should_return_llama3_2(t *testing.T) {
 	}
 }
 
-func Test_when_provider_is_ollama_should_return_llama3_2(t *testing.T) {
+func Test_when_provider_is_ollama_then_return_llama3_2(t *testing.T) {
 	// Arrange
 	provider := "ollama"
 	expected := "llama3.2"
@@ -65,7 +65,7 @@ func Test_when_provider_is_ollama_should_return_llama3_2(t *testing.T) {
 }
 
 // Test isLastScriptCommand function
-func Test_when_command_is_run_last_script_should_return_true(t *testing.T) {
+func Test_when_command_is_run_last_script_then_return_true(t *testing.T) {
 	// Arrange
 	command := "run last script"
 
@@ -78,7 +78,7 @@ func Test_when_command_is_run_last_script_should_return_true(t *testing.T) {
 	}
 }
 
-func Test_when_command_is_run_my_last_script_should_return_true(t *testing.T) {
+func Test_when_command_is_run_my_last_script_then_return_true(t *testing.T) {
 	// Arrange
 	command := "run my last script"
 
@@ -91,7 +91,7 @@ func Test_when_command_is_run_my_last_script_should_return_true(t *testing.T) {
 	}
 }
 
-func Test_when_command_is_repeat_should_return_true(t *testing.T) {
+func Test_when_command_is_repeat_then_return_true(t *testing.T) {
 	// Arrange
 	command := "repeat"
 
@@ -104,7 +104,7 @@ func Test_when_command_is_repeat_should_return_true(t *testing.T) {
 	}
 }
 
-func Test_when_command_is_case_insensitive_run_last_script_should_return_true(t *testing.T) {
+func Test_when_command_is_case_insensitive_run_last_script_then_return_true(t *testing.T) {
 	// Arrange
 	command := "RUN LAST SCRIPT"
 
@@ -117,7 +117,7 @@ func Test_when_command_is_case_insensitive_run_last_script_should_return_true(t 
 	}
 }
 
-func Test_when_command_is_do_it_again_should_return_true(t *testing.T) {
+func Test_when_command_is_do_it_again_then_return_true(t *testing.T) {
 	// Arrange
 	command := "do it again"
 
@@ -130,7 +130,7 @@ func Test_when_command_is_do_it_again_should_return_true(t *testing.T) {
 	}
 }
 
-func Test_when_command_is_normal_task_should_return_false(t *testing.T) {
+func Test_when_command_is_normal_task_then_return_false(t *testing.T) {
 	// Arrange
 	command := "list all files in current directory"
 
@@ -143,7 +143,7 @@ func Test_when_command_is_normal_task_should_return_false(t *testing.T) {
 	}
 }
 
-func Test_when_command_is_empty_should_return_false(t *testing.T) {
+func Test_when_command_is_empty_then_return_false(t *testing.T) {
 	// Arrange
 	command := ""
 
@@ -156,7 +156,7 @@ func Test_when_command_is_empty_should_return_false(t *testing.T) {
 	}
 }
 
-func Test_when_command_contains_last_script_pattern_with_extra_words_should_return_true(t *testing.T) {
+func Test_when_command_contains_last_script_pattern_with_extra_words_then_return_true(t *testing.T) {
 	// Arrange
 	command := "please run my last script now"
 
@@ -170,7 +170,7 @@ func Test_when_command_contains_last_script_pattern_with_extra_words_should_retu
 }
 
 // Test generateScript function error cases
-func Test_when_generateScript_receives_unsupported_provider_should_return_error(t *testing.T) {
+func Test_when_generateScript_receives_unsupported_provider_then_return_error(t *testing.T) {
 	// Arrange
 	cfg := &types.Config{}
 	request := &types.ScriptRequest{
@@ -190,7 +190,7 @@ func Test_when_generateScript_receives_unsupported_provider_should_return_error(
 	}
 }
 
-func Test_when_generateScript_receives_empty_provider_should_return_error(t *testing.T) {
+func Test_when_generateScript_receives_empty_provider_then_return_error(t *testing.T) {
 	// Arrange
 	cfg := &types.Config{}
 	request := &types.ScriptRequest{
@@ -211,7 +211,7 @@ func Test_when_generateScript_receives_empty_provider_should_return_error(t *tes
 }
 
 // Test additional isLastScriptCommand patterns
-func Test_when_command_is_execute_my_last_script_should_return_true(t *testing.T) {
+func Test_when_command_is_execute_my_last_script_then_return_true(t *testing.T) {
 	// Arrange
 	command := "execute my last script"
 
@@ -224,7 +224,7 @@ func Test_when_command_is_execute_my_last_script_should_return_true(t *testing.T
 	}
 }
 
-func Test_when_command_is_run_the_last_script_should_return_true(t *testing.T) {
+func Test_when_command_is_run_the_last_script_then_return_true(t *testing.T) {
 	// Arrange
 	command := "run the last script"
 
@@ -237,7 +237,7 @@ func Test_when_command_is_run_the_last_script_should_return_true(t *testing.T) {
 	}
 }
 
-func Test_when_command_is_previous_script_should_return_true(t *testing.T) {
+func Test_when_command_is_previous_script_then_return_true(t *testing.T) {
 	// Arrange
 	command := "previous script"
 
@@ -250,7 +250,7 @@ func Test_when_command_is_previous_script_should_return_true(t *testing.T) {
 	}
 }
 
-func Test_when_command_is_run_again_should_return_true(t *testing.T) {
+func Test_when_command_is_run_again_then_return_true(t *testing.T) {
 	// Arrange
 	command := "run again"
 
@@ -263,7 +263,7 @@ func Test_when_command_is_run_again_should_return_true(t *testing.T) {
 	}
 }
 
-func Test_when_command_is_repeat_last_should_return_true(t *testing.T) {
+func Test_when_command_is_repeat_last_then_return_true(t *testing.T) {
 	// Arrange
 	command := "repeat last"
 
@@ -276,7 +276,7 @@ func Test_when_command_is_repeat_last_should_return_true(t *testing.T) {
 	}
 }
 
-func Test_when_command_is_mixed_case_do_it_again_should_return_true(t *testing.T) {
+func Test_when_command_is_mixed_case_do_it_again_then_return_true(t *testing.T) {
 	// Arrange
 	command := "Do It Again"
 
@@ -289,7 +289,7 @@ func Test_when_command_is_mixed_case_do_it_again_should_return_true(t *testing.T
 	}
 }
 
-func Test_when_command_contains_last_script_substring_should_return_true(t *testing.T) {
+func Test_when_command_contains_last_script_substring_then_return_true(t *testing.T) {
 	// Arrange
 	command := "I want to run my last script please"
 
@@ -303,7 +303,7 @@ func Test_when_command_contains_last_script_substring_should_return_true(t *test
 }
 
 // Test isLastScriptCommand edge cases
-func Test_when_command_is_just_whitespace_should_return_false(t *testing.T) {
+func Test_when_command_is_just_whitespace_then_return_false(t *testing.T) {
 	// Arrange
 	command := "   \t  \n  "
 
@@ -316,7 +316,7 @@ func Test_when_command_is_just_whitespace_should_return_false(t *testing.T) {
 	}
 }
 
-func Test_when_command_contains_script_but_not_last_pattern_should_return_false(t *testing.T) {
+func Test_when_command_contains_script_but_not_last_pattern_then_return_false(t *testing.T) {
 	// Arrange
 	command := "create a new script for me"
 
@@ -329,7 +329,7 @@ func Test_when_command_contains_script_but_not_last_pattern_should_return_false(
 	}
 }
 
-func Test_when_command_contains_run_but_not_last_pattern_should_return_false(t *testing.T) {
+func Test_when_command_contains_run_but_not_last_pattern_then_return_false(t *testing.T) {
 	// Arrange
 	command := "run a system check"
 
@@ -343,7 +343,7 @@ func Test_when_command_contains_run_but_not_last_pattern_should_return_false(t *
 }
 
 // Test generateScript with different provider types
-func Test_when_generateScript_receives_ollama_provider_but_not_configured_should_return_error(t *testing.T) {
+func Test_when_generateScript_receives_ollama_provider_but_not_configured_then_return_error(t *testing.T) {
 	// Arrange
 	cfg := &types.Config{
 		OllamaURL: "", // Not configured
@@ -375,7 +375,7 @@ func Test_when_generateScript_receives_ollama_provider_but_not_configured_should
 	}
 }
 
-func Test_when_generateScript_receives_openai_provider_but_not_configured_should_return_error(t *testing.T) {
+func Test_when_generateScript_receives_openai_provider_but_not_configured_then_return_error(t *testing.T) {
 	// Arrange
 	cfg := &types.Config{
 		OpenAIAPIKey: "", // Not configured
@@ -398,7 +398,7 @@ func Test_when_generateScript_receives_openai_provider_but_not_configured_should
 	}
 }
 
-func Test_when_generateScript_receives_anthropic_provider_but_not_configured_should_return_error(t *testing.T) {
+func Test_when_generateScript_receives_anthropic_provider_but_not_configured_then_return_error(t *testing.T) {
 	// Arrange
 	cfg := &types.Config{
 		AnthropicAPIKey: "", // Not configured
@@ -422,7 +422,7 @@ func Test_when_generateScript_receives_anthropic_provider_but_not_configured_sho
 }
 
 // Test edge cases for getFallbackModel
-func Test_when_provider_is_empty_string_should_return_llama3_2(t *testing.T) {
+func Test_when_provider_is_empty_string_then_return_llama3_2(t *testing.T) {
 	// Arrange
 	provider := ""
 	expected := "llama3.2"
@@ -436,7 +436,7 @@ func Test_when_provider_is_empty_string_should_return_llama3_2(t *testing.T) {
 	}
 }
 
-func Test_when_provider_is_mixed_case_openai_should_return_llama3_2(t *testing.T) {
+func Test_when_provider_is_mixed_case_openai_then_return_llama3_2(t *testing.T) {
 	// Arrange - case sensitivity test
 	provider := "OpenAI"
 	expected := "llama3.2" // Should use default since it's case sensitive
@@ -450,7 +450,7 @@ func Test_when_provider_is_mixed_case_openai_should_return_llama3_2(t *testing.T
 	}
 }
 
-func Test_when_provider_has_extra_spaces_should_return_llama3_2(t *testing.T) {
+func Test_when_provider_has_extra_spaces_then_return_llama3_2(t *testing.T) {
 	// Arrange
 	provider := " openai "
 	expected := "llama3.2" // Should use default since exact match required
@@ -465,10 +465,10 @@ func Test_when_provider_has_extra_spaces_should_return_llama3_2(t *testing.T) {
 }
 
 // Test helper function to verify all patterns are covered
-func Test_when_checking_all_last_script_patterns_should_return_true(t *testing.T) {
+func Test_when_checking_all_last_script_patterns_then_return_true(t *testing.T) {
 	patterns := []string{
 		"run my last script",
-		"run last script", 
+		"run last script",
 		"execute my last script",
 		"execute last script",
 		"run the last script",
@@ -477,7 +477,7 @@ func Test_when_checking_all_last_script_patterns_should_return_true(t *testing.T
 		"run previous script",
 		"run last",
 		"last script",
-		"previous script", 
+		"previous script",
 		"run again",
 		"do it again",
 		"repeat last",
@@ -498,7 +498,7 @@ func Test_when_checking_all_last_script_patterns_should_return_true(t *testing.T
 }
 
 // Test that we handle unusual input gracefully
-func Test_when_command_is_very_long_string_should_handle_gracefully(t *testing.T) {
+func Test_when_command_is_very_long_string_then_handle_gracefully(t *testing.T) {
 	// Arrange - create a very long string without last script patterns
 	command := strings.Repeat("create many files and process data ", 100)
 
@@ -511,7 +511,7 @@ func Test_when_command_is_very_long_string_should_handle_gracefully(t *testing.T
 	}
 }
 
-func Test_when_command_contains_unicode_characters_should_handle_gracefully(t *testing.T) {
+func Test_when_command_contains_unicode_characters_then_handle_gracefully(t *testing.T) {
 	// Arrange
 	command := "运行最后一个脚本" // "run last script" in Chinese
 
@@ -525,11 +525,11 @@ func Test_when_command_contains_unicode_characters_should_handle_gracefully(t *t
 }
 
 // Test OS-related edge cases
-func Test_when_checking_environment_executable_name_should_not_panic(t *testing.T) {
+func Test_when_checking_environment_executable_name_then_not_panic(t *testing.T) {
 	// This test ensures we can call os.Args safely in test environment
 	// Since we can't easily test main() directly, we at least verify
 	// that accessing os.Args doesn't cause issues
-	
+
 	// Arrange & Act - access os.Args similar to main function
 	programName := "test"
 	if len(os.Args) > 0 {

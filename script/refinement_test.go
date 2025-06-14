@@ -8,7 +8,7 @@ import (
 )
 
 // TestRefineScript_WithUserInput tests script refinement with user feedback
-func TestRefineScript_WithUserInput(t *testing.T) {
+func Test_when_refine_script_then_with_user_input(t *testing.T) {
 	// Mock provider for testing
 	mockProvider := &MockProvider{
 		GenerateScriptFunc: func(req *types.ScriptRequest) (*types.ScriptResponse, error) {
@@ -17,16 +17,16 @@ func TestRefineScript_WithUserInput(t *testing.T) {
 				return &types.ScriptResponse{
 					Script:          "echo 'Fast version'",
 					Provider:        req.Provider,
-					Model:          req.Model,
-					ScriptType:     req.ScriptType,
+					Model:           req.Model,
+					ScriptType:      req.ScriptType,
 					TaskDescription: req.TaskDescription,
 				}, nil
 			}
 			return &types.ScriptResponse{
 				Script:          "echo 'Original version'",
 				Provider:        req.Provider,
-				Model:          req.Model,
-				ScriptType:     req.ScriptType,
+				Model:           req.Model,
+				ScriptType:      req.ScriptType,
 				TaskDescription: req.TaskDescription,
 			}, nil
 		},
@@ -35,8 +35,8 @@ func TestRefineScript_WithUserInput(t *testing.T) {
 	originalResponse := &types.ScriptResponse{
 		Script:          "echo 'Original script'",
 		Provider:        "ollama",
-		Model:          "llama3.2",
-		ScriptType:     "bash",
+		Model:           "llama3.2",
+		ScriptType:      "bash",
 		TaskDescription: "create echo script",
 	}
 
@@ -70,7 +70,7 @@ func TestRefineScript_WithUserInput(t *testing.T) {
 }
 
 // TestRefineScript_ProperPrompt tests that refinement creates appropriate prompts
-func TestRefineScript_ProperPrompt(t *testing.T) {
+func Test_when_refine_script_then_proper_prompt(t *testing.T) {
 	var receivedRequest *types.ScriptRequest
 
 	mockProvider := &MockProvider{
@@ -79,8 +79,8 @@ func TestRefineScript_ProperPrompt(t *testing.T) {
 			return &types.ScriptResponse{
 				Script:          "echo 'Refined script'",
 				Provider:        req.Provider,
-				Model:          req.Model,
-				ScriptType:     req.ScriptType,
+				Model:           req.Model,
+				ScriptType:      req.ScriptType,
 				TaskDescription: req.TaskDescription,
 			}, nil
 		},
@@ -89,8 +89,8 @@ func TestRefineScript_ProperPrompt(t *testing.T) {
 	originalResponse := &types.ScriptResponse{
 		Script:          "echo 'Original script'",
 		Provider:        "ollama",
-		Model:          "llama3.2",
-		ScriptType:     "bash",
+		Model:           "llama3.2",
+		ScriptType:      "bash",
 		TaskDescription: "create echo script",
 	}
 

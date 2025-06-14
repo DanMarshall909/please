@@ -9,12 +9,12 @@ import (
 
 func TestValidateScript(t *testing.T) {
 	tests := []struct {
-		name           string
-		script         string
-		scriptType     string
-		expectedCount  int
-		expectedLevel  string // "critical", "warning", "caution", "info", "none"
-		description    string
+		name          string
+		script        string
+		scriptType    string
+		expectedCount int
+		expectedLevel string // "critical", "warning", "caution", "info", "none"
+		description   string
 	}{
 		{
 			name:          "PowerShell Date Format - Should NOT Warn",
@@ -81,7 +81,7 @@ func TestValidateScript(t *testing.T) {
 			description:   "String containing 'format' should not trigger warning",
 		},
 		{
-			name:          "Safe - Complex PowerShell",
+			name: "Safe - Complex PowerShell",
 			script: `try {
     $currentTime = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $computerName = $env:COMPUTERNAME
@@ -112,10 +112,10 @@ func TestValidateScript(t *testing.T) {
 			}
 
 			warnings := ValidateScript(response)
-			
+
 			// Check warning count
 			if len(warnings) != tt.expectedCount {
-				t.Errorf("Expected %d warnings, got %d for script: %s\nWarnings: %v", 
+				t.Errorf("Expected %d warnings, got %d for script: %s\nWarnings: %v",
 					tt.expectedCount, len(warnings), tt.script, warnings)
 			}
 
@@ -193,7 +193,7 @@ func TestContainsCommand(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := containsCommand(strings.ToLower(tt.script), tt.pattern)
 			if result != tt.expected {
-				t.Errorf("containsCommand(%q, %q) = %v, expected %v: %s", 
+				t.Errorf("containsCommand(%q, %q) = %v, expected %v: %s",
 					tt.script, tt.pattern, result, tt.expected, tt.reason)
 			}
 		})

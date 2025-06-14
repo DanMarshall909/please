@@ -8,7 +8,7 @@ import (
 )
 
 // Test CreatePrompt function for different script types
-func Test_when_creating_bash_prompt_should_include_bash_specific_elements(t *testing.T) {
+func Test_when_creating_bash_prompt_then_include_bash_specific_elements(t *testing.T) {
 	// Arrange
 	taskDescription := "list all files in current directory"
 	scriptType := "bash"
@@ -31,7 +31,7 @@ func Test_when_creating_bash_prompt_should_include_bash_specific_elements(t *tes
 	}
 }
 
-func Test_when_creating_powershell_prompt_should_include_powershell_specific_elements(t *testing.T) {
+func Test_when_creating_powershell_prompt_then_include_powershell_specific_elements(t *testing.T) {
 	// Arrange
 	taskDescription := "get system information"
 	scriptType := "powershell"
@@ -54,7 +54,7 @@ func Test_when_creating_powershell_prompt_should_include_powershell_specific_ele
 	}
 }
 
-func Test_when_creating_prompt_with_unknown_script_type_should_default_to_powershell(t *testing.T) {
+func Test_when_creating_prompt_with_unknown_script_type_then_default_to_powershell(t *testing.T) {
 	// Arrange
 	taskDescription := "do something"
 	scriptType := "unknown"
@@ -71,7 +71,7 @@ func Test_when_creating_prompt_with_unknown_script_type_should_default_to_powers
 	}
 }
 
-func Test_when_creating_prompt_with_empty_task_description_should_include_empty_task(t *testing.T) {
+func Test_when_creating_prompt_with_empty_task_description_then_include_empty_task(t *testing.T) {
 	// Arrange
 	taskDescription := ""
 	scriptType := "bash"
@@ -89,7 +89,7 @@ func Test_when_creating_prompt_with_empty_task_description_should_include_empty_
 	}
 }
 
-func Test_when_creating_bash_prompt_should_include_safety_requirements(t *testing.T) {
+func Test_when_creating_bash_prompt_then_include_safety_requirements(t *testing.T) {
 	// Arrange
 	taskDescription := "delete files"
 	scriptType := "bash"
@@ -109,7 +109,7 @@ func Test_when_creating_bash_prompt_should_include_safety_requirements(t *testin
 	}
 }
 
-func Test_when_creating_powershell_prompt_should_include_safety_requirements(t *testing.T) {
+func Test_when_creating_powershell_prompt_then_include_safety_requirements(t *testing.T) {
 	// Arrange
 	taskDescription := "modify registry"
 	scriptType := "powershell"
@@ -129,7 +129,7 @@ func Test_when_creating_powershell_prompt_should_include_safety_requirements(t *
 	}
 }
 
-func Test_when_creating_prompt_with_special_characters_should_preserve_them(t *testing.T) {
+func Test_when_creating_prompt_with_special_characters_then_preserve_them(t *testing.T) {
 	// Arrange
 	taskDescription := "find files with name 'test*.txt' & sort by date"
 	scriptType := "bash"
@@ -180,7 +180,7 @@ func (m *MockProvider) IsConfigured(config *types.Config) bool {
 }
 
 // Test GenerateFixedScript function
-func Test_when_generating_fixed_script_with_unsupported_provider_should_return_error(t *testing.T) {
+func Test_when_generating_fixed_script_with_unsupported_provider_then_return_error(t *testing.T) {
 	// Arrange
 	originalScript := "echo 'hello'"
 	errorMessage := "command not found"
@@ -204,7 +204,7 @@ func Test_when_generating_fixed_script_with_unsupported_provider_should_return_e
 	}
 }
 
-func Test_when_generating_fixed_script_should_include_original_script_and_error_in_prompt(t *testing.T) {
+func Test_when_generating_fixed_script_then_include_original_script_and_error_in_prompt(t *testing.T) {
 	// Arrange
 	originalScript := "rm -rf /"
 	errorMessage := "permission denied"
@@ -218,7 +218,7 @@ func Test_when_generating_fixed_script_should_include_original_script_and_error_
 
 	// We can't easily test the actual providers without mocking the HTTP calls
 	// So let's test the error case to verify the flow
-	
+
 	// Act
 	_, err := GenerateFixedScript(originalScript, errorMessage, scriptType, model, provider, config)
 
@@ -231,7 +231,7 @@ func Test_when_generating_fixed_script_should_include_original_script_and_error_
 	}
 }
 
-func Test_when_generating_fixed_script_with_empty_original_script_should_handle_gracefully(t *testing.T) {
+func Test_when_generating_fixed_script_with_empty_original_script_then_handle_gracefully(t *testing.T) {
 	// Arrange
 	originalScript := ""
 	errorMessage := "no script provided"
@@ -253,7 +253,7 @@ func Test_when_generating_fixed_script_with_empty_original_script_should_handle_
 	// Function should not panic with empty inputs
 }
 
-func Test_when_generating_fixed_script_with_anthropic_provider_should_use_anthropic(t *testing.T) {
+func Test_when_generating_fixed_script_with_anthropic_provider_then_use_anthropic(t *testing.T) {
 	// Arrange
 	originalScript := "echo test"
 	errorMessage := "test error"
@@ -261,7 +261,7 @@ func Test_when_generating_fixed_script_with_anthropic_provider_should_use_anthro
 	model := "claude-3"
 	provider := "anthropic"
 	config := &types.Config{
-		Provider:       "anthropic",
+		Provider:        "anthropic",
 		AnthropicAPIKey: "test-key",
 	}
 
@@ -278,7 +278,7 @@ func Test_when_generating_fixed_script_with_anthropic_provider_should_use_anthro
 	}
 }
 
-func Test_when_generating_fixed_script_with_empty_error_message_should_handle_gracefully(t *testing.T) {
+func Test_when_generating_fixed_script_with_empty_error_message_then_handle_gracefully(t *testing.T) {
 	// Arrange
 	originalScript := "echo 'hello world'"
 	errorMessage := ""
@@ -300,7 +300,7 @@ func Test_when_generating_fixed_script_with_empty_error_message_should_handle_gr
 	// Function should not panic with empty error message
 }
 
-func Test_when_generating_fixed_script_prompt_construction_should_include_all_elements(t *testing.T) {
+func Test_when_generating_fixed_script_prompt_construction_then_include_all_elements(t *testing.T) {
 	// This test verifies the prompt construction logic by checking what would be sent
 	// We can't easily intercept the actual prompt without modifying the function,
 	// but we can test the inputs are processed correctly by ensuring the function
@@ -354,7 +354,7 @@ func Test_when_generating_fixed_script_prompt_construction_should_include_all_el
 }
 
 // Provider Instance Tests
-func Test_when_creating_openai_provider_should_initialize_correctly(t *testing.T) {
+func Test_when_creating_openai_provider_then_initialize_correctly(t *testing.T) {
 	// Arrange
 	config := &types.Config{
 		OpenAIAPIKey: "test-key",
@@ -373,7 +373,7 @@ func Test_when_creating_openai_provider_should_initialize_correctly(t *testing.T
 	}
 }
 
-func Test_when_creating_anthropic_provider_should_initialize_correctly(t *testing.T) {
+func Test_when_creating_anthropic_provider_then_initialize_correctly(t *testing.T) {
 	// Arrange
 	config := &types.Config{
 		AnthropicAPIKey: "test-key",
@@ -392,7 +392,7 @@ func Test_when_creating_anthropic_provider_should_initialize_correctly(t *testin
 	}
 }
 
-func Test_when_creating_ollama_provider_should_initialize_correctly(t *testing.T) {
+func Test_when_creating_ollama_provider_then_initialize_correctly(t *testing.T) {
 	// Arrange
 	config := &types.Config{
 		OllamaURL: "http://localhost:11434",
@@ -411,13 +411,13 @@ func Test_when_creating_ollama_provider_should_initialize_correctly(t *testing.T
 	}
 }
 
-func Test_when_checking_openai_configuration_should_validate_api_key(t *testing.T) {
+func Test_when_checking_openai_configuration_then_validate_api_key(t *testing.T) {
 	provider := NewOpenAIProvider(&types.Config{})
 
 	tests := []struct {
-		name      string
-		config    *types.Config
-		expected  bool
+		name     string
+		config   *types.Config
+		expected bool
 	}{
 		{
 			name:     "Valid API key",
@@ -446,13 +446,13 @@ func Test_when_checking_openai_configuration_should_validate_api_key(t *testing.
 	}
 }
 
-func Test_when_checking_anthropic_configuration_should_validate_api_key(t *testing.T) {
+func Test_when_checking_anthropic_configuration_then_validate_api_key(t *testing.T) {
 	provider := NewAnthropicProvider(&types.Config{})
 
 	tests := []struct {
-		name      string
-		config    *types.Config
-		expected  bool
+		name     string
+		config   *types.Config
+		expected bool
 	}{
 		{
 			name:     "Valid API key",
@@ -476,14 +476,14 @@ func Test_when_checking_anthropic_configuration_should_validate_api_key(t *testi
 	}
 }
 
-func Test_when_checking_ollama_configuration_should_always_return_true(t *testing.T) {
+func Test_when_checking_ollama_configuration_then_always_return_true(t *testing.T) {
 	provider := NewOllamaProvider(&types.Config{})
 
 	tests := []struct {
-		name      string
-		config    *types.Config
-		expected  bool
-		desc      string
+		name     string
+		config   *types.Config
+		expected bool
+		desc     string
 	}{
 		{
 			name:     "Valid URL",
@@ -515,7 +515,7 @@ func Test_when_checking_ollama_configuration_should_always_return_true(t *testin
 	}
 }
 
-func Test_when_openai_provider_not_configured_should_return_error(t *testing.T) {
+func Test_when_openai_provider_not_configured_then_return_error(t *testing.T) {
 	// Arrange
 	config := &types.Config{OpenAIAPIKey: ""} // No API key
 	provider := NewOpenAIProvider(config)
@@ -540,7 +540,7 @@ func Test_when_openai_provider_not_configured_should_return_error(t *testing.T) 
 	}
 }
 
-func Test_when_anthropic_provider_not_configured_should_return_error(t *testing.T) {
+func Test_when_anthropic_provider_not_configured_then_return_error(t *testing.T) {
 	// Arrange
 	config := &types.Config{AnthropicAPIKey: ""} // No API key
 	provider := NewAnthropicProvider(config)
@@ -565,7 +565,7 @@ func Test_when_anthropic_provider_not_configured_should_return_error(t *testing.
 	}
 }
 
-func Test_when_getting_openai_available_models_should_return_model_list(t *testing.T) {
+func Test_when_getting_openai_available_models_then_return_model_list(t *testing.T) {
 	// Arrange
 	provider := NewOpenAIProvider(&types.Config{})
 
@@ -576,7 +576,7 @@ func Test_when_getting_openai_available_models_should_return_model_list(t *testi
 	if len(models) == 0 {
 		t.Error("Expected non-empty list of available models")
 	}
-	
+
 	// Check for expected models
 	expectedModels := []string{"gpt-4", "gpt-3.5-turbo"}
 	for _, expected := range expectedModels {
@@ -593,7 +593,7 @@ func Test_when_getting_openai_available_models_should_return_model_list(t *testi
 	}
 }
 
-func Test_when_getting_anthropic_available_models_should_return_model_list(t *testing.T) {
+func Test_when_getting_anthropic_available_models_then_return_model_list(t *testing.T) {
 	// Arrange
 	provider := NewAnthropicProvider(&types.Config{})
 
@@ -604,7 +604,7 @@ func Test_when_getting_anthropic_available_models_should_return_model_list(t *te
 	if len(models) == 0 {
 		t.Error("Expected non-empty list of available models")
 	}
-	
+
 	// Check for Claude models
 	found := false
 	for _, model := range models {
@@ -618,7 +618,7 @@ func Test_when_getting_anthropic_available_models_should_return_model_list(t *te
 	}
 }
 
-func Test_when_testing_provider_interface_implementation_should_satisfy_interface(t *testing.T) {
+func Test_when_testing_provider_interface_implementation_then_satisfy_interface(t *testing.T) {
 	// This test ensures all providers implement the Provider interface correctly
 	configs := []*types.Config{
 		{OpenAIAPIKey: "test"},
