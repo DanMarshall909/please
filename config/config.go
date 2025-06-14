@@ -135,7 +135,7 @@ func DetermineProvider(config *types.Config) string {
 		return provider
 	}
 	if provider := os.Getenv("OOHLAMA_PROVIDER"); provider != "" {
-		return provider // Legacy compatibility
+		return provider // Legacy compatibility (pre-v5 OohLama name)
 	}
 
 	// Use config setting
@@ -167,6 +167,6 @@ func overrideWithEnvironment(config *types.Config) {
 	if scriptType := os.Getenv("PLEASE_SCRIPT_TYPE"); scriptType != "" {
 		config.ScriptType = scriptType
 	} else if scriptType := os.Getenv("OOHLAMA_SCRIPT_TYPE"); scriptType != "" {
-		config.ScriptType = scriptType // Legacy compatibility
+		config.ScriptType = scriptType // Legacy compatibility (pre-v5 OohLama name)
 	}
 }

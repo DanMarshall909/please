@@ -33,7 +33,7 @@ func TestDetermineProvider(t *testing.T) {
 			want:     "ollama",
 		},
 		{
-			name:     "OOHLAMA_PROVIDER legacy fallback",
+			name:     "Legacy environment variable support",
 			envVar:   "OOHLAMA_PROVIDER",
 			envValue: "openai", 
 			want:     "openai",
