@@ -13,6 +13,15 @@
     "prompts": {
       "select_provider": "Select AI provider:",
       "enter_request": "What would you like me to help with?"
+    },
+    "installation": {
+      "success": "🎉 Installation complete! 🎉",
+      "try_it": "🚀 Try it out:",
+      "magic": "✨ Magic happens with just 3 letters: 'pls' ✨"
+    },
+    "footer": {
+      "tips": "💡 Tips:",
+      "happy": "🌟 Happy scripting! 🌟"
     }
   },
   "themes": {

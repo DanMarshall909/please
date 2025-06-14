@@ -54,23 +54,49 @@ func PrintRainbowBannerWithDelay(delay time.Duration) {
 
 // PrintInstallationSuccess shows a fun success message
 func PrintInstallationSuccess() {
-	fmt.Printf("%s🎉 Installation complete! 🎉%s\n\n", ColorBold+ColorGreen, ColorReset)
-	fmt.Printf("%s🚀 Try it out:%s\n", ColorBold+ColorCyan, ColorReset)
+	success := "🎉 Installation complete! 🎉"
+	tryIt := "🚀 Try it out:"
+	magic := "✨ Magic happens with just 3 letters: 'pls' ✨"
+	if locMgr != nil {
+		if v := locMgr.GetMessage("installation.success"); v != "" {
+			success = v
+		}
+		if v := locMgr.GetMessage("installation.try_it"); v != "" {
+			tryIt = v
+		}
+		if v := locMgr.GetMessage("installation.magic"); v != "" {
+			magic = v
+		}
+	}
+
+	fmt.Printf("%s%s%s\n\n", ColorBold+ColorGreen, success, ColorReset)
+	fmt.Printf("%s%s%s\n", ColorBold+ColorCyan, tryIt, ColorReset)
 	fmt.Printf("  %spls create a hello world script%s\n", ColorYellow, ColorReset)
 	fmt.Printf("  %sol create a hello world script%s (legacy)\n\n", ColorYellow, ColorReset)
 
 	// Fun ASCII art
-	fmt.Printf("%s    ✨ Magic happens with just 3 letters: 'pls' ✨%s\n", ColorPurple, ColorReset)
+	fmt.Printf("%s    %s%s\n", ColorPurple, magic, ColorReset)
 }
 
 // PrintFooter shows colorful footer information
 func PrintFooter() {
-	fmt.Printf("%s💡 Tips:%s\n", ColorBold+ColorYellow, ColorReset)
+	tips := "💡 Tips:"
+	happy := "🌟 Happy scripting! 🌟"
+	if locMgr != nil {
+		if v := locMgr.GetMessage("footer.tips"); v != "" {
+			tips = v
+		}
+		if v := locMgr.GetMessage("footer.happy"); v != "" {
+			happy = v
+		}
+	}
+
+	fmt.Printf("%s%s%s\n", ColorBold+ColorYellow, tips, ColorReset)
 	fmt.Printf("  %s• Use natural language - no quotes needed!%s\n", ColorCyan, ColorReset)
 	fmt.Printf("  %s• Be specific for better results%s\n", ColorCyan, ColorReset)
 	fmt.Printf("  %s• Always review scripts before execution%s\n", ColorCyan, ColorReset)
 	fmt.Printf("  %s• Set PLEASE_PROVIDER=openai for OpenAI%s\n", ColorCyan, ColorReset)
 	fmt.Printf("  %s• Set PLEASE_PROVIDER=anthropic for Claude%s\n\n", ColorCyan, ColorReset)
 
-	fmt.Printf("%s🌟 Happy scripting! 🌟%s\n", ColorBold+ColorPurple, ColorReset)
+	fmt.Printf("%s%s%s\n", ColorBold+ColorPurple, happy, ColorReset)
 }

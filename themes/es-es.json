@@ -5,6 +5,15 @@
     "banner": {
       "title": "🤖 Please - Asistente Digital Muy Útil",
       "subtitle": "Generador de scripts multiplataforma"
+    },
+    "installation": {
+      "success": "🎉 Instalación completa! 🎉",
+      "try_it": "🚀 Pruébalo:",
+      "magic": "✨ La magia ocurre con solo 3 letras: 'pls' ✨"
+    },
+    "footer": {
+      "tips": "💡 Consejos:",
+      "happy": "🌟 Scripts felices! 🌟"
     }
   }
 }
