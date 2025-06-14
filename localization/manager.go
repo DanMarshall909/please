@@ -120,6 +120,30 @@ func getFromConfig(cfg *types.LocalizationConfig, cat, field string) string {
 		case "happy":
 			return cfg.Messages.Footer.Happy
 		}
+	case "script_display":
+		switch field {
+		case "task_label":
+			return cfg.Messages.ScriptDisplay.TaskLabel
+		case "model_label":
+			return cfg.Messages.ScriptDisplay.ModelLabel
+		case "platform_label":
+			return cfg.Messages.ScriptDisplay.PlatformLabel
+		case "script_header":
+			return cfg.Messages.ScriptDisplay.ScriptHeader
+		case "success_message":
+			return cfg.Messages.ScriptDisplay.SuccessMessage
+		}
+	case "menu":
+		switch field {
+		case "generate_script":
+			return cfg.Messages.Menu.GenerateScript
+		case "run_last":
+			return cfg.Messages.Menu.RunLast
+		case "help":
+			return cfg.Messages.Menu.Help
+		case "exit":
+			return cfg.Messages.Menu.Exit
+		}
 	}
 	return ""
 }
