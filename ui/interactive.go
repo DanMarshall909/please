@@ -38,7 +38,6 @@ func NewUIService(configDir string) (*UIService, error) {
 	}, nil
 }
 
-var locManager *localization.LocalizationManager // Global for now - will be removed
 
 // ShowMainMenu displays the main interactive menu when Please is run without arguments
 func ShowMainMenu() {
@@ -46,12 +45,9 @@ func ShowMainMenu() {
 	configDir, _ := getConfigDir()
 	uiService, err := NewUIService(configDir)
 	if err != nil {
-		// Fallback to legacy global for compatibility
-		if locManager == nil {
-			mgr, _ := localization.NewLocalizationManager(".")
-			locManager = mgr
-		}
-		uiService = &UIService{LocManager: locManager}
+		// Fallback to current directory if config dir fails
+		mgr, _ := localization.NewLocalizationManager(".")
+		uiService = &UIService{LocManager: mgr}
 	}
 	
 	uiService.ShowMainMenuWithService()
@@ -79,11 +75,8 @@ func (ui *UIService) ShowMainMenuWithService() {
 
 // handleMainMenuChoice processes the main menu selection and returns true if should exit
 func handleMainMenuChoice(choice string) bool {
-	// Initialize locManager if not already done
-	if locManager == nil {
-		mgr, _ := localization.NewLocalizationManager(".")
-		locManager = mgr
-	}
+	// Create localization manager for this function
+	locManager, _ := localization.NewLocalizationManager(".")
 
 	// Handle Enter key as immediate exit
 	if choice == "\r" || choice == "\n" {

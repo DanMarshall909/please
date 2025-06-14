@@ -945,3 +945,24 @@ func Test_when_show_main_menu_called_should_create_ui_service_and_delegate(t *te
 	// In production, this would display the menu and wait for input
 	// In tests, we verify it doesn't crash and handles dependency creation properly
 }
+
+// Test to verify global variable can be eliminated through dependency injection
+func Test_when_handle_main_menu_choice_should_work_without_global_localization_manager(t *testing.T) {
+	// Given: No global locManager (this tests the future state without global variables)
+	// When: Calling handleMainMenuChoice with Enter key
+	choice := "\r"
+	
+	// Then: Should work without relying on global variables
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("handleMainMenuChoice should work without global locManager: %v", r)
+		}
+	}()
+	
+	result := handleMainMenuChoice(choice)
+	
+	// Should return true for exit
+	if !result {
+		t.Error("Expected handleMainMenuChoice to return true for Enter key")
+	}
+}

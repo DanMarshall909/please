@@ -130,12 +130,9 @@ func DetermineScriptType(config *types.Config) string {
 
 // DetermineProvider determines which AI provider to use based on config and environment
 func DetermineProvider(config *types.Config) string {
-	// Check environment variable first (new and legacy names)
+	// Check environment variable first
 	if provider := os.Getenv("PLEASE_PROVIDER"); provider != "" {
 		return provider
-	}
-	if provider := os.Getenv("OOHLAMA_PROVIDER"); provider != "" {
-		return provider // Legacy compatibility (pre-v5 OohLama name)
 	}
 
 	// Use config setting
@@ -166,7 +163,5 @@ func overrideWithEnvironment(config *types.Config) {
 	// Override script type if set
 	if scriptType := os.Getenv("PLEASE_SCRIPT_TYPE"); scriptType != "" {
 		config.ScriptType = scriptType
-	} else if scriptType := os.Getenv("OOHLAMA_SCRIPT_TYPE"); scriptType != "" {
-		config.ScriptType = scriptType // Legacy compatibility (pre-v5 OohLama name)
 	}
 }
