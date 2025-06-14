@@ -91,3 +91,11 @@ func TestWhenCallingPrintFooter_ShouldDisplayHelpfulTips(t *testing.T) {
 		t.Errorf("Expected usage tips, got: %s", output)
 	}
 }
+
+func TestWhenCallingPrintRainbowBanner_ShouldUseDefaultDelay(t *testing.T) {
+	start := time.Now()
+	PrintRainbowBanner()
+	if time.Since(start) < 50*time.Millisecond {
+		t.Errorf("Expected default delay to be at least 50ms")
+	}
+}

@@ -3,7 +3,16 @@ package ui
 import (
 	"fmt"
 	"time"
+
+	"please/localization"
 )
+
+var locMgr *localization.LocalizationManager
+
+// SetLocalizationManager sets the manager for banner messages
+func SetLocalizationManager(mgr *localization.LocalizationManager) {
+	locMgr = mgr
+}
 
 // PrintRainbowBanner displays a colorful animated banner
 func PrintRainbowBanner() {
@@ -28,6 +37,17 @@ func PrintRainbowBannerWithDelay(delay time.Duration) {
 		fmt.Printf("%s%s%s\n", color, line, ColorReset)
 		if delay > 0 {
 			time.Sleep(delay)
+		}
+	}
+
+	if locMgr != nil {
+		title := locMgr.GetMessage("banner.title")
+		subtitle := locMgr.GetMessage("banner.subtitle")
+		if title != "" {
+			fmt.Printf("%s%s%s\n", ColorCyan, title, ColorReset)
+		}
+		if subtitle != "" {
+			fmt.Printf("%s%s%s\n", ColorPurple, subtitle, ColorReset)
 		}
 	}
 }

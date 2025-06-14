@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"please/config"
+	"please/localization"
 	"please/models"
 	"please/providers"
 	"please/script"
@@ -15,6 +16,26 @@ import (
 )
 
 func main() {
+	lang := "en-us"
+	theme := "default"
+	for _, arg := range os.Args[1:] {
+		if strings.HasPrefix(arg, "--language=") {
+			lang = strings.SplitN(arg, "=", 2)[1]
+		}
+		if strings.HasPrefix(arg, "--theme=") {
+			theme = strings.SplitN(arg, "=", 2)[1]
+		}
+	}
+
+	locMgr, _ := localization.NewLocalizationManager(".")
+	locMgr.LoadLanguage(lang, filepath.Join("themes", lang+".json"))
+	themeData := types.Theme{Colors: map[string]string{"primary": "#00ff41"}}
+	locMgr.LoadTheme(theme, themeData)
+	locMgr.SetLanguage(lang)
+	locMgr.SetTheme(theme)
+	ui.SetLocalizationManager(locMgr)
+	ui.SetLocalizationManagerForHelp(locMgr)
+
 	// Check if we're being run as "pls" with special flags
 	programName := filepath.Base(os.Args[0])
 	if programName == "pls" || programName == "pls.exe" {

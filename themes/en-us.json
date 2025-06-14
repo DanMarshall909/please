@@ -1,0 +1,26 @@
+{
+  "language": "en-us",
+  "theme": "default",
+  "messages": {
+    "banner": {
+      "title": "🤖 Please - Your Overly Helpful Digital Assistant",
+      "subtitle": "AI-powered cross-platform script generator"
+    },
+    "errors": {
+      "provider_connection": "Failed to connect to AI provider",
+      "invalid_input": "Invalid input provided"
+    },
+    "prompts": {
+      "select_provider": "Select AI provider:",
+      "enter_request": "What would you like me to help with?"
+    }
+  },
+  "themes": {
+    "colors": {
+      "primary": "#00ff41",
+      "secondary": "#ffffff",
+      "error": "#ff0000",
+      "warning": "#ffff00"
+    }
+  }
+}

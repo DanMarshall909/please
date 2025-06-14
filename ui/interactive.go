@@ -32,12 +32,11 @@ func NewUIService(configDir string) (*UIService, error) {
 			return nil, fmt.Errorf("failed to initialize localization manager: %v", err)
 		}
 	}
-	
+
 	return &UIService{
 		LocManager: locManager,
 	}, nil
 }
-
 
 // ShowMainMenu displays the main interactive menu when Please is run without arguments
 func ShowMainMenu() {
@@ -49,7 +48,7 @@ func ShowMainMenu() {
 		mgr, _ := localization.NewLocalizationManager(".")
 		uiService = &UIService{LocManager: mgr}
 	}
-	
+
 	uiService.ShowMainMenuWithService()
 }
 
@@ -60,17 +59,17 @@ func (ui *UIService) ShowMainMenuWithService() {
 	fmt.Printf("║                           🤖 Please Script Generator                         ║\n")
 	fmt.Printf("╚══════════════════════════════════════════════════════════════════════════════╝\n\n")
 	items := []MenuItem{
-		{Label: ui.LocManager.System.Get("menus.show_help"), Icon: "📖", Color: ColorCyan, Action: func() bool { ShowHelp(); return false }},
-		{Label: ui.LocManager.System.Get("menus.generate_script"), Icon: "✨", Color: ColorYellow, Action: func() bool { generateNewScript(); return false }},
-		{Label: ui.LocManager.System.Get("menus.load_last"), Icon: "🔄", Color: ColorMagenta, Action: func() bool { loadLastScript(); return false }},
-		{Label: ui.LocManager.System.Get("menus.browse_history"), Icon: "📚", Color: ColorBlue, Action: func() bool { browseHistory(); return false }},
-		{Label: ui.LocManager.System.Get("menus.show_config"), Icon: "⚙️ ", Color: ColorPurple, Action: func() bool { showConfiguration(); return false }},
-		{Label: ui.LocManager.System.Get("menus.exit"), Icon: "🚪", Color: ColorDim, Action: func() bool {
-			fmt.Printf("%s%s%s\n", ColorGreen, ui.LocManager.System.Get("success.exit"), ColorReset)
+		{Label: ui.LocManager.GetMessage("menus.show_help"), Icon: "📖", Color: ColorCyan, Action: func() bool { ShowHelp(); return false }},
+		{Label: ui.LocManager.GetMessage("menus.generate_script"), Icon: "✨", Color: ColorYellow, Action: func() bool { generateNewScript(); return false }},
+		{Label: ui.LocManager.GetMessage("menus.load_last"), Icon: "🔄", Color: ColorMagenta, Action: func() bool { loadLastScript(); return false }},
+		{Label: ui.LocManager.GetMessage("menus.browse_history"), Icon: "📚", Color: ColorBlue, Action: func() bool { browseHistory(); return false }},
+		{Label: ui.LocManager.GetMessage("menus.show_config"), Icon: "⚙️ ", Color: ColorPurple, Action: func() bool { showConfiguration(); return false }},
+		{Label: ui.LocManager.GetMessage("menus.exit"), Icon: "🚪", Color: ColorDim, Action: func() bool {
+			fmt.Printf("%s%s%s\n", ColorGreen, ui.LocManager.GetMessage("success.exit"), ColorReset)
 			return true
 		}},
 	}
-	renderMenu(ui.LocManager.System.Get("menus.main_prompt"), "Press 1-6: ", items, nil)
+	renderMenu(ui.LocManager.GetMessage("menus.main_prompt"), "Press 1-6: ", items, nil)
 }
 
 // handleMainMenuChoice processes the main menu selection and returns true if should exit
@@ -80,7 +79,7 @@ func handleMainMenuChoice(choice string) bool {
 
 	// Handle Enter key as immediate exit
 	if choice == "\r" || choice == "\n" {
-		fmt.Printf("%s%s%s\n", ColorGreen, locManager.System.Get("success.exit_quick"), ColorReset)
+		fmt.Printf("%s%s%s\n", ColorGreen, locManager.GetMessage("success.exit_quick"), ColorReset)
 		return true // Exit immediately on Enter
 	}
 
@@ -96,7 +95,7 @@ func handleMainMenuChoice(choice string) bool {
 		"4": func() bool { browseHistory(); return false },
 		"5": func() bool { showConfiguration(); return false },
 		"6": func() bool {
-			fmt.Printf("%s%s%s\n", ColorGreen, locManager.System.Get("success.exit"), ColorReset)
+			fmt.Printf("%s%s%s\n", ColorGreen, locManager.GetMessage("success.exit"), ColorReset)
 			return true
 		},
 	}
@@ -105,7 +104,7 @@ func handleMainMenuChoice(choice string) bool {
 		return action()
 	}
 
-	fmt.Printf("%s%s%s\n", ColorRed, locManager.System.Get("errors.invalid_choice"), ColorReset)
+	fmt.Printf("%s%s%s\n", ColorRed, locManager.GetMessage("errors.invalid_choice"), ColorReset)
 	return false // Continue showing main menu
 }
 
@@ -512,7 +511,7 @@ func saveToHistory(response *types.ScriptResponse) {
 	}
 
 	historyPath := filepath.Join(configDir, "script_history.json")
-	
+
 	// Create new history entry with timestamp
 	timestamp := fmt.Sprintf("%d", time.Now().Unix())
 	historyEntry := fmt.Sprintf(`{
