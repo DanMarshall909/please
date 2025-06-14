@@ -17,31 +17,64 @@ import (
 	"please/types"
 )
 
-var locManager *localization.LocalizationManager // Global for now
+// UIService encapsulates dependencies for UI operations
+type UIService struct {
+	LocManager *localization.LocalizationManager
+}
+
+// NewUIService creates a new UI service with initialized dependencies
+func NewUIService(configDir string) (*UIService, error) {
+	locManager, err := localization.NewLocalizationManager(configDir)
+	if err != nil {
+		// Fallback to current directory if config dir fails
+		locManager, err = localization.NewLocalizationManager(".")
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize localization manager: %v", err)
+		}
+	}
+	
+	return &UIService{
+		LocManager: locManager,
+	}, nil
+}
+
+var locManager *localization.LocalizationManager // Global for now - will be removed
 
 // ShowMainMenu displays the main interactive menu when Please is run without arguments
 func ShowMainMenu() {
-	if locManager == nil {
-		// In real use, pass config dir; here, use current dir for stub
-		mgr, _ := localization.NewLocalizationManager(".")
-		locManager = mgr
+	// Create UI service - in production this would come from main
+	configDir, _ := getConfigDir()
+	uiService, err := NewUIService(configDir)
+	if err != nil {
+		// Fallback to legacy global for compatibility
+		if locManager == nil {
+			mgr, _ := localization.NewLocalizationManager(".")
+			locManager = mgr
+		}
+		uiService = &UIService{LocManager: locManager}
 	}
+	
+	uiService.ShowMainMenuWithService()
+}
+
+// ShowMainMenuWithService displays the main interactive menu using dependency injection
+func (ui *UIService) ShowMainMenuWithService() {
 	// Show banner
 	fmt.Printf("╔══════════════════════════════════════════════════════════════════════════════╗\n")
 	fmt.Printf("║                           🤖 Please Script Generator                         ║\n")
 	fmt.Printf("╚══════════════════════════════════════════════════════════════════════════════╝\n\n")
 	items := []MenuItem{
-		{Label: locManager.System.Get("menus.show_help"), Icon: "📖", Color: ColorCyan, Action: func() bool { ShowHelp(); return false }},
-		{Label: locManager.System.Get("menus.generate_script"), Icon: "✨", Color: ColorYellow, Action: func() bool { generateNewScript(); return false }},
-		{Label: locManager.System.Get("menus.load_last"), Icon: "🔄", Color: ColorMagenta, Action: func() bool { loadLastScript(); return false }},
-		{Label: locManager.System.Get("menus.browse_history"), Icon: "📚", Color: ColorBlue, Action: func() bool { browseHistory(); return false }},
-		{Label: locManager.System.Get("menus.show_config"), Icon: "⚙️ ", Color: ColorPurple, Action: func() bool { showConfiguration(); return false }},
-		{Label: locManager.System.Get("menus.exit"), Icon: "🚪", Color: ColorDim, Action: func() bool {
-			fmt.Printf("%s%s%s\n", ColorGreen, locManager.System.Get("success.exit"), ColorReset)
+		{Label: ui.LocManager.System.Get("menus.show_help"), Icon: "📖", Color: ColorCyan, Action: func() bool { ShowHelp(); return false }},
+		{Label: ui.LocManager.System.Get("menus.generate_script"), Icon: "✨", Color: ColorYellow, Action: func() bool { generateNewScript(); return false }},
+		{Label: ui.LocManager.System.Get("menus.load_last"), Icon: "🔄", Color: ColorMagenta, Action: func() bool { loadLastScript(); return false }},
+		{Label: ui.LocManager.System.Get("menus.browse_history"), Icon: "📚", Color: ColorBlue, Action: func() bool { browseHistory(); return false }},
+		{Label: ui.LocManager.System.Get("menus.show_config"), Icon: "⚙️ ", Color: ColorPurple, Action: func() bool { showConfiguration(); return false }},
+		{Label: ui.LocManager.System.Get("menus.exit"), Icon: "🚪", Color: ColorDim, Action: func() bool {
+			fmt.Printf("%s%s%s\n", ColorGreen, ui.LocManager.System.Get("success.exit"), ColorReset)
 			return true
 		}},
 	}
-	renderMenu(locManager.System.Get("menus.main_prompt"), "Press 1-6: ", items, nil)
+	renderMenu(ui.LocManager.System.Get("menus.main_prompt"), "Press 1-6: ", items, nil)
 }
 
 // handleMainMenuChoice processes the main menu selection and returns true if should exit
