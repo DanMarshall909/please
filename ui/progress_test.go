@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -12,16 +13,16 @@ import (
 func TestProgressIndicator_ShowsStatusMessages(t *testing.T) {
 	// Create a progress indicator
 	progress := NewProgressIndicator("Testing operation")
-	
+
 	if progress == nil {
 		t.Fatal("NewProgressIndicator should not return nil")
 	}
-	
+
 	// Test that it has the correct initial message
 	if progress.message != "Testing operation" {
 		t.Errorf("Expected message 'Testing operation', got '%s'", progress.message)
 	}
-	
+
 	// Test that it's not started initially
 	if progress.isRunning {
 		t.Error("Progress indicator should not be running initially")
@@ -31,10 +32,10 @@ func TestProgressIndicator_ShowsStatusMessages(t *testing.T) {
 // TestProgressIndicator_UpdateStatus tests status updates
 func TestProgressIndicator_UpdateStatus(t *testing.T) {
 	progress := NewProgressIndicator("Initial message")
-	
+
 	// Update the status
 	progress.UpdateStatus("Updated message")
-	
+
 	if progress.message != "Updated message" {
 		t.Errorf("Expected updated message 'Updated message', got '%s'", progress.message)
 	}
@@ -43,20 +44,20 @@ func TestProgressIndicator_UpdateStatus(t *testing.T) {
 // TestProgressIndicator_StartStop tests start and stop functionality
 func TestProgressIndicator_StartStop(t *testing.T) {
 	progress := NewProgressIndicator("Test message")
-	
+
 	// Start the progress indicator
 	progress.Start()
-	
+
 	if !progress.isRunning {
 		t.Error("Progress indicator should be running after Start()")
 	}
-	
+
 	// Give it a moment to display
 	time.Sleep(100 * time.Millisecond)
-	
+
 	// Stop the progress indicator
 	progress.Stop()
-	
+
 	if progress.isRunning {
 		t.Error("Progress indicator should not be running after Stop()")
 	}
@@ -73,11 +74,11 @@ func TestProviderStatusMessages(t *testing.T) {
 		{"anthropic", "🤖 Connecting to Anthropic..."},
 		{"unknown", "🤖 Connecting to AI provider..."},
 	}
-	
+
 	for _, test := range tests {
 		message := GetProviderStatusMessage(test.provider)
 		if !strings.Contains(message, test.expected) {
-			t.Errorf("For provider '%s', expected message containing '%s', got '%s'", 
+			t.Errorf("For provider '%s', expected message containing '%s', got '%s'",
 				test.provider, test.expected, message)
 		}
 	}
@@ -86,17 +87,17 @@ func TestProviderStatusMessages(t *testing.T) {
 // TestScriptGenerationProgress tests script generation progress messages
 func TestScriptGenerationProgress(t *testing.T) {
 	config := &types.Config{
-		Provider: "ollama",
+		Provider:       "ollama",
 		PreferredModel: "deepseek-coder:6.7b",
 	}
-	
+
 	// Test that we get appropriate progress messages for script generation
 	messages := GetScriptGenerationProgressMessages(config)
-	
+
 	if len(messages) == 0 {
 		t.Error("Should return progress messages for script generation")
 	}
-	
+
 	// Check that it includes provider-specific messaging
 	foundProviderMessage := false
 	for _, msg := range messages {
@@ -105,7 +106,7 @@ func TestScriptGenerationProgress(t *testing.T) {
 			break
 		}
 	}
-	
+
 	if !foundProviderMessage {
 		t.Error("Progress messages should include provider-specific information")
 	}
@@ -116,17 +117,17 @@ func TestAutoFixProgress(t *testing.T) {
 	originalScript := "echo 'broken script'"
 	errorMessage := "syntax error"
 	provider := "ollama"
-	
+
 	messages := GetAutoFixProgressMessages(originalScript, errorMessage, provider)
-	
+
 	if len(messages) == 0 {
 		t.Error("Should return progress messages for auto-fix")
 	}
-	
+
 	// Check that messages include relevant context
 	foundScriptInfo := false
 	foundErrorInfo := false
-	
+
 	for _, msg := range messages {
 		if strings.Contains(msg, "fix") || strings.Contains(msg, "repair") {
 			foundScriptInfo = true
@@ -135,12 +136,35 @@ func TestAutoFixProgress(t *testing.T) {
 			foundErrorInfo = true
 		}
 	}
-	
+
 	if !foundScriptInfo {
 		t.Error("Progress messages should mention fixing/repairing")
 	}
-	
+
 	if !foundErrorInfo {
 		t.Error("Progress messages should mention error/issue context")
+	}
+}
+
+func TestWhenShowSimpleProgress_ShouldStopCleanly(t *testing.T) {
+	os.Setenv("PROGRESS_TEST_MODE", "1")
+	stop := ShowSimpleProgress("doing work")
+	time.Sleep(100 * time.Millisecond)
+	stop()
+}
+
+func TestWhenShowProviderProgress_ShouldStopCleanly(t *testing.T) {
+	os.Setenv("PROGRESS_TEST_MODE", "1")
+	stop := ShowProviderProgress("openai", "testing")
+	time.Sleep(100 * time.Millisecond)
+	stop()
+}
+
+func TestWhenShowProgressWithSteps_ShouldRunSteps(t *testing.T) {
+	os.Setenv("PROGRESS_TEST_MODE", "1")
+	start := time.Now()
+	ShowProgressWithSteps([]string{"one"})
+	if time.Since(start) > 3*time.Second {
+		t.Errorf("progress took too long")
 	}
 }
