@@ -1,6 +1,10 @@
 package ui
 
 import (
+	"bytes"
+	"io"
+	"os"
+	"strings"
 	"testing"
 	"time"
 )
@@ -31,11 +35,59 @@ func Test_when_banner_with_delay_should_respect_timing(t *testing.T) {
 
 	// Assert - Should take approximately the expected time (6 lines * delay)
 	duration := time.Since(start)
-	expectedMin := 6 * testDelay                   // 6 lines minimum
+	expectedMin := 6 * testDelay                     // 6 lines minimum
 	expectedMax := expectedMin + 10*time.Millisecond // small overhead allowance
-	
+
 	if duration < expectedMin || duration > expectedMax {
-		t.Errorf("Expected banner with %v delay to take %v-%v, took %v", 
+		t.Errorf("Expected banner with %v delay to take %v-%v, took %v",
 			testDelay, expectedMin, expectedMax, duration)
+	}
+}
+
+func captureStdout(fn func()) string {
+	r, w, _ := os.Pipe()
+	orig := os.Stdout
+	os.Stdout = w
+	outC := make(chan string)
+	go func() {
+		var buf bytes.Buffer
+		io.Copy(&buf, r)
+		outC <- buf.String()
+	}()
+	fn()
+	w.Close()
+	os.Stdout = orig
+	out := <-outC
+	return out
+}
+
+func TestWhenPrintingRainbowBannerWithZeroDelay_ShouldPrintAsciiArt(t *testing.T) {
+	output := captureStdout(func() { PrintRainbowBannerWithDelay(0) })
+	if !strings.Contains(output, "██████╗") {
+		t.Errorf("Expected banner to include ASCII art, got: %s", output)
+	}
+	lineCount := strings.Count(output, "\n")
+	if lineCount < 6 {
+		t.Errorf("Expected banner to print at least 6 lines, got %d", lineCount)
+	}
+}
+
+func TestWhenCallingPrintInstallationSuccess_ShouldShowMagicMessage(t *testing.T) {
+	output := captureStdout(PrintInstallationSuccess)
+	if !strings.Contains(output, "Installation complete") {
+		t.Errorf("Expected installation message, got: %s", output)
+	}
+	if !strings.Contains(output, "Magic happens") {
+		t.Errorf("Expected magic message, got: %s", output)
+	}
+}
+
+func TestWhenCallingPrintFooter_ShouldDisplayHelpfulTips(t *testing.T) {
+	output := captureStdout(PrintFooter)
+	if !strings.Contains(output, "Happy scripting") {
+		t.Errorf("Expected footer tips, got: %s", output)
+	}
+	if !strings.Contains(output, "Use natural language") {
+		t.Errorf("Expected usage tips, got: %s", output)
 	}
 }

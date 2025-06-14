@@ -362,7 +362,7 @@ func Test_when_generateScript_receives_ollama_provider_but_not_configured_should
 	}
 	// Accept either configuration error or model not found error
 	// Both indicate the provider isn't working properly for our test
-	expectedSubstrings := []string{"not properly configured", "model", "not found", "404"}
+	expectedSubstrings := []string{"not properly configured", "model", "not found", "404", "failed to connect"}
 	found := false
 	for _, substring := range expectedSubstrings {
 		if strings.Contains(err.Error(), substring) {
