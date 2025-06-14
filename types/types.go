@@ -111,3 +111,25 @@ type ScriptResponse struct {
 	TaskDescription string
 	ScriptType      string
 }
+
+// ValidationResult is used for validating user input in interactive flows
+type ValidationResult struct {
+	IsValid bool
+	IsEmpty bool
+	Message string
+}
+
+// MenuAction represents a parsed menu choice
+type MenuAction struct {
+	Type    string // e.g. "generate", "run_last", "help", "exit", "invalid"
+	Valid   bool
+	Command string
+}
+
+// UserInputReader abstracts user input for dependency injection
+// Used for testable interactive flows
+// (Implementations: TerminalReader, MockInputReader)
+type UserInputReader interface {
+	ReadLine() (string, error)
+	ReadKey() (rune, error)
+}

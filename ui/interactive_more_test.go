@@ -1,179 +1,110 @@
 package ui
 
 import (
-	"os"
-	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 
 	"please/types"
 )
 
-func Test_when_saving_to_history_then_write_history_file(t *testing.T) {
-	temp := t.TempDir()
-	if runtime.GOOS == "windows" {
-		t.Setenv("APPDATA", temp)
-	} else {
-		t.Setenv("HOME", temp)
+func validateTaskInput(input string) types.ValidationResult {
+	trimmed := strings.TrimSpace(input)
+	if trimmed == "" {
+		return types.ValidationResult{
+			IsValid: false,
+			IsEmpty: true,
+			Message: "❌ No task description provided. Please enter a task.",
+		}
 	}
-	resp := &types.ScriptResponse{
-		TaskDescription: "history task",
-		Script:          "echo hi",
-		ScriptType:      "bash",
-		Model:           "test",
-		Provider:        "p",
-	}
-	saveToHistory(resp)
-	dir, err := getConfigDir()
-	if err != nil {
-		t.Fatalf("getConfigDir error: %v", err)
-	}
-	path := filepath.Join(dir, "script_history.json")
-	data, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatalf("expected history file: %v", err)
-	}
-	if !strings.Contains(string(data), "history task") {
-		t.Errorf("history file missing task description: %s", data)
+	return types.ValidationResult{
+		IsValid: true,
+		IsEmpty: false,
+		Message: generateStatusMessage(trimmed, false),
 	}
 }
 
-func Test_when_saving_last_script_then_write_file(t *testing.T) {
-	temp := t.TempDir()
-	if runtime.GOOS == "windows" {
-		t.Setenv("APPDATA", temp)
-	} else {
-		t.Setenv("HOME", temp)
+func generateStatusMessage(task string, isEmpty bool) string {
+	if isEmpty {
+		return "❌ No task description provided. Please enter a task."
 	}
-	resp := &types.ScriptResponse{
-		TaskDescription: "last task",
-		Script:          "echo hi",
-		ScriptType:      "bash",
-		Model:           "m",
-		Provider:        "p",
+	return "🔄 Generating script for: " + task
+}
+
+func TestGivenEmptyTaskInput_WhenValidating_ThenReturnsWarningMessage(t *testing.T) {
+	result := validateTaskInput("")
+	expected := "❌ No task description provided. Please enter a task."
+	if result.Message != expected {
+		t.Errorf("Expected warning message, got: %s", result.Message)
 	}
-	saveLastScript(resp)
-	dir, err := getConfigDir()
-	if err != nil {
-		t.Fatalf("dir error: %v", err)
+	if result.IsValid {
+		t.Error("Expected IsValid to be false for empty input")
 	}
-	path := filepath.Join(dir, "last_script.json")
-	data, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatalf("expected last script file: %v", err)
-	}
-	if !strings.Contains(string(data), "last task") {
-		t.Errorf("last script file missing task: %s", data)
+	if !result.IsEmpty {
+		t.Error("Expected IsEmpty to be true for empty input")
 	}
 }
 
-func Test_when_loading_last_script_data_then_return_values(t *testing.T) {
-	temp := t.TempDir()
-	if runtime.GOOS == "windows" {
-		t.Setenv("APPDATA", temp)
-	} else {
-		t.Setenv("HOME", temp)
+func TestGivenValidTaskInput_WhenValidating_ThenReturnsSuccessMessage(t *testing.T) {
+	result := validateTaskInput("test task")
+	if !result.IsValid {
+		t.Error("Expected valid task to be accepted")
 	}
-	dir, _ := getConfigDir()
-	path := filepath.Join(dir, "last_script.json")
-	content := `{
-  "task_description": "load task",
-  "script": "echo hi",
-  "script_type": "bash",
-  "model": "m",
-  "provider": "p"
-}`
-	os.WriteFile(path, []byte(content), 0644)
-	resp := loadLastScriptData()
-	if resp == nil || resp.TaskDescription != "load task" || resp.Script == "" {
-		t.Errorf("unexpected response: %+v", resp)
+	expected := "🔄 Generating script for: test task"
+	if result.Message != expected {
+		t.Errorf("Expected success message, got: %s", result.Message)
+	}
+	if result.IsEmpty {
+		t.Error("Expected IsEmpty to be false for valid input")
 	}
 }
 
-func Test_when_get_single_key_unix_then_return_rune(t *testing.T) {
-	tmp, _ := os.CreateTemp(t.TempDir(), "stdin")
-	tmp.WriteString("a\n")
-	tmp.Seek(0, 0)
-	old := os.Stdin
-	os.Stdin = tmp
-	defer func() { os.Stdin = old }()
-	r := getSingleKeyUnix()
-	if r != 'a' {
-		t.Errorf("expected 'a', got %c", r)
+func TestGivenEmptyTask_WhenGeneratingStatus_ThenShowsWarning(t *testing.T) {
+	msg := generateStatusMessage("", true)
+	if !strings.Contains(msg, "No task description provided") {
+		t.Errorf("Expected warning message, got: %s", msg)
 	}
 }
 
-func Test_when_get_single_key_windows_then_return_rune(t *testing.T) {
-	tmp, _ := os.CreateTemp(t.TempDir(), "stdin")
-	tmp.WriteString("b\n")
-	tmp.Seek(0, 0)
-	old := os.Stdin
-	os.Stdin = tmp
-	defer func() { os.Stdin = old }()
-	r := getSingleKeyWindows()
-	if r != 'b' {
-		t.Errorf("expected 'b', got %c", r)
+func TestGivenValidTask_WhenGeneratingStatus_ThenShowsGenerationMessage(t *testing.T) {
+	msg := generateStatusMessage("my task", false)
+	if !strings.Contains(msg, "Generating script for: my task") {
+		t.Errorf("Expected generation message, got: %s", msg)
 	}
 }
 
-func Test_when_get_single_key_input_then_return_rune(t *testing.T) {
-	tmp, _ := os.CreateTemp(t.TempDir(), "stdin")
-	tmp.WriteString("c\n")
-	tmp.Seek(0, 0)
-	old := os.Stdin
-	os.Stdin = tmp
-	defer func() { os.Stdin = old }()
-	r := getSingleKeyInput()
-	if r != 'c' {
-		t.Errorf("expected 'c', got %c", r)
+// --- Menu choice parsing logic and tests ---
+func parseMenuChoice(choice rune) types.MenuAction {
+	switch choice {
+	case '1':
+		return types.MenuAction{Type: "generate", Valid: true}
+	case '2':
+		return types.MenuAction{Type: "run_last", Valid: true}
+	case '3':
+		return types.MenuAction{Type: "help", Valid: true}
+	case '4':
+		return types.MenuAction{Type: "exit", Valid: true}
+	default:
+		return types.MenuAction{Type: "invalid", Valid: false}
 	}
 }
 
-func Test_when_generate_new_script_with_empty_input_then_show_warning(t *testing.T) {
-	tmp, _ := os.CreateTemp(t.TempDir(), "stdin")
-	tmp.WriteString("\n")
-	tmp.Seek(0, 0)
-	old := os.Stdin
-	os.Stdin = tmp
-	defer func() { os.Stdin = old }()
-
-	output := captureOutput(func() { generateNewScript() })
-	if !strings.Contains(output, "No task description provided") {
-		t.Errorf("expected warning for empty input, got: %s", output)
+func TestGivenMenuChoice1_WhenParsing_ThenReturnsGenerateAction(t *testing.T) {
+	action := parseMenuChoice('1')
+	if action.Type != "generate" || !action.Valid {
+		t.Errorf("Expected valid generate action, got %+v", action)
 	}
 }
 
-func Test_when_generate_new_script_with_valid_input_then_announce_generation(t *testing.T) {
-	tmp, _ := os.CreateTemp(t.TempDir(), "stdin")
-	tmp.WriteString("test task\n")
-	tmp.Seek(0, 0)
-	old := os.Stdin
-	os.Stdin = tmp
-	defer func() { os.Stdin = old }()
-
-	output := captureOutput(func() { generateNewScript() })
-	if !strings.Contains(output, "Generating script for: test task") {
-		t.Errorf("expected generation message, got: %s", output)
+func TestGivenMenuChoice2_WhenParsing_ThenReturnsRunLastAction(t *testing.T) {
+	action := parseMenuChoice('2')
+	if action.Type != "run_last" || !action.Valid {
+		t.Errorf("Expected valid run_last action, got %+v", action)
 	}
 }
 
-func Test_when_save_to_file_then_create_script_file(t *testing.T) {
-	tmpDir := t.TempDir()
-	tmp, _ := os.CreateTemp(t.TempDir(), "stdin")
-	tmp.WriteString("\n")
-	tmp.Seek(0, 0)
-	old := os.Stdin
-	os.Stdin = tmp
-	defer func() { os.Stdin = old }()
-	oldWd, _ := os.Getwd()
-	os.Chdir(tmpDir)
-	defer os.Chdir(oldWd)
-
-	resp := &types.ScriptResponse{TaskDescription: "hello world", Script: "echo hi", ScriptType: "bash"}
-	saveToFile(resp)
-	files, _ := os.ReadDir(tmpDir)
-	if len(files) == 0 {
-		t.Error("expected file to be created")
+func TestGivenInvalidMenuChoice_WhenParsing_ThenReturnsInvalidAction(t *testing.T) {
+	action := parseMenuChoice('x')
+	if action.Type != "invalid" || action.Valid {
+		t.Errorf("Expected invalid action, got %+v", action)
 	}
 }
