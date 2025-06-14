@@ -116,11 +116,14 @@ themes/
 
 ## AUTONOMOUS WORKFLOW:
 1. Work through Phase 1 completely first
-2. Commit after each file/component
+2. Commit after each file/component (DO NOT CREATE PRs)
 3. Verify tests pass after each commit
 4. Move to Phase 2 only after 95%+ UI coverage
 5. Follow TDD strictly - tests first, then implementation
-6. Create PR when complete with detailed summary
+6. Continue through ALL of Phase 2 autonomously
+7. ONLY create PR when BOTH phases completely finished
+
+**CRITICAL**: Do NOT create pull requests until BOTH Phase 1 AND Phase 2 are 100% complete. Commit frequently but continue working autonomously through the entire implementation.
 
 ## SUCCESS CRITERIA:
 - ✅ 95%+ UI test coverage achieved
@@ -138,4 +141,10 @@ Examples:
 - "Phase 1: ui/interactive - Add comprehensive BDD tests"
 - "Phase 2: localization/manager - Implement JSON loading with tests"
 
-Work autonomously until complete. Create PR with full summary for review.
+**AUTONOMOUS EXECUTION RULES:**
+- NEVER stop work to create PRs until BOTH phases complete
+- Commit after each component but keep working
+- Only create final PR when full localization system implemented
+- Work continuously through Phase 1 → Phase 2 → Final PR
+
+Work autonomously through BOTH phases completely. Only create PR when entire localization and theming system is finished.
