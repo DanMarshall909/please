@@ -7,7 +7,12 @@ import (
 
 // ShowHelp displays colorful help information
 func ShowHelp() {
-	PrintRainbowBanner()
+	showHelpWithBanner(PrintRainbowBanner)
+}
+
+// showHelpWithBanner allows injecting banner function for testing
+func showHelpWithBanner(bannerFunc func()) {
+	bannerFunc()
 	fmt.Printf("\n%s%s🤖 Please - Your Overly Helpful Digital Assistant%s\n", ColorBold, ColorCyan, ColorReset)
 	fmt.Printf("%s%s✨ Politely Silly AI-Powered Cross-Platform Script Generation%s\n\n", ColorBold, ColorPurple, ColorReset)
 
