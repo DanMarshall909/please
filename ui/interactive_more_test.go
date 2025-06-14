@@ -10,7 +10,7 @@ import (
 	"please/types"
 )
 
-func TestWhenSavingToHistory_ShouldWriteHistoryFile(t *testing.T) {
+func Test_when_saving_to_history_then_write_history_file(t *testing.T) {
 	temp := t.TempDir()
 	if runtime.GOOS == "windows" {
 		t.Setenv("APPDATA", temp)
@@ -39,7 +39,7 @@ func TestWhenSavingToHistory_ShouldWriteHistoryFile(t *testing.T) {
 	}
 }
 
-func TestWhenSavingLastScript_ShouldWriteFile(t *testing.T) {
+func Test_when_saving_last_script_then_write_file(t *testing.T) {
 	temp := t.TempDir()
 	if runtime.GOOS == "windows" {
 		t.Setenv("APPDATA", temp)
@@ -68,7 +68,7 @@ func TestWhenSavingLastScript_ShouldWriteFile(t *testing.T) {
 	}
 }
 
-func TestWhenLoadingLastScriptData_ShouldReturnValues(t *testing.T) {
+func Test_when_loading_last_script_data_then_return_values(t *testing.T) {
 	temp := t.TempDir()
 	if runtime.GOOS == "windows" {
 		t.Setenv("APPDATA", temp)
@@ -91,7 +91,7 @@ func TestWhenLoadingLastScriptData_ShouldReturnValues(t *testing.T) {
 	}
 }
 
-func TestWhenGetSingleKeyUnix_ShouldReturnRune(t *testing.T) {
+func Test_when_get_single_key_unix_then_return_rune(t *testing.T) {
 	tmp, _ := os.CreateTemp(t.TempDir(), "stdin")
 	tmp.WriteString("a\n")
 	tmp.Seek(0, 0)
@@ -104,7 +104,7 @@ func TestWhenGetSingleKeyUnix_ShouldReturnRune(t *testing.T) {
 	}
 }
 
-func TestWhenGetSingleKeyWindows_ShouldReturnRune(t *testing.T) {
+func Test_when_get_single_key_windows_then_return_rune(t *testing.T) {
 	tmp, _ := os.CreateTemp(t.TempDir(), "stdin")
 	tmp.WriteString("b\n")
 	tmp.Seek(0, 0)
@@ -117,7 +117,7 @@ func TestWhenGetSingleKeyWindows_ShouldReturnRune(t *testing.T) {
 	}
 }
 
-func TestWhenGetSingleKeyInput_ShouldReturnRune(t *testing.T) {
+func Test_when_get_single_key_input_then_return_rune(t *testing.T) {
 	tmp, _ := os.CreateTemp(t.TempDir(), "stdin")
 	tmp.WriteString("c\n")
 	tmp.Seek(0, 0)
@@ -130,7 +130,7 @@ func TestWhenGetSingleKeyInput_ShouldReturnRune(t *testing.T) {
 	}
 }
 
-func TestWhenGenerateNewScriptWithEmptyInput_ShouldShowWarning(t *testing.T) {
+func Test_when_generate_new_script_with_empty_input_then_show_warning(t *testing.T) {
 	tmp, _ := os.CreateTemp(t.TempDir(), "stdin")
 	tmp.WriteString("\n")
 	tmp.Seek(0, 0)
@@ -144,7 +144,7 @@ func TestWhenGenerateNewScriptWithEmptyInput_ShouldShowWarning(t *testing.T) {
 	}
 }
 
-func TestWhenGenerateNewScriptWithValidInput_ShouldAnnounceGeneration(t *testing.T) {
+func Test_when_generate_new_script_with_valid_input_then_announce_generation(t *testing.T) {
 	tmp, _ := os.CreateTemp(t.TempDir(), "stdin")
 	tmp.WriteString("test task\n")
 	tmp.Seek(0, 0)
@@ -158,7 +158,7 @@ func TestWhenGenerateNewScriptWithValidInput_ShouldAnnounceGeneration(t *testing
 	}
 }
 
-func TestWhenSaveToFile_ShouldCreateScriptFile(t *testing.T) {
+func Test_when_save_to_file_then_create_script_file(t *testing.T) {
 	tmpDir := t.TempDir()
 	tmp, _ := os.CreateTemp(t.TempDir(), "stdin")
 	tmp.WriteString("\n")

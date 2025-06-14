@@ -11,7 +11,7 @@ import (
 
 // Test banner functions for business logic only (no cosmetic testing)
 
-func TestWhenBannerWithZeroDelay_ShouldCompleteImmediately(t *testing.T) {
+func Test_when_banner_with_zero_delay_then_complete_immediately(t *testing.T) {
 	// Arrange
 	start := time.Now()
 
@@ -25,7 +25,7 @@ func TestWhenBannerWithZeroDelay_ShouldCompleteImmediately(t *testing.T) {
 	}
 }
 
-func TestWhenBannerWithDelay_ShouldRespectTiming(t *testing.T) {
+func Test_when_banner_with_delay_then_respect_timing(t *testing.T) {
 	// Arrange
 	testDelay := 5 * time.Millisecond
 	start := time.Now()
@@ -61,7 +61,7 @@ func captureStdout(fn func()) string {
 	return out
 }
 
-func TestWhenPrintingRainbowBannerWithZeroDelay_ShouldPrintAsciiArt(t *testing.T) {
+func Test_when_printing_rainbow_banner_with_zero_delay_then_print_ascii_art(t *testing.T) {
 	output := captureStdout(func() { PrintRainbowBannerWithDelay(0) })
 	if !strings.Contains(output, "██████╗") {
 		t.Errorf("Expected banner to include ASCII art, got: %s", output)
@@ -72,7 +72,7 @@ func TestWhenPrintingRainbowBannerWithZeroDelay_ShouldPrintAsciiArt(t *testing.T
 	}
 }
 
-func TestWhenCallingPrintInstallationSuccess_ShouldShowMagicMessage(t *testing.T) {
+func Test_when_calling_print_installation_success_then_show_magic_message(t *testing.T) {
 	output := captureStdout(PrintInstallationSuccess)
 	if !strings.Contains(output, "Installation complete") {
 		t.Errorf("Expected installation message, got: %s", output)
@@ -82,7 +82,7 @@ func TestWhenCallingPrintInstallationSuccess_ShouldShowMagicMessage(t *testing.T
 	}
 }
 
-func TestWhenCallingPrintFooter_ShouldDisplayHelpfulTips(t *testing.T) {
+func Test_when_calling_print_footer_then_display_helpful_tips(t *testing.T) {
 	output := captureStdout(PrintFooter)
 	if !strings.Contains(output, "Happy scripting") {
 		t.Errorf("Expected footer tips, got: %s", output)
@@ -92,7 +92,7 @@ func TestWhenCallingPrintFooter_ShouldDisplayHelpfulTips(t *testing.T) {
 	}
 }
 
-func TestWhenCallingPrintRainbowBanner_ShouldUseDefaultDelay(t *testing.T) {
+func Test_when_calling_print_rainbow_banner_then_use_default_delay(t *testing.T) {
 	start := time.Now()
 	PrintRainbowBanner()
 	if time.Since(start) < 50*time.Millisecond {

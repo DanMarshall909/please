@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestEditScript_NoChange(t *testing.T) {
+func Test_when_edit_script_then_no_change(t *testing.T) {
 	// Prepare a dummy script response
 	resp := &types.ScriptResponse{
 		TaskDescription: "echo hello world",
@@ -52,7 +52,7 @@ func TestEditScript_NoChange(t *testing.T) {
 	}
 }
 
-func TestEditScript_Modified(t *testing.T) {
+func Test_when_edit_script_then_modified(t *testing.T) {
 	resp := &types.ScriptResponse{
 		TaskDescription: "echo hello world",
 		Script:          "echo hello world",

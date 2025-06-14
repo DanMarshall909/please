@@ -10,7 +10,7 @@ import (
 )
 
 // Test GetSuggestedFilename function
-func Test_when_getting_filename_for_bash_script_should_add_sh_extension(t *testing.T) {
+func Test_when_getting_filename_for_bash_script_then_add_sh_extension(t *testing.T) {
 	// Arrange
 	response := &types.ScriptResponse{
 		TaskDescription: "list files in directory",
@@ -33,11 +33,11 @@ func Test_when_getting_filename_for_bash_script_should_add_sh_extension(t *testi
 	}
 }
 
-func Test_when_getting_filename_for_powershell_script_should_add_ps1_extension(t *testing.T) {
+func Test_when_getting_filename_for_powershell_script_then_add_ps1_extension(t *testing.T) {
 	// Arrange
 	response := &types.ScriptResponse{
 		TaskDescription: "get system information",
-		ScriptType:      "powershell", 
+		ScriptType:      "powershell",
 		Script:          "Get-ComputerInfo",
 	}
 
@@ -53,7 +53,7 @@ func Test_when_getting_filename_for_powershell_script_should_add_ps1_extension(t
 	}
 }
 
-func Test_when_getting_filename_with_special_characters_should_normalize_them(t *testing.T) {
+func Test_when_getting_filename_with_special_characters_then_normalize_them(t *testing.T) {
 	// Arrange
 	response := &types.ScriptResponse{
 		TaskDescription: "find files with name test*.txt & sort by date",
@@ -76,7 +76,7 @@ func Test_when_getting_filename_with_special_characters_should_normalize_them(t 
 	}
 }
 
-func Test_when_getting_filename_with_common_words_should_filter_them_out(t *testing.T) {
+func Test_when_getting_filename_with_common_words_then_filter_them_out(t *testing.T) {
 	// Arrange
 	response := &types.ScriptResponse{
 		TaskDescription: "create a backup of the important files and directories",
@@ -96,7 +96,7 @@ func Test_when_getting_filename_with_common_words_should_filter_them_out(t *test
 	}
 }
 
-func Test_when_getting_filename_with_long_description_should_limit_length(t *testing.T) {
+func Test_when_getting_filename_with_long_description_then_limit_length(t *testing.T) {
 	// Arrange
 	longDescription := "this is a very long task description that should be truncated because it exceeds the maximum allowed length for a filename"
 	response := &types.ScriptResponse{
@@ -115,7 +115,7 @@ func Test_when_getting_filename_with_long_description_should_limit_length(t *tes
 	}
 }
 
-func Test_when_getting_filename_with_empty_description_should_use_default(t *testing.T) {
+func Test_when_getting_filename_with_empty_description_then_use_default(t *testing.T) {
 	// Arrange
 	response := &types.ScriptResponse{
 		TaskDescription: "",
@@ -135,7 +135,7 @@ func Test_when_getting_filename_with_empty_description_should_use_default(t *tes
 	}
 }
 
-func Test_when_getting_filename_with_only_short_words_should_use_default(t *testing.T) {
+func Test_when_getting_filename_with_only_short_words_then_use_default(t *testing.T) {
 	// Arrange
 	response := &types.ScriptResponse{
 		TaskDescription: "a to is on at by",
@@ -153,35 +153,35 @@ func Test_when_getting_filename_with_only_short_words_should_use_default(t *test
 }
 
 // Test ValidateScript function
-func Test_when_validating_script_with_critical_dangers_should_return_critical_warnings(t *testing.T) {
+func Test_when_validating_script_with_critical_dangers_then_return_critical_warnings(t *testing.T) {
 	testCases := []struct {
-		name           string
-		script         string
+		name            string
+		script          string
 		expectedWarning string
 	}{
 		{
-			name:           "rm rf root",
-			script:         "rm -rf /",
+			name:            "rm rf root",
+			script:          "rm -rf /",
 			expectedWarning: "⛔ CRITICAL: Attempts to delete entire filesystem",
 		},
 		{
-			name:           "rm rf root with asterisk",
-			script:         "rm -rf /*",
+			name:            "rm rf root with asterisk",
+			script:          "rm -rf /*",
 			expectedWarning: "⛔ CRITICAL: Attempts to delete entire filesystem",
 		},
 		{
-			name:           "windows delete c drive",
-			script:         "del /s /q c:\\*",
+			name:            "windows delete c drive",
+			script:          "del /s /q c:\\*",
 			expectedWarning: "⛔ CRITICAL: Attempts to delete entire C: drive",
 		},
 		{
-			name:           "format c drive",
-			script:         "format c:",
+			name:            "format c drive",
+			script:          "format c:",
 			expectedWarning: "⛔ CRITICAL: Attempts to format C: drive",
 		},
 		{
-			name:           "dd command with zeros",
-			script:         "dd if=/dev/zero of=/dev/sda",
+			name:            "dd command with zeros",
+			script:          "dd if=/dev/zero of=/dev/sda",
 			expectedWarning: "⛔ CRITICAL: Attempts to overwrite data with zeros",
 		},
 	}
@@ -215,7 +215,7 @@ func Test_when_validating_script_with_critical_dangers_should_return_critical_wa
 	}
 }
 
-func Test_when_validating_script_with_high_risk_commands_should_return_high_risk_warnings(t *testing.T) {
+func Test_when_validating_script_with_high_risk_commands_then_return_high_risk_warnings(t *testing.T) {
 	testCases := []struct {
 		name           string
 		script         string
@@ -269,7 +269,7 @@ func Test_when_validating_script_with_high_risk_commands_should_return_high_risk
 	}
 }
 
-func Test_when_validating_script_with_medium_risk_commands_should_return_caution_warnings(t *testing.T) {
+func Test_when_validating_script_with_medium_risk_commands_then_return_caution_warnings(t *testing.T) {
 	testCases := []struct {
 		name           string
 		script         string
@@ -318,7 +318,7 @@ func Test_when_validating_script_with_medium_risk_commands_should_return_caution
 	}
 }
 
-func Test_when_validating_bash_script_without_shebang_should_suggest_adding_it(t *testing.T) {
+func Test_when_validating_bash_script_without_shebang_then_suggest_adding_it(t *testing.T) {
 	// Arrange
 	response := &types.ScriptResponse{
 		Script:     "echo 'hello world'\nls -la",
@@ -341,7 +341,7 @@ func Test_when_validating_bash_script_without_shebang_should_suggest_adding_it(t
 	}
 }
 
-func Test_when_validating_very_short_script_should_warn_about_completeness(t *testing.T) {
+func Test_when_validating_very_short_script_then_warn_about_completeness(t *testing.T) {
 	// Arrange
 	response := &types.ScriptResponse{
 		Script:     "ls",
@@ -364,7 +364,7 @@ func Test_when_validating_very_short_script_should_warn_about_completeness(t *te
 	}
 }
 
-func Test_when_validating_script_without_error_handling_should_suggest_adding_it(t *testing.T) {
+func Test_when_validating_script_without_error_handling_then_suggest_adding_it(t *testing.T) {
 	// Arrange
 	longScriptWithoutErrorHandling := `#!/bin/bash
 echo "Starting process"
@@ -394,7 +394,7 @@ echo "Process complete"`
 	}
 }
 
-func Test_when_validating_script_with_error_handling_should_not_suggest_adding_it(t *testing.T) {
+func Test_when_validating_script_with_error_handling_then_not_suggest_adding_it(t *testing.T) {
 	// Arrange
 	scriptWithErrorHandling := `#!/bin/bash
 if [ ! -f "input.txt" ]; then
@@ -421,7 +421,7 @@ echo "Success"`
 }
 
 // Test containsCommand function
-func Test_when_checking_command_in_quoted_string_should_return_false(t *testing.T) {
+func Test_when_checking_command_in_quoted_string_then_return_false(t *testing.T) {
 	testCases := []struct {
 		name     string
 		script   string
@@ -468,7 +468,7 @@ func Test_when_checking_command_in_quoted_string_should_return_false(t *testing.
 }
 
 // Test containsPatternOutsideQuotes function
-func Test_when_checking_pattern_outside_quotes_should_detect_correctly(t *testing.T) {
+func Test_when_checking_pattern_outside_quotes_then_detect_correctly(t *testing.T) {
 	testCases := []struct {
 		name     string
 		line     string
@@ -521,91 +521,91 @@ func Test_when_checking_pattern_outside_quotes_should_detect_correctly(t *testin
 }
 
 // Test SaveToFile function (safe file operations)
-func Test_when_saving_bash_script_without_extension_should_add_sh_extension(t *testing.T) {
+func Test_when_saving_bash_script_without_extension_then_add_sh_extension(t *testing.T) {
 	// Arrange
 	script := "#!/bin/bash\necho 'test'"
 	filename := "test_script"
-	
+
 	// Act
 	err := SaveToFile(script, filename)
-	
+
 	// Assert
 	if err != nil {
 		t.Errorf("Expected no error saving file, got: %v", err)
 	}
-	
+
 	// Check if file exists with .sh extension
 	if _, err := os.Stat(filename + ".sh"); err != nil {
 		t.Errorf("Expected file %s.sh to exist, got error: %v", filename, err)
 	}
-	
+
 	// Cleanup
 	os.Remove(filename + ".sh")
 }
 
-func Test_when_saving_powershell_script_without_extension_should_add_ps1_extension(t *testing.T) {
+func Test_when_saving_powershell_script_without_extension_then_add_ps1_extension(t *testing.T) {
 	// Arrange
 	script := "Write-Host 'test'"
 	filename := "test_script"
-	
+
 	// Act
 	err := SaveToFile(script, filename)
-	
+
 	// Assert
 	if err != nil {
 		t.Errorf("Expected no error saving file, got: %v", err)
 	}
-	
+
 	// Check if file exists with .ps1 extension
 	if _, err := os.Stat(filename + ".ps1"); err != nil {
 		t.Errorf("Expected file %s.ps1 to exist, got error: %v", filename, err)
 	}
-	
+
 	// Cleanup
 	os.Remove(filename + ".ps1")
 }
 
-func Test_when_saving_script_with_extension_should_preserve_extension(t *testing.T) {
+func Test_when_saving_script_with_extension_then_preserve_extension(t *testing.T) {
 	// Arrange
 	script := "echo 'test'"
 	filename := "myscript.custom"
-	
+
 	// Act
 	err := SaveToFile(script, filename)
-	
+
 	// Assert
 	if err != nil {
 		t.Errorf("Expected no error saving file, got: %v", err)
 	}
-	
+
 	// Check if file exists with original extension
 	if _, err := os.Stat(filename); err != nil {
 		t.Errorf("Expected file %s to exist, got error: %v", filename, err)
 	}
-	
+
 	// Cleanup
 	os.Remove(filename)
 }
 
-func Test_when_saving_bash_script_on_unix_should_make_executable(t *testing.T) {
+func Test_when_saving_bash_script_on_unix_then_make_executable(t *testing.T) {
 	// Skip on Windows
 	if runtime.GOOS == "windows" {
 		t.Skip("Skipping executable test on Windows")
 		return
 	}
-	
+
 	// Arrange
 	script := "#!/bin/bash\necho 'test'"
 	filename := "test_executable.sh"
-	
+
 	// Act
 	err := SaveToFile(script, filename)
-	
+
 	// Assert
 	if err != nil {
 		t.Errorf("Expected no error saving file, got: %v", err)
 	}
-	
+
 	// Check file permissions
 	info, err := os.Stat(filename)
 	if err != nil {
@@ -616,16 +616,16 @@ func Test_when_saving_bash_script_on_unix_should_make_executable(t *testing.T) {
 			t.Errorf("Expected file to be executable, got mode: %v", mode)
 		}
 	}
-	
+
 	// Cleanup
 	os.Remove(filename)
 }
 
 // Test CopyToClipboard function (platform-aware)
-func Test_when_copying_empty_string_to_clipboard_should_not_error(t *testing.T) {
+func Test_when_copying_empty_string_to_clipboard_then_not_error(t *testing.T) {
 	// Act
 	err := CopyToClipboard("")
-	
+
 	// Assert - This might fail if clipboard tools aren't available, but shouldn't panic
 	if err != nil {
 		t.Logf("Clipboard operation failed (expected on some systems): %v", err)
@@ -633,13 +633,13 @@ func Test_when_copying_empty_string_to_clipboard_should_not_error(t *testing.T) 
 	}
 }
 
-func Test_when_copying_text_to_clipboard_should_handle_gracefully(t *testing.T) {
+func Test_when_copying_text_to_clipboard_then_handle_gracefully(t *testing.T) {
 	// Arrange
 	testText := "echo 'Hello, World!'"
-	
+
 	// Act
 	err := CopyToClipboard(testText)
-	
+
 	// Assert - This might fail if clipboard tools aren't available, but shouldn't panic
 	if err != nil {
 		t.Logf("Clipboard operation failed (expected on some systems): %v", err)
@@ -652,7 +652,7 @@ func Test_when_copying_text_to_clipboard_should_handle_gracefully(t *testing.T) 
 }
 
 // Test ExecuteScript function (the major missing coverage area)
-func Test_when_executing_safe_bash_script_should_run_successfully(t *testing.T) {
+func Test_when_executing_safe_bash_script_then_run_successfully(t *testing.T) {
 	// Arrange - Create a safe script that just echoes a test message
 	response := &types.ScriptResponse{
 		Script:          "#!/bin/bash\necho 'test_execution_successful'",
@@ -668,8 +668,8 @@ func Test_when_executing_safe_bash_script_should_run_successfully(t *testing.T) 
 	// Assert
 	if err != nil {
 		// On Windows, bash might not be available or have path issues - that's expected
-		if runtime.GOOS == "windows" && (strings.Contains(err.Error(), "bash not found") || 
-			strings.Contains(err.Error(), "No such file") || 
+		if runtime.GOOS == "windows" && (strings.Contains(err.Error(), "bash not found") ||
+			strings.Contains(err.Error(), "No such file") ||
 			strings.Contains(err.Error(), "exit status 127")) {
 			t.Logf("Expected Windows bash error (bash unavailable or path issues): %v", err)
 			return
@@ -678,7 +678,7 @@ func Test_when_executing_safe_bash_script_should_run_successfully(t *testing.T) 
 	}
 }
 
-func Test_when_executing_safe_powershell_script_should_run_successfully(t *testing.T) {
+func Test_when_executing_safe_powershell_script_then_run_successfully(t *testing.T) {
 	// Skip on non-Windows systems where PowerShell might not be available
 	if runtime.GOOS != "windows" {
 		t.Skip("Skipping PowerShell test on non-Windows system")
@@ -703,7 +703,7 @@ func Test_when_executing_safe_powershell_script_should_run_successfully(t *testi
 	}
 }
 
-func Test_when_executing_script_with_invalid_syntax_should_return_error(t *testing.T) {
+func Test_when_executing_script_with_invalid_syntax_then_return_error(t *testing.T) {
 	// Arrange - Create a script with invalid syntax
 	response := &types.ScriptResponse{
 		Script:          "this is not valid bash syntax {{{{ ]]]]",
@@ -722,15 +722,15 @@ func Test_when_executing_script_with_invalid_syntax_should_return_error(t *testi
 	}
 }
 
-func Test_when_executing_script_should_create_and_cleanup_temp_file(t *testing.T) {
+func Test_when_executing_script_then_create_and_cleanup_temp_file(t *testing.T) {
 	// This test verifies that temporary files are created and cleaned up properly
 	// We can't easily test the cleanup directly since it happens in defer,
 	// but we can test that the function doesn't leave temp files around
-	
+
 	// Arrange
 	response := &types.ScriptResponse{
 		Script:          "echo 'temp file test'",
-		ScriptType:      "bash", 
+		ScriptType:      "bash",
 		TaskDescription: "test temp file handling",
 		Provider:        "test",
 		Model:           "test-model",
@@ -769,9 +769,9 @@ func Test_when_executing_script_should_create_and_cleanup_temp_file(t *testing.T
 	}
 }
 
-func Test_when_executing_powershell_script_on_windows_should_use_correct_command(t *testing.T) {
+func Test_when_executing_powershell_script_on_windows_then_use_correct_command(t *testing.T) {
 	// This test verifies PowerShell execution path without actually running dangerous commands
-	
+
 	// Skip on non-Windows systems
 	if runtime.GOOS != "windows" {
 		t.Skip("Skipping Windows-specific PowerShell test")
@@ -783,7 +783,7 @@ func Test_when_executing_powershell_script_on_windows_should_use_correct_command
 		Script:          "$null", // This does nothing but is valid PowerShell
 		ScriptType:      "powershell",
 		TaskDescription: "test powershell command path",
-		Provider:        "test", 
+		Provider:        "test",
 		Model:           "test-model",
 	}
 
@@ -796,7 +796,7 @@ func Test_when_executing_powershell_script_on_windows_should_use_correct_command
 	}
 }
 
-func Test_when_executing_bash_script_on_windows_without_bash_should_return_helpful_error(t *testing.T) {
+func Test_when_executing_bash_script_on_windows_without_bash_then_return_helpful_error(t *testing.T) {
 	// Skip if not on Windows
 	if runtime.GOOS != "windows" {
 		t.Skip("Skipping Windows-specific bash error test")
@@ -833,7 +833,7 @@ func Test_when_executing_bash_script_on_windows_without_bash_should_return_helpf
 	}
 }
 
-func Test_when_executing_script_with_empty_content_should_handle_gracefully(t *testing.T) {
+func Test_when_executing_script_with_empty_content_then_handle_gracefully(t *testing.T) {
 	// Arrange
 	response := &types.ScriptResponse{
 		Script:          "",
@@ -853,11 +853,11 @@ func Test_when_executing_script_with_empty_content_should_handle_gracefully(t *t
 	}
 }
 
-func Test_when_executing_script_should_handle_file_creation_errors_gracefully(t *testing.T) {
+func Test_when_executing_script_then_handle_file_creation_errors_gracefully(t *testing.T) {
 	// This test would require creating a scenario where temp file creation fails
 	// Since we can't easily simulate filesystem errors in a unit test,
 	// we'll test with an edge case that might cause issues
-	
+
 	// Arrange - Script with potentially problematic characters
 	response := &types.ScriptResponse{
 		Script:          "echo 'test with unicode: 你好 🌟'",

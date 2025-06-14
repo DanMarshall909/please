@@ -112,7 +112,7 @@ func TestLocalizationSystemGet(t *testing.T) {
 	}
 }
 
-func TestWhenLoadFromFile_ShouldParseLocalizationConfig(t *testing.T) {
+func Test_when_load_from_file_then_parse_localization_config(t *testing.T) {
 	temp := t.TempDir()
 	jsonPath := filepath.Join(temp, "test.json")
 	content := `{
@@ -136,7 +136,7 @@ func TestWhenLoadFromFile_ShouldParseLocalizationConfig(t *testing.T) {
 	}
 }
 
-func TestWhenManagerSwitchesLanguage_ShouldReturnNewMessage(t *testing.T) {
+func Test_when_manager_switches_language_then_return_new_message(t *testing.T) {
 	temp := t.TempDir()
 	enPath := filepath.Join(temp, "en-us.json")
 	esPath := filepath.Join(temp, "es-es.json")
@@ -154,7 +154,7 @@ func TestWhenManagerSwitchesLanguage_ShouldReturnNewMessage(t *testing.T) {
 	}
 }
 
-func TestWhenManagerSwitchesTheme_ShouldReturnNewColor(t *testing.T) {
+func Test_when_manager_switches_theme_then_return_new_color(t *testing.T) {
 	mgr := &LocalizationManager{config: &types.LocalizationConfig{Themes: types.Theme{Colors: map[string]string{"primary": "#fff"}}}}
 	mgr.themes = map[string]types.Theme{"dark": {Colors: map[string]string{"primary": "#000"}}}
 	if mgr.GetThemeColor("primary") != "#fff" {
@@ -166,7 +166,7 @@ func TestWhenManagerSwitchesTheme_ShouldReturnNewColor(t *testing.T) {
 	}
 }
 
-func TestWhenGettingMissingMessage_ShouldUseFallback(t *testing.T) {
+func Test_when_getting_missing_message_then_use_fallback(t *testing.T) {
 	mgr := &LocalizationManager{config: &types.LocalizationConfig{Messages: types.Messages{Banner: types.Banner{Title: "hi"}}}, fallback: &types.LocalizationConfig{Messages: types.Messages{Banner: types.Banner{Title: "fallback"}}}}
 	if mgr.GetMessage("banner.subtitle") != "" {
 		t.Errorf("expected empty string for missing message")
