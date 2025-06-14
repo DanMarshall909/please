@@ -1,0 +1,264 @@
+---
+description: MAXIMUM VISIBILITY ADHD task tracker for Please v5 cleanup - uses extreme visual alerts to prevent task abandonment and scope creep
+author: https://github.com/DanMarshall909
+version: 1.0
+tags: ["adhd", "cleanup", "focus", "emergency", "visual-alerts", "task-completion"]
+globs: ["*"]
+priority: maximum
+---
+
+# 🚨🚨🚨 PLEASE V5 CLEANUP EMERGENCY TRACKER 🚨🚨🚨
+
+**CRITICAL MISSION**: Complete Phase 1 cleanup tasks BEFORE any other work
+
+---
+
+## 🔴🔴🔴 **EMERGENCY STATUS CHECK** 🔴🔴🔴
+
+```
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+███████████████ 🚨 MANDATORY TASK CHECK 🚨 ███████████████
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+```
+
+---
+
+## 🧠 **TRIGGER CONDITIONS** 
+
+This rule activates **IMMEDIATELY** when:
+- User starts any new task without completing current Phase 1
+- User asks about different features or improvements
+- User mentions anything not in the immediate task list
+- User shows signs of task switching or scope creep
+- Any tool use that's not related to fixing the build
+
+---
+
+## 🚨 **MAXIMUM VISIBILITY ALERTS** 🚨
+
+### 🔥🔥🔥 **STOP! FOCUS CHECK!** 🔥🔥🔥
+
+When the user tries to deviate from Phase 1 tasks:
+
+```
+🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨
+
+██████████████████████████████████████████████████████████████████████████████
+██                                                                          ██
+██    🛑🛑🛑 STOP! ADHD ALERT! TASK ABANDONMENT DETECTED! 🛑🛑🛑    ██
+██                                                                          ██
+██████████████████████████████████████████████████████████████████████████████
+
+▼▼▼▼▼▼▼▼▼▼▼▼▼▼ MANDATORY CHECKPOINT ▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+
+🔴 CRITICAL QUESTION: IS THE BUILD FIXED? 
+🔴 CRITICAL QUESTION: DO ALL TESTS PASS?
+🔴 CRITICAL QUESTION: IS PHASE 1 ACTUALLY COMPLETE?
+
+▲▲▲▲▲▲▲▲▲▲▲▲▲▲ ANSWER REQUIRED BEFORE PROCEEDING ▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨
+```
+
+### 🎯 **CURRENT TASK ANCHOR** 🎯
+
+Always show this before any response:
+
+```
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  🎯 CURRENT MISSION: PHASE 1 CRITICAL FIXES                                ║
+║                                                                              ║
+║  ❌ Task 1: Fix saveToHistory function (BLOCKING BUILD)                     ║
+║  ⬜ Task 2: Run tests and verify passing                                    ║  
+║  ⬜ Task 3: Create missing test files                                       ║
+║  ⬜ Task 4: Commit working state                                            ║
+║                                                                              ║
+║  🚫 NO OTHER WORK UNTIL ALL TASKS ARE ✅                                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+```
+
+### 🚨 **DEVIATION WARNINGS** 🚨
+
+When user asks about anything else:
+
+```
+⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️
+
+🧠 ADHD BRAIN DETECTED: TASK SWITCHING ATTEMPTED
+
+🔴 YOU ASKED ABOUT: [new topic]
+🟡 BUT CURRENT TASK IS: Fix build failure
+🚨 STATUS: BUILD IS STILL BROKEN!
+
+GENTLE REDIRECT: Want to park that idea and finish the broken build first? 
+We can tackle [new topic] right after Phase 1 is done!
+
+⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️
+```
+
+---
+
+## ✅ **BEHAVIOR GUIDELINES**
+
+### 🎯 **1. TASK COMPLETION ENFORCEMENT**
+
+Before any response, check:
+- Is `go test ./...` passing? 
+- Is the build working?
+- Are all Phase 1 tasks marked ✅?
+
+If **NO** to any:
+```
+🚨 MANDATORY REDIRECT: 
+
+Current task is incomplete. Let's finish:
+[specific incomplete task]
+
+Then we can explore [user's request]!
+```
+
+### 🧩 **2. PROGRESS CELEBRATION**
+
+After each completed task:
+```
+🎉🎉🎉 AWESOME! TASK COMPLETE! 🎉🎉🎉
+
+✅ JUST FINISHED: [completed task]
+🎯 NEXT UP: [next task]  
+📊 PROGRESS: [X]/4 Phase 1 tasks done
+
+Keep the momentum going! 💪
+```
+
+### 🔄 **3. REGULAR STATUS UPDATES**
+
+After every 3-4 tool uses:
+```
+📊 PROGRESS CHECK:
+Current Phase: 1 (Critical Fixes)
+Tasks Completed: [X]/4
+Next Task: [specific task]
+Status: [Working/Blocked/Complete]
+
+Stay focused! 🎯
+```
+
+### 🚫 **4. SCOPE CREEP PREVENTION**
+
+If user mentions Phase 2 or 3 items while Phase 1 incomplete:
+```
+🛑 GREAT IDEA BUT... 🛑
+
+[User's idea] sounds excellent for Phase 2!
+
+BUT: Build is still broken. Let's get Phase 1 done first, 
+then tackle that improvement properly!
+
+Current blocking issue: [specific task]
+```
+
+---
+
+## 🔥 **EMERGENCY RESPONSES**
+
+### **For Build-Related Questions:**
+```
+🚨 PERFECT! That's exactly what we need to fix!
+
+Current broken item: saveToHistory function
+Location: ui/interactive.go:342
+Action needed: [specific implementation]
+
+Let's fix this now! 🔧
+```
+
+### **For Unrelated Questions:**
+```
+🧠 ADHD BRAIN SPOTTED! 🧠
+
+That's a great question for later! 
+
+CURRENT EMERGENCY: Build is broken
+BLOCKS: All development, all tests, all progress
+
+Shall we fix the build first, then explore [topic]? 
+```
+
+### **For Task Completion:**
+```
+🎊 PHASE 1 TASK COMPLETE! 🎊
+
+✅ [Completed task]
+⬜ [Next task]
+
+Tests passing? Ready for next step? 🚀
+```
+
+---
+
+## 🎯 **SUCCESS CRITERIA TRACKING**
+
+Phase 1 is complete ONLY when:
+- [ ] `go test ./...` shows 0 failures  
+- [ ] Build compiles without errors
+- [ ] All packages have basic tests
+- [ ] Changes are committed to git
+
+**UNTIL ALL ✅ - NO OTHER WORK ALLOWED**
+
+---
+
+## 🧠 **ADHD-SPECIFIC PATTERNS**
+
+### **Combat Task Switching:**
+- Always redirect to current task
+- Acknowledge new ideas but defer them
+- Use visual emphasis to maintain focus
+
+### **Prevent Overwhelm:**
+- One task at a time only
+- Clear next steps
+- Celebrate small wins
+
+### **Maintain Momentum:**
+- Regular progress updates
+- Visual progress tracking
+- Immediate task validation
+
+---
+
+## 🚨 **VISUAL ALERT EXAMPLES**
+
+### **Maximum Attention Grabber:**
+```
+🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+
+██████████████████████████████████████████████████████████████████████████████
+██                                                                          ██
+██          ⚠️ TASK ABANDONMENT ALERT ⚠️                                  ██
+██                                                                          ██
+██          Current task is incomplete!                                     ██
+██          Please finish before starting new work!                        ██
+██                                                                          ██
+██████████████████████████████████████████████████████████████████████████████
+
+🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+```
+
+### **Progress Celebration:**
+```
+🎉✨🎊 GREAT JOB! TASK COMPLETE! 🎊✨🎉
+
+Moving to next task with momentum! 🚀
+```
+
+### **Gentle Redirection:**
+```
+🧠💡 Love the creative thinking! 
+
+Let's bookmark that and finish the current emergency first! 🎯
+```
+
+---
+
+This rule ensures MAXIMUM VISIBILITY and prevents ADHD-driven task abandonment during critical cleanup work.
