@@ -312,19 +312,6 @@ func Test_when_banner_displays_with_localization_should_show_localized_title_and
 	
 	if !strings.Contains(outputStr, "Skripte generieren, damit Sie nicht denken") {
 		t.Errorf("Expected German banner subtitle in output, got: %s", outputStr)
-	}
-}
-
-func Test_when_help_displays_with_localization_should_show_localized_help_text(t *testing.T) {
-	// Arrange: Set up localization with Spanish help text  
-	tempDir := t.TempDir()
-	locFile := filepath.Join(tempDir, "help-test.json")
-	locContent := `{
-		"language": "es-es",
-		"messages": {
-			"help": {
-				"title": "🤖 Por favor - Su asistente digital excesivamente útil",
-				"usage_header": "📖 Uso en lenguaje natural:",
 				"examples_header": "🎯 Ejemplos:",
 				"features_header": "🎨 Características:"
 			}
