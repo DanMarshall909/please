@@ -1,47 +1,53 @@
 package ui
 
 import (
+	"bytes"
+	"io"
+	"os"
+	"strings"
 	"testing"
 )
 
-// Test help functions for business logic only (no cosmetic testing)
-
-func Test_when_showing_help_should_complete_without_error(t *testing.T) {
-	// Act - Should not panic or cause errors
-	defer func() {
-		if r := recover(); r != nil {
-			t.Errorf("ShowHelp() caused panic: %v", r)
-		}
+func captureStdoutForHelp(fn func()) string {
+	r, w, _ := os.Pipe()
+	orig := os.Stdout
+	os.Stdout = w
+	outC := make(chan string)
+	go func() {
+		var buf bytes.Buffer
+		io.Copy(&buf, r)
+		outC <- buf.String()
 	}()
-	
-	ShowHelp()
-	
-	// Assert - If we reach here, no panic occurred
+	fn()
+	w.Close()
+	os.Stdout = orig
+	return <-outC
 }
 
-func Test_when_showing_version_should_complete_without_error(t *testing.T) {
-	// Act - Should not panic or cause errors
-	defer func() {
-		if r := recover(); r != nil {
-			t.Errorf("ShowVersion() caused panic: %v", r)
-		}
-	}()
-	
-	ShowVersion()
-	
-	// Assert - If we reach here, no panic occurred
+func TestWhenShowingHelp_ShouldDisplayUsageExamples(t *testing.T) {
+	output := captureStdoutForHelp(ShowHelp)
+	if !strings.Contains(output, "Natural Language Usage") {
+		t.Errorf("expected help to mention usage, got: %s", output)
+	}
+	if !strings.Contains(output, "Examples") {
+		t.Errorf("expected help to include examples section")
+	}
 }
 
-func Test_when_showing_help_and_version_should_both_work_correctly(t *testing.T) {
-	// Act - Integration test to ensure both functions work together
-	defer func() {
-		if r := recover(); r != nil {
-			t.Errorf("Help/Version integration caused panic: %v", r)
-		}
-	}()
-	
-	ShowHelp()
-	ShowVersion()
-	
-	// Assert - If we reach here, no panic occurred in either function
+func TestWhenShowingVersion_ShouldDisplayVersionInfo(t *testing.T) {
+	output := captureStdoutForHelp(ShowVersion)
+	if !strings.Contains(output, "Please v5.0.0") {
+		t.Errorf("expected version output, got: %s", output)
+	}
+	if !strings.Contains(output, "System Information") {
+		t.Errorf("expected system info in version output")
+	}
+}
+
+func TestWhenUsingInjectedBanner_ShouldInvokeBannerFunction(t *testing.T) {
+	called := false
+	showHelpWithBanner(func() { called = true })
+	if !called {
+		t.Error("expected banner function to be invoked")
+	}
 }

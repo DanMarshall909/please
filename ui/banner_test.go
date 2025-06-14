@@ -11,7 +11,7 @@ import (
 
 // Test banner functions for business logic only (no cosmetic testing)
 
-func Test_when_banner_with_zero_delay_should_complete_immediately(t *testing.T) {
+func TestWhenBannerWithZeroDelay_ShouldCompleteImmediately(t *testing.T) {
 	// Arrange
 	start := time.Now()
 
@@ -25,7 +25,7 @@ func Test_when_banner_with_zero_delay_should_complete_immediately(t *testing.T) 
 	}
 }
 
-func Test_when_banner_with_delay_should_respect_timing(t *testing.T) {
+func TestWhenBannerWithDelay_ShouldRespectTiming(t *testing.T) {
 	// Arrange
 	testDelay := 5 * time.Millisecond
 	start := time.Now()
