@@ -3,7 +3,14 @@ package ui
 import (
 	"fmt"
 	"runtime"
+
+	"please/localization"
 )
+
+// SetLocalizationManager exposes manager for help messages
+func SetLocalizationManagerForHelp(mgr *localization.LocalizationManager) {
+	locMgr = mgr
+}
 
 // ShowHelp displays colorful help information
 func ShowHelp() {
@@ -13,8 +20,18 @@ func ShowHelp() {
 // showHelpWithBanner allows injecting banner function for testing
 func showHelpWithBanner(bannerFunc func()) {
 	bannerFunc()
-	fmt.Printf("\n%s%s🤖 Please - Your Overly Helpful Digital Assistant%s\n", ColorBold, ColorCyan, ColorReset)
-	fmt.Printf("%s%s✨ Politely Silly AI-Powered Cross-Platform Script Generation%s\n\n", ColorBold, ColorPurple, ColorReset)
+	title := "🤖 Please - Your Overly Helpful Digital Assistant"
+	subtitle := "✨ Politely Silly AI-Powered Cross-Platform Script Generation"
+	if locMgr != nil {
+		if t := locMgr.GetMessage("banner.title"); t != "" {
+			title = t
+		}
+		if s := locMgr.GetMessage("banner.subtitle"); s != "" {
+			subtitle = s
+		}
+	}
+	fmt.Printf("\n%s%s%s%s\n", ColorBold, ColorCyan, title, ColorReset)
+	fmt.Printf("%s%s%s%s\n\n", ColorBold, ColorPurple, subtitle, ColorReset)
 
 	fmt.Printf("%s📖 Natural Language Usage:%s\n", ColorBold+ColorYellow, ColorReset)
 	fmt.Printf("  %spls%s %slist all files older than 10 years%s\n", ColorGreen, ColorReset, ColorCyan, ColorReset)

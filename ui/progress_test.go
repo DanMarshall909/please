@@ -168,3 +168,26 @@ func TestWhenShowProgressWithSteps_ShouldRunSteps(t *testing.T) {
 		t.Errorf("progress took too long")
 	}
 }
+
+func TestWhenAutoFixErrorContainsPermission_ShouldAddPermissionMessage(t *testing.T) {
+	messages := GetAutoFixProgressMessages(strings.Repeat("a", 100), "permission denied", "openai")
+	found := false
+	for _, m := range messages {
+		if strings.Contains(m, "permission") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("expected permission message when error contains permission")
+	}
+}
+
+func TestWhenAutoFixScriptVeryLarge_ShouldAddLargeScriptMessage(t *testing.T) {
+	script := strings.Repeat("x", 600)
+	messages := GetAutoFixProgressMessages(script, "other", "anthropic")
+	last := messages[len(messages)-1]
+	if !strings.Contains(last, "large script") {
+		t.Errorf("expected large script message, got %s", last)
+	}
+}

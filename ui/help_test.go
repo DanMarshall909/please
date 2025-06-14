@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -49,5 +50,18 @@ func TestWhenUsingInjectedBanner_ShouldInvokeBannerFunction(t *testing.T) {
 	showHelpWithBanner(func() { called = true })
 	if !called {
 		t.Error("expected banner function to be invoked")
+	}
+}
+
+func TestWhenShowingVersion_ShouldIncludeRuntimeDetails(t *testing.T) {
+	output := captureStdoutForHelp(ShowVersion)
+	if !strings.Contains(output, runtime.GOOS) {
+		t.Errorf("expected GOOS %s in output", runtime.GOOS)
+	}
+	if !strings.Contains(output, runtime.GOARCH) {
+		t.Errorf("expected GOARCH %s in output", runtime.GOARCH)
+	}
+	if !strings.Contains(output, runtime.Version()) {
+		t.Errorf("expected Go version in output")
 	}
 }

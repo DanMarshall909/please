@@ -1,0 +1,10 @@
+{
+  "language": "es-es",
+  "theme": "default",
+  "messages": {
+    "banner": {
+      "title": "🤖 Please - Asistente Digital Muy Útil",
+      "subtitle": "Generador de scripts multiplataforma"
+    }
+  }
+}

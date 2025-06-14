@@ -40,3 +40,16 @@ func FindLanguagePacks(dir string) (map[string]string, error) {
 	}
 	return packs, nil
 }
+
+// LoadFromFile loads a LocalizationConfig from a JSON file
+func LoadFromFile(path string) (*types.LocalizationConfig, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var cfg types.LocalizationConfig
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		return nil, err
+	}
+	return &cfg, nil
+}

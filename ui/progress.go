@@ -94,7 +94,24 @@ func (p *ProgressIndicator) UpdateStatus(message string) {
 
 // GetProviderStatusMessage returns an appropriate status message for the provider
 func GetProviderStatusMessage(provider string) string {
+	key := "ollama"
 	switch strings.ToLower(provider) {
+	case "ollama":
+		key = "ollama"
+	case "openai":
+		key = "openai"
+	case "anthropic":
+		key = "anthropic"
+	default:
+		key = "default"
+	}
+	if locMgr != nil {
+		msg := locMgr.GetMessage("provider." + key)
+		if msg != "" {
+			return msg
+		}
+	}
+	switch key {
 	case "ollama":
 		return "🤖 Connecting to Ollama (this may take a moment to start up)..."
 	case "openai":
