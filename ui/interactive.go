@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"please/config"
 	"please/localization"
@@ -472,6 +473,51 @@ func showDetailedExplanation(response *types.ScriptResponse) {
 		fmt.Printf("%s%3d│%s %s\n", ColorDim, i+1, ColorReset, line)
 	}
 	fmt.Printf("%s%s%s\n", ColorDim, strings.Repeat("─", 50), ColorReset)
+}
+
+// saveToHistory saves the executed script to history log
+func saveToHistory(response *types.ScriptResponse) {
+	configDir, err := getConfigDir()
+	if err != nil {
+		return // Silently fail
+	}
+
+	historyPath := filepath.Join(configDir, "script_history.json")
+	
+	// Create new history entry with timestamp
+	timestamp := fmt.Sprintf("%d", time.Now().Unix())
+	historyEntry := fmt.Sprintf(`{
+  "timestamp": "%s",
+  "task_description": "%s",
+  "script": "%s",
+  "script_type": "%s",
+  "model": "%s",
+  "provider": "%s"
+}`,
+		timestamp,
+		strings.ReplaceAll(response.TaskDescription, `"`, `\"`),
+		strings.ReplaceAll(response.Script, `"`, `\"`),
+		response.ScriptType,
+		response.Model,
+		response.Provider)
+
+	// Load existing history or create new
+	var historyContent string
+	if data, err := os.ReadFile(historyPath); err == nil {
+		existingHistory := strings.TrimSpace(string(data))
+		if existingHistory == "" || existingHistory == "[]" {
+			historyContent = fmt.Sprintf("[\n%s\n]", historyEntry)
+		} else {
+			// Remove closing bracket and add new entry
+			existingHistory = strings.TrimSuffix(existingHistory, "]")
+			historyContent = fmt.Sprintf("%s,\n%s\n]", existingHistory, historyEntry)
+		}
+	} else {
+		// Create new history file
+		historyContent = fmt.Sprintf("[\n%s\n]", historyEntry)
+	}
+
+	os.WriteFile(historyPath, []byte(historyContent), 0644)
 }
 
 // saveLastScript saves the current script as the last script
