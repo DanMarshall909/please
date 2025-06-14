@@ -40,7 +40,7 @@ func ShowMainMenu() {
 			return true
 		}},
 	}
-	renderMenu(locManager.System.Get("menus.main_prompt"), "Press 1-6: ", items)
+	renderMenu(locManager.System.Get("menus.main_prompt"), "Press 1-6: ", items, nil)
 }
 
 // handleMainMenuChoice processes the main menu selection and returns true if should exit
@@ -56,29 +56,24 @@ func handleMainMenuChoice(choice string) bool {
 		return false // Ignore empty or space - continue showing menu
 	}
 
-	switch choice {
-	case "1":
-		ShowHelp()
-		return false // Continue showing main menu
-	case "2":
-		generateNewScript()
-		return false // Continue showing main menu
-	case "3":
-		loadLastScript()
-		return false // Continue showing main menu
-	case "4":
-		browseHistory()
-		return false // Continue showing main menu
-	case "5":
-		showConfiguration()
-		return false // Continue showing main menu
-	case "6":
-		fmt.Printf("%s%s%s\n", ColorGreen, locManager.System.Get("success.exit"), ColorReset)
-		return true // Exit
-	default:
-		fmt.Printf("%s%s%s\n", ColorRed, locManager.System.Get("errors.invalid_choice"), ColorReset)
-		return false // Continue showing main menu
+	actions := map[string]func() bool{
+		"1": func() bool { ShowHelp(); return false },
+		"2": func() bool { generateNewScript(); return false },
+		"3": func() bool { loadLastScript(); return false },
+		"4": func() bool { browseHistory(); return false },
+		"5": func() bool { showConfiguration(); return false },
+		"6": func() bool {
+			fmt.Printf("%s%s%s\n", ColorGreen, locManager.System.Get("success.exit"), ColorReset)
+			return true
+		},
 	}
+
+	if action, ok := actions[choice]; ok {
+		return action()
+	}
+
+	fmt.Printf("%s%s%s\n", ColorRed, locManager.System.Get("errors.invalid_choice"), ColorReset)
+	return false // Continue showing main menu
 }
 
 // generateNewScript prompts for task description and generates a script
@@ -152,7 +147,36 @@ func ShowScriptMenu(response *types.ScriptResponse) {
 			return true
 		}},
 	}
-	renderMenu("🎯 What would you like to do with this script?", "Press 1-8: ", items)
+	renderMenu("🎯 What would you like to do with this script?", "Press 1-8: ", items, nil)
+}
+
+// renderMenu displays a menu from a slice of MenuItem and handles user input
+// getInput allows injection of input behaviour for testability; if nil, uses getSingleKeyInput
+func renderMenu(title, prompt string, items []MenuItem, getInput func() rune) {
+	if getInput == nil {
+		getInput = getSingleKeyInput
+	}
+	for {
+		fmt.Printf("\n%s%s%s\n\n", ColorBold+ColorCyan, title, ColorReset)
+		for idx, item := range items {
+			fmt.Printf("  %s%d.%s %s%s %s%s\n", ColorGreen, idx+1, ColorReset, item.Color, item.Icon, item.Label, ColorReset)
+		}
+		fmt.Printf("\n%s%s%s", ColorBold+ColorYellow, prompt, ColorReset)
+		choice := getInput()
+		fmt.Printf("%c\n", choice)
+		if choice == '\r' || choice == '\n' {
+			fmt.Printf("%s✨ Quick exit!%s\n", ColorGreen, ColorReset)
+			return
+		}
+		if choice >= '1' && int(choice-'1') < len(items) {
+			shouldExit := items[int(choice-'1')].Action()
+			if shouldExit {
+				return
+			}
+		} else {
+			fmt.Printf("%s❌ Invalid choice. Please try again.%s\n", ColorRed, ColorReset)
+		}
+	}
 }
 
 // getSingleKeyInput captures a single keypress without requiring Enter
@@ -392,7 +416,7 @@ func editScript(response *types.ScriptResponse) {
 		}},
 		{Label: "Cancel editing", Icon: "🚫", Color: ColorDim, Action: func() bool { fmt.Printf("%s🚫 Editing cancelled%s\n", ColorYellow, ColorReset); return true }},
 	}
-	renderMenu("✏️  Edit Script", "Press 1-3: ", items)
+	renderMenu("✏️  Edit Script", "Press 1-3: ", items, nil)
 }
 
 // Stub for refineScript to allow menu to compile and work
@@ -745,5 +769,5 @@ func showPostActionMenu(response *types.ScriptResponse) {
 		{Label: "Return to main menu", Icon: "", Color: ColorGreen, Action: func() bool { ShowMainMenu(); return true }},
 		{Label: "Exit", Icon: "", Color: ColorGreen, Action: func() bool { fmt.Printf("%s✨ Goodbye!%s\n", ColorGreen, ColorReset); os.Exit(0); return true }},
 	}
-	renderMenu("What would you like to do next?", "Press 1-4: ", items)
+	renderMenu("What would you like to do next?", "Press 1-4: ", items, nil)
 }
