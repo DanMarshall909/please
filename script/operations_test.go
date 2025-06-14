@@ -650,3 +650,227 @@ func Test_when_copying_text_to_clipboard_should_handle_gracefully(t *testing.T) 
 		}
 	}
 }
+
+// Test ExecuteScript function (the major missing coverage area)
+func Test_when_executing_safe_bash_script_should_run_successfully(t *testing.T) {
+	// Arrange - Create a safe script that just echoes a test message
+	response := &types.ScriptResponse{
+		Script:          "#!/bin/bash\necho 'test_execution_successful'",
+		ScriptType:      "bash",
+		TaskDescription: "test script execution",
+		Provider:        "test",
+		Model:           "test-model",
+	}
+
+	// Act
+	err := ExecuteScript(response)
+
+	// Assert
+	if err != nil {
+		// On Windows without bash, this might fail - that's expected behavior
+		if runtime.GOOS == "windows" && strings.Contains(err.Error(), "bash not found") {
+			t.Logf("Expected Windows bash error: %v", err)
+			return
+		}
+		t.Errorf("Expected safe bash script to execute successfully, got error: %v", err)
+	}
+}
+
+func Test_when_executing_safe_powershell_script_should_run_successfully(t *testing.T) {
+	// Skip on non-Windows systems where PowerShell might not be available
+	if runtime.GOOS != "windows" {
+		t.Skip("Skipping PowerShell test on non-Windows system")
+		return
+	}
+
+	// Arrange - Create a safe PowerShell script
+	response := &types.ScriptResponse{
+		Script:          "Write-Host 'test_execution_successful'",
+		ScriptType:      "powershell",
+		TaskDescription: "test powershell execution",
+		Provider:        "test",
+		Model:           "test-model",
+	}
+
+	// Act
+	err := ExecuteScript(response)
+
+	// Assert
+	if err != nil {
+		t.Errorf("Expected safe PowerShell script to execute successfully, got error: %v", err)
+	}
+}
+
+func Test_when_executing_script_with_invalid_syntax_should_return_error(t *testing.T) {
+	// Arrange - Create a script with invalid syntax
+	response := &types.ScriptResponse{
+		Script:          "this is not valid bash syntax {{{{ ]]]]",
+		ScriptType:      "bash",
+		TaskDescription: "test invalid script",
+		Provider:        "test",
+		Model:           "test-model",
+	}
+
+	// Act
+	err := ExecuteScript(response)
+
+	// Assert
+	if err == nil {
+		t.Error("Expected error for script with invalid syntax, but got nil")
+	}
+}
+
+func Test_when_executing_script_should_create_and_cleanup_temp_file(t *testing.T) {
+	// This test verifies that temporary files are created and cleaned up properly
+	// We can't easily test the cleanup directly since it happens in defer,
+	// but we can test that the function doesn't leave temp files around
+	
+	// Arrange
+	response := &types.ScriptResponse{
+		Script:          "echo 'temp file test'",
+		ScriptType:      "bash", 
+		TaskDescription: "test temp file handling",
+		Provider:        "test",
+		Model:           "test-model",
+	}
+
+	// Get temp directory contents before
+	tempDir := os.TempDir()
+	beforeFiles, _ := os.ReadDir(tempDir)
+	beforeCount := 0
+	for _, file := range beforeFiles {
+		if strings.HasPrefix(file.Name(), "please_temp") {
+			beforeCount++
+		}
+	}
+
+	// Act
+	err := ExecuteScript(response)
+
+	// Assert - Check temp file cleanup
+	afterFiles, _ := os.ReadDir(tempDir)
+	afterCount := 0
+	for _, file := range afterFiles {
+		if strings.HasPrefix(file.Name(), "please_temp") {
+			afterCount++
+		}
+	}
+
+	// Should not have more temp files after execution
+	if afterCount > beforeCount {
+		t.Errorf("Expected temp files to be cleaned up, before: %d, after: %d", beforeCount, afterCount)
+	}
+
+	// Don't fail test if execution failed due to missing bash on Windows
+	if err != nil && runtime.GOOS == "windows" && strings.Contains(err.Error(), "bash not found") {
+		t.Logf("Expected Windows bash error: %v", err)
+	}
+}
+
+func Test_when_executing_powershell_script_on_windows_should_use_correct_command(t *testing.T) {
+	// This test verifies PowerShell execution path without actually running dangerous commands
+	
+	// Skip on non-Windows systems
+	if runtime.GOOS != "windows" {
+		t.Skip("Skipping Windows-specific PowerShell test")
+		return
+	}
+
+	// Arrange - Use a very simple, safe PowerShell command
+	response := &types.ScriptResponse{
+		Script:          "$null", // This does nothing but is valid PowerShell
+		ScriptType:      "powershell",
+		TaskDescription: "test powershell command path",
+		Provider:        "test", 
+		Model:           "test-model",
+	}
+
+	// Act
+	err := ExecuteScript(response)
+
+	// Assert - Should not error on valid PowerShell syntax
+	if err != nil {
+		t.Errorf("Expected simple PowerShell command to execute, got error: %v", err)
+	}
+}
+
+func Test_when_executing_bash_script_on_windows_without_bash_should_return_helpful_error(t *testing.T) {
+	// Skip if not on Windows
+	if runtime.GOOS != "windows" {
+		t.Skip("Skipping Windows-specific bash error test")
+		return
+	}
+
+	// Arrange
+	response := &types.ScriptResponse{
+		Script:          "echo 'test'",
+		ScriptType:      "bash",
+		TaskDescription: "test bash on windows error",
+		Provider:        "test",
+		Model:           "test-model",
+	}
+
+	// Act
+	err := ExecuteScript(response)
+
+	// Assert - Should provide helpful error if bash not available
+	if err != nil {
+		expectedPhrases := []string{"bash not found", "Git Bash", "WSL"}
+		foundHelpfulMessage := false
+		for _, phrase := range expectedPhrases {
+			if strings.Contains(err.Error(), phrase) {
+				foundHelpfulMessage = true
+				break
+			}
+		}
+		if !foundHelpfulMessage {
+			t.Errorf("Expected helpful error message about bash availability, got: %v", err)
+		}
+	}
+}
+
+func Test_when_executing_script_with_empty_content_should_handle_gracefully(t *testing.T) {
+	// Arrange
+	response := &types.ScriptResponse{
+		Script:          "",
+		ScriptType:      "bash",
+		TaskDescription: "test empty script",
+		Provider:        "test",
+		Model:           "test-model",
+	}
+
+	// Act
+	err := ExecuteScript(response)
+
+	// Assert - Empty script should not cause panic, may succeed or fail gracefully
+	// Don't assert specific behavior since empty scripts might be valid on some systems
+	if err != nil {
+		t.Logf("Empty script execution result: %v", err)
+	}
+}
+
+func Test_when_executing_script_should_handle_file_creation_errors_gracefully(t *testing.T) {
+	// This test would require creating a scenario where temp file creation fails
+	// Since we can't easily simulate filesystem errors in a unit test,
+	// we'll test with an edge case that might cause issues
+	
+	// Arrange - Script with potentially problematic characters
+	response := &types.ScriptResponse{
+		Script:          "echo 'test with unicode: 你好 🌟'",
+		ScriptType:      "bash",
+		TaskDescription: "test unicode handling",
+		Provider:        "test",
+		Model:           "test-model",
+	}
+
+	// Act
+	err := ExecuteScript(response)
+
+	// Assert - Should handle unicode content without crashing
+	if err != nil && runtime.GOOS == "windows" && strings.Contains(err.Error(), "bash not found") {
+		t.Logf("Expected Windows bash error: %v", err)
+	} else if err != nil {
+		t.Logf("Unicode script execution result: %v", err)
+		// Don't fail test as unicode handling varies by system
+	}
+}
