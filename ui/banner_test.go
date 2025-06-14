@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	"please/localization"
 )
 
 // Test banner functions for business logic only (no cosmetic testing)
@@ -97,5 +100,43 @@ func Test_when_calling_print_rainbow_banner_then_use_default_delay(t *testing.T)
 	PrintRainbowBanner()
 	if time.Since(start) < 50*time.Millisecond {
 		t.Errorf("Expected default delay to be at least 50ms")
+	}
+}
+func TestWhenSettingLocalizationManager_ShouldStoreManager(t *testing.T) {
+	dir := t.TempDir()
+	mgr, err := localization.NewLocalizationManager(dir)
+	if err != nil {
+		t.Fatalf("manager init: %v", err)
+	}
+	SetLocalizationManager(mgr)
+	if locMgr != mgr {
+		t.Errorf("expected locMgr to be set")
+	}
+}
+
+func TestWhenBannerUsesLocalization_ShouldDisplayTitleAndSubtitle(t *testing.T) {
+	dir := t.TempDir()
+	langDir := filepath.Join(dir, "languages")
+	os.MkdirAll(langDir, 0755)
+	langPath := filepath.Join(langDir, "en-test.json")
+	os.WriteFile(langPath, []byte(`{"language":"en-test","theme":"default","messages":{"banner":{"title":"Hello","subtitle":"World"}}}`), 0644)
+	mgr, err := localization.NewLocalizationManager(dir)
+	if err != nil {
+		t.Fatalf("manager init: %v", err)
+	}
+	mgr.LoadLanguage("en-test", langPath)
+	mgr.SetLanguage("en-test")
+	SetLocalizationManager(mgr)
+	output := captureStdout(func() { PrintRainbowBannerWithDelay(0) })
+	if !strings.Contains(output, "Hello") || !strings.Contains(output, "World") {
+		t.Errorf("expected localized title and subtitle, got: %s", output)
+	}
+}
+
+func TestWhenBannerWithoutLocalization_ShouldNotDisplayTitleOrSubtitle(t *testing.T) {
+	SetLocalizationManager(nil)
+	output := captureStdout(func() { PrintRainbowBannerWithDelay(0) })
+	if strings.Contains(output, "Hello") || strings.Contains(output, "World") {
+		t.Errorf("expected no localized text when manager nil")
 	}
 }
