@@ -15,9 +15,9 @@ import (
 )
 
 func main() {
-	// Check if we're being run as "pls" or "ol" (legacy) with special flags
+	// Check if we're being run as "pls" with special flags
 	programName := filepath.Base(os.Args[0])
-	if programName == "pls" || programName == "pls.exe" || programName == "ol" || programName == "ol.exe" {
+	if programName == "pls" || programName == "pls.exe" {
 		// Running as the short alias
 	}
 
@@ -164,7 +164,7 @@ func displayScriptAndConfirm(response *types.ScriptResponse) {
 // installAlias creates the "pls" shortcut for the current platform
 func installAlias() {
 	ui.PrintRainbowBanner()
-	fmt.Printf("\n%s🔧 Installing 'pls' alias (with 'ol' for backwards compatibility)...%s\n\n", ui.ColorBold+ui.ColorYellow, ui.ColorReset)
+	fmt.Printf("\n%s🔧 Installing 'pls' alias...%s\n\n", ui.ColorBold+ui.ColorYellow, ui.ColorReset)
 
 	// Get current executable path
 	execPath, err := os.Executable()
@@ -185,18 +185,11 @@ func installAlias() {
 		return
 	}
 
-	// Create ol.bat for backwards compatibility
-	olBatPath := filepath.Join(dir, "ol.bat")
-	if err := os.WriteFile(olBatPath, []byte(batContent), 0755); err != nil {
-		fmt.Printf("%s⚠️ Warning: Failed to create ol.bat for backwards compatibility: %v%s\n", ui.ColorYellow, err, ui.ColorReset)
-	}
-
-	fmt.Printf("%s✅ Successfully created pls.bat!%s\n", ui.ColorGreen, ui.ColorReset)
-	fmt.Printf("%s✅ Created ol.bat for backwards compatibility%s\n\n", ui.ColorGreen, ui.ColorReset)
+	fmt.Printf("%s✅ Successfully created pls.bat!%s\n\n", ui.ColorGreen, ui.ColorReset)
 	ui.PrintInstallationSuccess()
 }
 
-// uninstallAlias removes both "pls" and "ol" shortcuts
+// uninstallAlias removes "pls" shortcut
 func uninstallAlias() {
 	ui.PrintRainbowBanner()
 	fmt.Printf("\n%s🗑️  Removing aliases...%s\n\n", ui.ColorBold+ui.ColorYellow, ui.ColorReset)
@@ -221,28 +214,16 @@ func uninstallAlias() {
 	} else {
 		fmt.Printf("%s✅ Successfully removed pls.bat%s\n", ui.ColorGreen, ui.ColorReset)
 	}
-
-	// Remove ol.bat
-	olBatPath := filepath.Join(dir, "ol.bat")
-	if err := os.Remove(olBatPath); err != nil {
-		if os.IsNotExist(err) {
-			fmt.Printf("%s💭 ol.bat not found%s\n", ui.ColorYellow, ui.ColorReset)
-		} else {
-			fmt.Printf("%s❌ Failed to remove ol.bat: %v%s\n", ui.ColorRed, err, ui.ColorReset)
-		}
-	} else {
-		fmt.Printf("%s✅ Successfully removed ol.bat%s\n", ui.ColorGreen, ui.ColorReset)
-	}
 }
 
 // isLastScriptCommand checks if the command is requesting to run the last script
 func isLastScriptCommand(command string) bool {
 	lower := strings.ToLower(command)
-	
+
 	// Check for various natural language patterns
 	lastScriptPatterns := []string{
 		"run my last script",
-		"run last script", 
+		"run last script",
 		"execute my last script",
 		"execute last script",
 		"run the last script",
@@ -257,13 +238,13 @@ func isLastScriptCommand(command string) bool {
 		"repeat last",
 		"repeat",
 	}
-	
+
 	for _, pattern := range lastScriptPatterns {
 		if strings.Contains(lower, pattern) {
 			return true
 		}
 	}
-	
+
 	return false
 }
 

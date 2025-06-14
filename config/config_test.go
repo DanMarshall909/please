@@ -33,8 +33,8 @@ func TestDetermineProvider(t *testing.T) {
 			want:     "ollama",
 		},
 		{
-			name:     "Legacy environment variable support",
-			envVar:   "OOHLAMA_PROVIDER",
+			name:     "PLEASE_PROVIDER set to openai",
+			envVar:   "PLEASE_PROVIDER",
 			envValue: "openai", 
 			want:     "openai",
 		},
@@ -44,7 +44,6 @@ func TestDetermineProvider(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Clean environment first
 			os.Unsetenv("PLEASE_PROVIDER")
-			os.Unsetenv("OOHLAMA_PROVIDER")
 			
 			// Set the test environment variable
 			os.Setenv(tt.envVar, tt.envValue)
