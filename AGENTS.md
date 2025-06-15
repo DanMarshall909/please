@@ -4,7 +4,7 @@
 
 ### **Test-Driven Development Protocol (MANDATORY)**
 - **85%+ Coverage Required** for new C# development
-- **BDD Test Naming**: `Test_When[Context]_Should[ExpectedBehavior]`
+- **Plain English Test Naming**: Focus on behavior in natural language
 - **Red-Green-Refactor-Cover Cycle**: Always write failing tests first
 - **Coverage Verification**: `dotnet test --collect:"XPlat Code Coverage"` must show 85%+ 
 - **NO IMPLEMENTATION** until Result pattern tests are in place
@@ -85,22 +85,37 @@ src/Please/
 
 ## 🧪 **TESTING STANDARDS (C# Focus)**
 
-### **BDD Test Format (Required for C#)**
+### **Plain English Test Format (Required for C#)**
 ```csharp
 [Test]
-public void Test_When[Context]_Should[ExpectedBehavior]()
+public void Test_user_with_valid_credentials_can_login()
 {
     // Arrange
-    var input = SetupTestData();
+    var credentials = SetupValidCredentials();
     
     // Act
-    var result = MethodUnderTest(input);
+    var result = AuthenticationService.Login(credentials);
     
     // Assert
     Assert.That(result.IsSuccess, Is.True);
-    Assert.That(result.Value, Is.EqualTo(expectedValue));
+    Assert.That(result.Value, Is.EqualTo(expectedUser));
 }
 ```
+
+### **C# Test Naming Guidelines (Following Enterprise Craftsmanship)**
+- **No rigid naming policy** - allow freedom for complex behaviors
+- **Name as describing to a non-programmer** familiar with the domain
+- **Separate words with underscores** for improved readability  
+- **Don't include method names** - focus on behavior, not implementation
+- **Use plain English** - avoid "should", prefer "is" or action verbs
+- **Add articles** like "a", "the" for natural language flow
+- **State facts** - tests verify behavior that exists
+
+### **Examples of Good C# Test Names**
+- `Test_script_response_with_empty_content_is_invalid`
+- `Test_user_with_expired_token_cannot_access_api`
+- `Test_result_success_contains_expected_value`
+- `Test_strongly_typed_id_converts_to_underlying_value`
 
 ### **Coverage Verification Commands**
 ```bash

@@ -75,7 +75,7 @@ public sealed record ScriptId(Guid Value) : StronglyTypedId<Guid>(Value)
 ```csharp
 // First write tests for ScriptResponse.Create()
 [Test]
-public void Test_WhenCreatingScriptResponseWithValidData_ShouldReturnSuccess()
+public void Test_script_response_with_valid_data_creates_successfully()
 {
     // Arrange
     var script = "echo 'hello'";
@@ -138,14 +138,23 @@ src/Please/
 3. **REFACTOR**: Improve implementation while keeping tests green
 4. **COVER**: Verify 85%+ coverage maintained
 
-### **Test Examples Required**
+### **Test Examples Required (Plain English Naming)**
 ```csharp
-[Test] public void Test_WhenResultIsSuccess_ShouldHaveValue()
-[Test] public void Test_WhenResultIsFailure_ShouldHaveError()
-[Test] public void Test_WhenCreatingScriptId_ShouldGenerateUniqueGuid()
-[Test] public void Test_WhenScriptResponseCreated_ShouldHaveCorrectProperties()
-[Test] public void Test_WhenInvalidInput_ShouldReturnFailureResult()
+[Test] public void Test_result_success_contains_value()
+[Test] public void Test_result_failure_contains_error_message()
+[Test] public void Test_script_id_generates_unique_guid()
+[Test] public void Test_script_response_has_correct_properties()
+[Test] public void Test_invalid_input_returns_failure_result()
 ```
+
+### **C# Test Naming Guidelines (Enterprise Craftsmanship)**
+- **No rigid naming policy** - allow freedom for complex behaviors
+- **Name as describing to a non-programmer** familiar with the domain
+- **Separate words with underscores** for improved readability
+- **Don't include method names** - focus on behavior, not implementation
+- **Use plain English** - avoid "should", prefer "is" or action verbs
+- **Add articles** like "a", "the" for natural language flow
+- **State facts** - tests verify behavior that exists
 
 ### **Coverage Commands**
 ```bash
