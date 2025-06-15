@@ -21,4 +21,8 @@
     <Using Include="NUnit.Framework" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Domain\Please.Domain\Please.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

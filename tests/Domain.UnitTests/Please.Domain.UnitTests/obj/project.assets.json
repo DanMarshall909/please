@@ -377,6 +377,16 @@
             "related": ".xml"
           }
         }
+      },
+      "Please.Domain/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/Please.Domain.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Please.Domain.dll": {}
+        }
       }
     }
   },
@@ -970,6 +980,11 @@
         "useSharedDesignerContext.txt",
         "version.txt"
       ]
+    },
+    "Please.Domain/1.0.0": {
+      "type": "project",
+      "path": "../../../src/Domain/Please.Domain/Please.Domain.csproj",
+      "msbuildProject": "../../../src/Domain/Please.Domain/Please.Domain.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -978,6 +993,7 @@
       "NUnit >= 3.14.0",
       "NUnit.Analyzers >= 3.9.0",
       "NUnit3TestAdapter >= 4.5.0",
+      "Please.Domain >= 1.0.0",
       "coverlet.collector >= 6.0.0"
     ]
   },
@@ -1008,7 +1024,11 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Code\\please\\src\\Domain\\Please.Domain\\Please.Domain.csproj": {
+              "projectPath": "C:\\Code\\please\\src\\Domain\\Please.Domain\\Please.Domain.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
