@@ -1,0 +1,12 @@
+C:\Code\please\src\Domain\Please.Domain\bin\Debug\net8.0\Please.Domain.deps.json
+C:\Code\please\src\Domain\Please.Domain\bin\Debug\net8.0\Please.Domain.dll
+C:\Code\please\src\Domain\Please.Domain\bin\Debug\net8.0\Please.Domain.pdb
+C:\Code\please\src\Domain\Please.Domain\obj\Debug\net8.0\Please.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Code\please\src\Domain\Please.Domain\obj\Debug\net8.0\Please.Domain.AssemblyInfoInputs.cache
+C:\Code\please\src\Domain\Please.Domain\obj\Debug\net8.0\Please.Domain.AssemblyInfo.cs
+C:\Code\please\src\Domain\Please.Domain\obj\Debug\net8.0\Please.Domain.csproj.CoreCompileInputs.cache
+C:\Code\please\src\Domain\Please.Domain\obj\Debug\net8.0\Please.Domain.sourcelink.json
+C:\Code\please\src\Domain\Please.Domain\obj\Debug\net8.0\Please.Domain.dll
+C:\Code\please\src\Domain\Please.Domain\obj\Debug\net8.0\refint\Please.Domain.dll
+C:\Code\please\src\Domain\Please.Domain\obj\Debug\net8.0\Please.Domain.pdb
+C:\Code\please\src\Domain\Please.Domain\obj\Debug\net8.0\ref\Please.Domain.dll

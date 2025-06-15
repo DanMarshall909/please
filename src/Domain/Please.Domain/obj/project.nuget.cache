@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "C0EM49d7koY=",
+  "success": true,
+  "projectFilePath": "C:\\Code\\please\\src\\Domain\\Please.Domain\\Please.Domain.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\danma\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.17\\microsoft.netcore.app.ref.8.0.17.nupkg.sha512",
+    "C:\\Users\\danma\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.17\\microsoft.windowsdesktop.app.ref.8.0.17.nupkg.sha512",
+    "C:\\Users\\danma\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.17\\microsoft.aspnetcore.app.ref.8.0.17.nupkg.sha512"
+  ],
+  "logs": []
+}
