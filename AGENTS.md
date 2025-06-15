@@ -146,6 +146,10 @@ dotnet build && dotnet test
 
 ## 📁 **KEY PROJECT FILES**
 
+### **Multi-Agent Coordination**
+- `memory-bank/multi-agent-workflow-strategy.md` - **CRITICAL** CODEX + CLINE + dRAGster coordination strategy
+- `AGENTS.md` - Primary agent coordination document (this file)
+
 ### **C# Architecture Documentation**
 - `memory-bank/please-v6-csharp-result-pattern-architecture.md` - **PRIMARY** implementation plan
 - `memory-bank/codex-execution-strategy-v2.md` - Strategic decision documentation
@@ -247,39 +251,85 @@ dotnet publish -c Release -r osx-x64 --self-contained true -p:PublishAot=true
 
 ---
 
+## 🤖 **MULTI-AGENT WORKFLOW COORDINATION**
+
+### **CRITICAL**: See `memory-bank/multi-agent-workflow-strategy.md` for detailed coordination strategy
+
+### **Agent Responsibilities**:
+
+**🤖 CODEX - Development Implementation**:
+- 2-3 hour autonomous coding sessions
+- TDD with 85%+ coverage implementation
+- Result<T> pattern and strongly typed ID development
+- Following `CODEX_AUTONOMOUS_PROMPT_v2.md`
+
+**📋 CLINE - Strategic Coordination**:
+- Architecture planning and quality gates
+- Documentation updates and progress tracking
+- Multi-phase coordination and review
+- Global rules and workflow management
+
+**🧠 dRAGster - Intelligence Enhancement** (Integration Target):
+- RAG-powered context enhancement for Please commands
+- User behavior learning and intelligent defaults
+- Command pattern storage and retrieval
+- Progressive improvement of script generation
+
+### **Current Workflow Phase**: Foundation (Result Pattern Implementation)
+- **CODEX Focus**: Implement Result<T> with comprehensive tests
+- **CLINE Focus**: Monitor quality gates and plan Phase 2
+- **dRAGster Integration**: Prepare IContextService interface
+
+---
+
 ## 📞 **ESCALATION PROCESS**
 
-### **When AOT Compilation Issues Arise**
+### **Multi-Agent Coordination Issues**:
+- Refer to `memory-bank/multi-agent-workflow-strategy.md`
+- Clear handoff protocols between CODEX and CLINE
+- Documentation-driven communication via memory-bank updates
+
+### **When AOT Compilation Issues Arise**:
 - Document specific AOT compatibility problems
 - Research .NET 8 AOT limitations and workarounds
 - Consider alternative approaches for problematic dependencies
 - Test minimal reproduction cases
 
-### **When Single Executable Size Exceeds Target**
+### **When Single Executable Size Exceeds Target**:
 - Analyze executable size with .NET tools
 - Identify largest dependencies for elimination
 - Consider feature reduction for size optimization
 - Document trade-offs between features and size
 
+### **dRAGster Integration Challenges**:
+- Start with basic IContextService interface
+- Implement pattern storage before retrieval
+- Focus on command-heavy scenarios for dogfooding
+- Prioritize transparency and user control
+
 ---
 
 ## 📈 **PROGRESS TRACKING**
 
-### **Current Status**: Phase 1 (Single Project Setup)
+### **Current Status**: Phase 1 (Foundation - Result Pattern Implementation)
 - ✅ Strategic decision made (C# over Go enhancement)
 - ✅ Architecture plan documented
+- ✅ Multi-agent workflow strategy defined
 - ✅ Multi-project foundation exists
-- ⚠️ **Next**: Create single project structure
+- ⚠️ **Next**: CODEX implements Result<T> pattern with tests
 - ❌ Result pattern implementation pending
+- ❌ dRAGster integration pending
 
-### **Key Metrics**
+### **Key Metrics**:
 - **Code Coverage**: Target 85%+ (C# tests)
 - **Executable Size**: Target 2-5MB
 - **Build Time**: Target <30 seconds
 - **Test Suite**: Target <5 seconds execution
+- **Agent Coordination**: Clear handoffs, documentation updates
 
 ---
 
-*This document serves as the definitive guide for all agents working on Please v6 C# migration.*  
+*This document serves as the definitive guide for all agents working on Please v6 C# migration with dRAGster integration.*  
 *Last Updated: June 15, 2025*  
-*Current Phase: 1 - Single Project Setup & Result Pattern Implementation*
+*Current Phase: 1 - Foundation (Result Pattern Implementation)*  
+*See: `memory-bank/multi-agent-workflow-strategy.md` for detailed coordination protocols*
