@@ -3,212 +3,268 @@
 ## 🎯 **CRITICAL PROJECT RULES**
 
 ### **Test-Driven Development Protocol (MANDATORY)**
-- **95%+ Coverage Required** BEFORE any refactoring
-- **BDD Test Naming**: `TestWhen[Context]_Should[ExpectedBehavior]`
+- **85%+ Coverage Required** for new C# development
+- **BDD Test Naming**: `Test_When[Context]_Should[ExpectedBehavior]`
 - **Red-Green-Refactor-Cover Cycle**: Always write failing tests first
-- **Coverage Verification**: `go test -cover ./...` must show 95%+ before proceeding
-- **NO REFACTORING** until coverage safety net is complete
+- **Coverage Verification**: `dotnet test --collect:"XPlat Code Coverage"` must show 85%+ 
+- **NO IMPLEMENTATION** until Result pattern tests are in place
 
 ### **Current Project Status**
-- **Phase**: Language & Theming Implementation
-- **Current Coverage**: UI package at 45.5% (NEEDS: 95%+)
-- **Blocker**: Cannot proceed to refactoring until coverage requirements met
-- **Next Step**: Complete comprehensive UI testing
+- **Phase**: C# Result Pattern Migration (Single Executable Focus)
+- **Strategy Pivot**: From Go enhancement to C# clean architecture 
+- **Target**: 2-5MB cross-platform executable with Result<T> pattern
+- **Next Step**: Implement single project structure with Result pattern
 
 ---
 
-## 📋 **ACTIVE TASK: Language & Theming System**
+## 📋 **ACTIVE TASK: C# Result Pattern Architecture Implementation**
+
+### **Strategic Decision (June 15, 2025)**
+**DECISION**: Pursue C# Result Pattern single executable over Go UI testing enhancement
+**RATIONALE**: 
+- Higher ROI on modern architecture vs legacy enhancement
+- Single executable deployment requirement favors C# AOT
+- Result pattern + strongly typed IDs provide better maintainability
+- Cross-platform 2-5MB target achievable with .NET 8 trimming
 
 ### **Implementation Phases**
-1. **PHASE 1** (CURRENT): UI Coverage Safety Net - 95%+ required
-2. **PHASE 2**: Architecture Restructure (language/ + theme/ packages)  
-3. **PHASE 3**: Configuration File Design
-4. **PHASE 4**: TDD Refactoring Implementation
-5. **PHASE 5**: Config Integration & Persistence
-6. **PHASE 6**: Test Migration
+1. **PHASE 1** (CURRENT): Single Project Structure Setup
+2. **PHASE 2**: Result Pattern & Strongly Typed ID Implementation  
+3. **PHASE 3**: Domain Entity Migration with TDD
+4. **PHASE 4**: Direct Service Layer (No MediatR)
+5. **PHASE 5**: Infrastructure & Console Application
+6. **PHASE 6**: AOT Build Optimization & Cross-Platform Testing
 
-### **Architecture Plan**
+### **Target Architecture**
 ```
-language/           # Renamed from localization/
-├── manager.go      # Language pack loading & selection
-├── loader.go       # JSON file loading  
-├── defaults.go     # Built-in English (silly)
-└── manager_test.go # Comprehensive tests
-
-theme/              # NEW - Separate concern
-├── manager.go      # Theme loading & selection
-├── colors.go       # Color scheme definitions
-├── defaults.go     # Built-in themes  
-└── manager_test.go # Comprehensive tests
-
-config/             # Enhanced
-├── language.go     # Language-specific config
-├── theme.go        # Theme-specific config
-├── persistence.go  # User settings persistence (~/.please/config.json)
-└── integration_test.go
+src/Please/
+├── Domain/
+│   ├── Common/
+│   │   ├── Result.cs               # Result<T> pattern implementation
+│   │   └── StronglyTypedId.cs      # Base for typed IDs
+│   ├── Entities/
+│   │   ├── ScriptRequest.cs        # Updated with Result pattern
+│   │   ├── ScriptResponse.cs       # Updated with Result pattern
+│   │   └── ScriptId.cs            # Strongly typed ID
+│   ├── Enums/
+│   │   ├── ProviderType.cs
+│   │   ├── ScriptType.cs
+│   │   └── RiskLevel.cs
+│   └── Interfaces/
+│       ├── IScriptGenerator.cs     # Updated with Result<T>
+│       └── IScriptRepository.cs    # Updated with Result<T>
+├── Application/Services/
+│       └── ScriptService.cs        # Direct service (no MediatR)
+├── Infrastructure/
+│   ├── Providers/                  # AI provider implementations
+│   ├── Repositories/               # File-based storage
+│   └── DependencyInjection.cs     # Simple DI setup
+├── Presentation/
+│   ├── Commands/                   # CLI command handlers
+│   └── ConsoleApp.cs              # Command parsing & execution
+└── Program.cs                     # Entry point + DI configuration
 ```
 
 ---
 
-## 🚦 **CURRENT BLOCKING ISSUES**
+## 🚦 **CURRENT FOCUS AREAS**
 
-### **Coverage Requirements Not Met**
-- **UI Package**: 45.5% actual vs 95%+ required
-- **Files Needing Tests**:
-  - `ui/banner.go` - ASCII art, success messages (incomplete)
-  - `ui/help.go` - Help text display (improved but insufficient)  
-  - `ui/colors.go` - Color constants (started, needs completion)
-  - `ui/interactive.go` - User interaction flows (not started)
-  - `ui/menu.go` - Menu rendering (not started)
-  - `ui/progress.go` - Progress indicators (existing tests, may need more)
+### **Core Pattern Implementation Priority**
+1. **Result<T> Pattern** - Explicit error handling foundation
+2. **Strongly Typed IDs** - Type-safe entity identification  
+3. **Domain Entity Migration** - Convert existing entities with tests
+4. **Direct Services** - Replace MediatR with simple service calls
+5. **Single Project Structure** - Merge multi-project solution
 
-### **TDD Rule Violations**
-- ⛔ **CRITICAL**: 95% coverage required before ANY refactoring
-- ⛔ **CRITICAL**: Must test existing behavior before extraction
-- ⛔ **CRITICAL**: Cannot proceed to Phase 2 until Phase 1 complete
+### **Legacy Go Codebase Status**
+- **DEFERRED**: Go UI testing and localization enhancement
+- **MAINTAINED**: Existing Go functionality preserved in `legacy/` folder
+- **REFERENCE**: Use Go implementation as specification for C# migration
 
 ---
 
-## 🧪 **TESTING STANDARDS**
+## 🧪 **TESTING STANDARDS (C# Focus)**
 
-### **BDD Test Format (Required)**
-```go
-func TestWhen[Context]_Should[ExpectedBehavior](t *testing.T) {
+### **BDD Test Format (Required for C#)**
+```csharp
+[Test]
+public void Test_When[Context]_Should[ExpectedBehavior]()
+{
     // Arrange
-    input := setupTestData()
+    var input = SetupTestData();
     
     // Act
-    result := FunctionToTest(input)
+    var result = MethodUnderTest(input);
     
     // Assert
-    if result != expected {
-        t.Errorf("Expected %v, got %v", expected, result)
-    }
+    Assert.That(result.IsSuccess, Is.True);
+    Assert.That(result.Value, Is.EqualTo(expectedValue));
 }
 ```
 
 ### **Coverage Verification Commands**
 ```bash
-# Check package coverage
-go test ./ui -cover
+# Run all tests with coverage
+dotnet test --collect:"XPlat Code Coverage"
 
-# Generate detailed coverage report  
-go test ./ui -coverprofile=ui_coverage.out
-go tool cover -html=ui_coverage.out
+# Generate coverage report
+dotnet tool install -g dotnet-reportgenerator-globaltool
+reportgenerator -reports:"coverage.xml" -targetdir:"coveragereport"
 
-# Coverage by function
-go tool cover -func=ui_coverage.out
+# Build and test pipeline
+dotnet build && dotnet test
 ```
 
 ### **What to Test (Business Logic)**
-- ✅ **Function behavior** - what it does
-- ✅ **Input/output validation** - edge cases
-- ✅ **Error handling** - failure scenarios
-- ✅ **Integration points** - component interactions
+- ✅ **Result Pattern** - Success/failure scenarios
+- ✅ **Entity Creation** - Factory methods with validation
+- ✅ **Service Operations** - Input/output behavior
+- ✅ **Strongly Typed IDs** - Type safety and conversion
 
-### **What NOT to Test (Cosmetic)**
-- ❌ **Color codes** - visual formatting  
-- ❌ **ASCII art** - decorative elements
-- ❌ **Text alignment** - spacing/positioning
-- ❌ **Font styles** - appearance
+### **What NOT to Test (Infrastructure)**
+- ❌ **DI Container** - Framework functionality
+- ❌ **JSON Serialization** - System.Text.Json behavior
+- ❌ **File I/O** - Use mocks for repositories
+- ❌ **Console Output** - Test logic, not presentation
 
 ---
 
 ## 📁 **KEY PROJECT FILES**
 
-### **Documentation**
-- `memory-bank/please-v6-language-theming-implementation.md` - Full implementation plan
-- `README.md` - Project overview
-- `AGENTS.md` - This file (agent guidance)
+### **C# Architecture Documentation**
+- `memory-bank/please-v6-csharp-result-pattern-architecture.md` - **PRIMARY** implementation plan
+- `memory-bank/codex-execution-strategy-v2.md` - Strategic decision documentation
+- `memory-bank/strategic-testing-c#-migration-progress.md` - Progress tracking
+
+### **Legacy Go Documentation** (Reference Only)
+- `memory-bank/please-v6-language-theming-implementation.md` - Go enhancement plan (deferred)
+- `CODEX_AUTONOMOUS_PROMPT.md` - Original Go autonomous plan
+- `CODEX_CORRECTIVE_PROMPT.md` - Go UI testing requirements
 
 ### **Configuration & Rules**
-- `please-v5-cleanup-tracker.clinerules` - Active cleanup rules
 - `C:/Users/danma/OneDrive/Documents/Cline/Rules/test-driven-development.clinerules` - TDD requirements
-- `C:/Users/danma/OneDrive/Documents/Cline/Rules/` - Global cline rules directory
+- `C:/Users/danma/OneDrive/Documents/Cline/Rules/development-environment.clinerules` - C# + Rider preferences
 
-### **Core Implementation Files**
-- `ui/` - UI package requiring 95%+ coverage
-- `localization/` - Current 89.2% coverage (will rename to `language/`)
-- `config/` - Configuration management
-- `types/` - Type definitions
+### **Current Implementation Files**
+- `src/` - C# project structure (in progress)
+- `legacy/` - Go implementation (reference/preserved)
+- `Please.sln` - Solution file for C# development
 
 ---
 
 ## ⚙️ **DEVELOPMENT ENVIRONMENT**
 
 ### **Platform**: Windows 11
-- **Shell**: Command Prompt (cmd.exe)
-- **Go Version**: 1.24.4
-- **IDE**: VS Code with Cline + JetBrains Rider
+- **Shell**: Command Prompt (cmd.exe)  
+- **IDE Primary**: JetBrains Rider (for C# development)
+- **IDE Secondary**: VS Code with Cline (for exploration/AI assistance)
+- **.NET Version**: 8.0 (for AOT support)
 
 ### **Commands for Development**
 ```bash
-# Run tests with coverage
-go test ./... -cover
+# Build solution
+dotnet build
 
-# Build project
-go build
+# Run tests
+dotnet test
 
-# Run specific package tests
-go test ./ui -v
+# Publish optimized executable
+dotnet publish -c Release -r win-x64 --self-contained true -p:PublishAot=true
 
-# Coverage analysis
-go test ./ui -coverprofile=coverage.out && go tool cover -html=coverage.out
+# Cross-platform builds
+dotnet publish -c Release -r linux-x64 --self-contained true -p:PublishAot=true
+dotnet publish -c Release -r osx-x64 --self-contained true -p:PublishAot=true
 ```
 
 ---
 
 ## 🎯 **SUCCESS CRITERIA**
 
-### **Phase 1 (Current) - Coverage Requirements**
-- [ ] UI package achieves 95%+ coverage
-- [ ] All UI functions have comprehensive BDD tests
-- [ ] Tests verify current behavior (no regressions)
-- [ ] Coverage report shows green across all files
+### **Phase 1 (Current) - Single Project Setup**
+- [ ] Create unified Please project structure (single project)
+- [ ] Implement Result<T> pattern with comprehensive tests
+- [ ] Add strongly typed IDs with validation
+- [ ] Remove MediatR dependencies entirely
+- [ ] Basic project builds and tests pass
+
+### **Phase 2 - Domain Migration**
+- [ ] Migrate ScriptRequest with Result pattern
+- [ ] Migrate ScriptResponse with Result pattern  
+- [ ] Update all interfaces to use Result<T>
+- [ ] Achieve 85%+ test coverage on domain layer
+
+### **Phase 3 - Service Layer**
+- [ ] Implement ScriptService with direct dependencies
+- [ ] Add Infrastructure layer implementations
+- [ ] Console application with basic functionality
+- [ ] End-to-end script generation working
+
+### **Phase 4 - Build Optimization**
+- [ ] AOT compilation working across platforms
+- [ ] Single file output under 5MB
+- [ ] Cross-platform executables (Windows/Linux/macOS)
+- [ ] Performance benchmarks meet requirements
 
 ### **Overall Project Goals**
-- **Zero Behavior Change**: Exact same output, just configurable
-- **Clean Architecture**: Language ≠ Theme, single responsibility  
-- **User-Friendly Config**: JSON files humans can easily edit
-- **Persistent Settings**: User preferences automatically saved
-- **Safe Refactoring**: High coverage enables confident changes
+- **Single Executable**: 2-5MB cross-platform deployment
+- **Result Pattern**: Explicit error handling throughout
+- **Type Safety**: Strongly typed IDs prevent runtime errors
+- **No MediatR**: Direct service dependencies for minimal overhead
+- **Clean Architecture**: Maintained separation of concerns
 
 ---
 
 ## 🚨 **IMMEDIATE ACTIONS REQUIRED**
 
 ### **For Current Agent (Codex)**
-1. **STOP** all refactoring work immediately
-2. **FOCUS** exclusively on achieving 95%+ UI coverage
-3. **WRITE** comprehensive BDD tests for ALL UI functions
-4. **VERIFY** coverage with `go test ./ui -cover` 
-5. **PROCEED** to Phase 2 only after 95%+ coverage achieved
+1. **FOCUS** on Result pattern implementation first
+2. **CREATE** single project structure replacing multi-project solution
+3. **WRITE** comprehensive tests for Result<T> and strongly typed IDs
+4. **MIGRATE** existing entities using TDD approach
+5. **VERIFY** builds produce small executables
 
-### **Coverage Priority Order**
-1. `ui/interactive.go` - Most complex, user interaction flows
-2. `ui/menu.go` - Menu rendering and display
-3. `ui/banner.go` - Complete all banner functions
-4. `ui/help.go` - Complete all help functions
-5. `ui/colors.go` - Complete color constant testing
+### **Development Priority Order**
+1. Result<T> pattern implementation with tests
+2. Strongly typed ID base classes
+3. ScriptResponse entity migration
+4. ScriptRequest entity migration  
+5. Service layer with direct dependencies
 
 ---
 
 ## 📞 **ESCALATION PROCESS**
 
-### **When Coverage Cannot Be Achieved**
-- Document specific functions that cannot be tested
-- Explain why (external dependencies, platform-specific, etc.)
-- Propose alternative testing strategies
-- Get explicit approval before proceeding
+### **When AOT Compilation Issues Arise**
+- Document specific AOT compatibility problems
+- Research .NET 8 AOT limitations and workarounds
+- Consider alternative approaches for problematic dependencies
+- Test minimal reproduction cases
 
-### **When TDD Rules Conflict**
-- TDD rules take precedence over speed
-- Safety and quality over delivery timeline
-- Document any rule conflicts for review
-- Never compromise on 95% coverage requirement
+### **When Single Executable Size Exceeds Target**
+- Analyze executable size with .NET tools
+- Identify largest dependencies for elimination
+- Consider feature reduction for size optimization
+- Document trade-offs between features and size
 
 ---
 
-*This document serves as the definitive guide for all agents working on Please v6.*  
-*Last Updated: June 14, 2025*  
-*Current Phase: 1 - UI Coverage Safety Net*
+## 📈 **PROGRESS TRACKING**
+
+### **Current Status**: Phase 1 (Single Project Setup)
+- ✅ Strategic decision made (C# over Go enhancement)
+- ✅ Architecture plan documented
+- ✅ Multi-project foundation exists
+- ⚠️ **Next**: Create single project structure
+- ❌ Result pattern implementation pending
+
+### **Key Metrics**
+- **Code Coverage**: Target 85%+ (C# tests)
+- **Executable Size**: Target 2-5MB
+- **Build Time**: Target <30 seconds
+- **Test Suite**: Target <5 seconds execution
+
+---
+
+*This document serves as the definitive guide for all agents working on Please v6 C# migration.*  
+*Last Updated: June 15, 2025*  
+*Current Phase: 1 - Single Project Setup & Result Pattern Implementation*
