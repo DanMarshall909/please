@@ -23,6 +23,7 @@ func TestWhenShowingHelpWithLocalization_ShouldUseLocalizedBannerTexts(t *testin
 	mgr.LoadLanguage("x", langPath)
 	mgr.SetLanguage("x")
 	SetGlobalLocalizationManager(mgr)
+	defer SetGlobalLocalizationManager(nil)
 	out := captureHelpOutput(ShowHelp)
 	if !strings.Contains(out, "Hola") || !strings.Contains(out, "Ayuda") {
 		t.Errorf("expected localized banner text: %s", out)

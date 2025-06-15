@@ -175,3 +175,18 @@ func Test_when_getting_missing_message_then_use_fallback(t *testing.T) {
 		t.Errorf("expected primary message")
 	}
 }
+func Test_when_getting_script_display_message_then_return_values(t *testing.T) {
+	temp := t.TempDir()
+	jsonPath := filepath.Join(temp, "sd.json")
+	content := `{
+  "language":"en-us","theme":"default",
+  "messages":{"script_display":{"task_label":"Task"}}
+}`
+	os.WriteFile(jsonPath, []byte(content), 0644)
+	mgr := &LocalizationManager{config: &types.LocalizationConfig{}}
+	mgr.files = map[string]string{"en": jsonPath}
+	mgr.SetLanguage("en")
+	if mgr.GetMessage("script_display.task_label") != "Task" {
+		t.Errorf("expected task label")
+	}
+}
