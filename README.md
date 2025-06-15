@@ -1,243 +1,217 @@
-# Please v5.0 - Your Overly Helpful Digital Assistant
+# Please - Dual Implementation Strategy
 
-![Please Banner](https://img.shields.io/badge/Please-v5.0-blue?style=for-the-badge&logo=robot)
-![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=for-the-badge&logo=go)
-![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey?style=for-the-badge)
+![Please Banner](https://img.shields.io/badge/Please-Dual%20Implementation-blue?style=for-the-badge&logo=robot)
+![Go Version](https://img.shields.io/badge/Go-v5.0--stable-00ADD8?style=for-the-badge&logo=go)
+![C# Version](https://img.shields.io/badge/C%23-v6.0--dev-239120?style=for-the-badge&logo=csharp)
 
-**Please** is a politely silly AI-powered script generator that turns natural language into safe, executable scripts across Windows PowerShell, Linux Bash, and macOS.
+**Please** maintains two parallel implementations to ensure continuous releasable software while enabling architectural evolution.
 
-## 🌟 New in v5.0: AI Test Monitoring
+## 🎯 **Dual Strategy Overview**
 
-**Please** now includes intelligent test failure analysis! Run your tests and get AI-powered insights into failures with detailed recommendations for fixes.
+### **🔵 Go Implementation (v5.0-stable)**
+- **Location**: `legacy-go/` directory
+- **Status**: ✅ **Stable & Releasable**
+- **Purpose**: Production-ready fallback
+- **Branch**: `release/please-v5-stable`
+- **Tag**: `v5.0-stable`
 
-## 🚀 Quick Start
+### **🟢 C# Implementation (v6.0-dev)**
+- **Location**: `src/` directory (Clean Architecture)
+- **Status**: 🔄 **Active Development**
+- **Purpose**: Modern architecture & tooling
+- **Branch**: `feature/please-v6-csharp`
+- **Architecture**: Jason Taylor's Clean Architecture
 
-### Installation
+## 🚀 **Quick Start**
+
+### **Use Go Version (Immediate)**
 ```bash
-# Download the latest release for your platform
-# Windows: please.exe
-# Linux/macOS: please
-
-# Install shortcuts (optional)
-please --install-alias
+# Build and run stable Go version
+cd legacy-go
+go build -o please.exe
+./please.exe "list files in current directory"
 ```
 
-### Basic Usage
+### **Develop C# Version**
 ```bash
-# Natural language - no quotes needed!
-pls list all files older than 10 years
-pls backup my documents folder
-pls find and delete temporary files
-
-# With quotes (if you prefer)
-please "show system information"
+# Build and test C# version
+dotnet build
+dotnet test
+cd src/Presentation/Please.Console
+dotnet run -- "list files in current directory"
 ```
 
-### 🧪 AI Test Monitoring
-```bash
-# Monitor all tests with AI analysis
-pls --test-monitor
+## 📊 **Implementation Status**
 
-# Monitor specific test pattern
-pls --test-monitor TestParseFailures
+### **✅ Go v5.0 (Production Ready)**
+- ✅ Multi-provider AI support (OpenAI, Anthropic, Ollama)
+- ✅ Cross-platform script generation
+- ✅ Interactive menu system
+- ✅ Script validation and safety
+- ✅ Localization support
+- ✅ Test monitoring with AI analysis
+- ✅ Builds successfully
+- ⚠️ Minor localization test failures (non-blocking)
 
-# Alternative command
-pls --monitor-tests
+### **🔄 C# v6.0 (70% Complete)**
+- ✅ **Domain Layer**: Entities, enums, interfaces, exceptions
+- ✅ **Application Layer**: CQRS with MediatR (commands, queries, handlers)
+- ✅ **Test Infrastructure**: 9 passing domain tests
+- ⚠️ **Infrastructure Layer**: In progress (repositories, AI providers)
+- ❌ **Console App**: Needs dependency injection wiring
+- ❌ **Integration Tests**: Pending
+
+## 🏗️ **Architecture Comparison**
+
+### **Go v5 Architecture**
 ```
-
-## 🎯 Key Features
-
-### 🧠 Smart AI Integration
-- **Multiple Providers**: Ollama (local), OpenAI, Anthropic Claude
-- **Automatic Model Selection**: Picks the best model for your task
-- **Context-Aware**: Understands your platform and requirements
-
-### 🛡️ Safety First
-- **Script Preview**: Always shows generated scripts before execution
-- **Intelligent Validation**: Warns about potentially dangerous operations
-- **Cross-Platform**: Generates appropriate scripts for your OS
-
-### 🧪 AI Test Monitoring
-- **Automatic Failure Detection**: Parses Go test output for failures
-- **Intelligent Analysis**: AI analyzes failures and provides detailed insights
-- **Structured Recommendations**: Get categorized suggestions and code fixes
-- **Report Generation**: Saves detailed failure reports for future reference
-
-## 📖 Test Monitoring in Detail
-
-When you run `pls --test-monitor`, the system:
-
-1. **Executes Tests**: Runs `go test -v ./...` (or your specified pattern)
-2. **Captures Failures**: Parses test output to extract failure details
-3. **AI Analysis**: Sends failure context to your configured AI provider
-4. **Structured Insights**: Displays formatted analysis with:
-   - **Summary**: Brief description of what went wrong
-   - **Root Cause**: Detailed explanation of the underlying issue
-   - **Suggestions**: Specific recommendations to fix the problem
-   - **Code Fixes**: Suggested code changes (when applicable)
-   - **Test Strategy**: Recommendations for better testing approaches
-   - **Priority Actions**: Ranked steps to resolve the issue
-
-### Example AI Analysis Output
-```
-🤖 AI TEST FAILURE ANALYSIS
-═══════════════════════════════════════════════
-
-🔍 Test: TestParseTestFailures
-📁 Package: script
-📄 File: test_monitor_test.go:37
-🏷️  Category: assertion_failure
-
-📝 Summary:
-Test expectations don't match the actual parsing behavior due to incorrect indexing of parsed failures.
-
-🎯 Root Cause:
-The test assumes failures are parsed in a specific order, but the parsing logic processes them differently than expected.
-
-💡 Suggestions:
-1. Check the actual order of failures in the test output
-2. Debug the parseTestFailures function to understand the parsing sequence
-3. Update test expectations to match actual behavior
-4. Consider making the parser more deterministic
-
-🔧 Suggested Code Fix:
-// Fix test expectations to match actual parsing behavior
-// Debug first: print failures[0] and failures[1] to see actual values
-
-📋 Recommended Actions:
-1. [HIGH] Debug Test: Add debug prints to see actual parsed values
-2. [MEDIUM] Fix Assertions: Update test expectations to match reality
-3. [LOW] Improve Parser: Make parsing order more predictable
-```
-
-## ⚙️ Configuration
-
-### Environment Variables
-```bash
-# Set AI Provider
-export PLEASE_PROVIDER=openai    # or anthropic, ollama
-export OPENAI_API_KEY=your_key
-export ANTHROPIC_API_KEY=your_key
-
-# Set preferred model (optional)
-export PLEASE_MODEL=gpt-4o-mini  # or claude-3-haiku-20240307, llama3.2
-```
-
-### Config File
-Configuration is stored in `~/.please/config.json`:
-```json
-{
-  "provider": "ollama",
-  "preferred_model": "llama3.2",
-  "script_type": "auto",
-  "openai_api_key": "",
-  "anthropic_api_key": "",
-  "ollama_url": "http://localhost:11434"
-}
-```
-
-## 🎨 Examples
-
-### Script Generation
-```bash
-# File operations
-pls create a backup script for my documents folder
-pls list all files larger than 100MB
-pls organize photos by date into folders
-
-# System administration  
-pls show disk usage by directory
-pls check for running services on port 80
-pls create a system health check script
-
-# Development tasks
-pls build and test my Go project
-pls set up a Git pre-commit hook
-pls generate a project structure for a web app
-```
-
-### Test Monitoring
-```bash
-# Basic monitoring
-pls --test-monitor
-
-# Specific test pattern
-pls --test-monitor TestHTTP
-pls --test-monitor "TestDatabase.*"
-
-# Monitor specific package
-cd mypackage && pls --test-monitor
-```
-
-## 🔧 Advanced Usage
-
-### Multiple Providers
-```bash
-# Use different providers for different tasks
-PLEASE_PROVIDER=anthropic pls analyze this complex algorithm
-PLEASE_PROVIDER=openai pls write unit tests for my function
-PLEASE_PROVIDER=ollama pls create a simple backup script
-```
-
-### Custom Models
-```bash
-# Use specific models
-PLEASE_MODEL=gpt-4o pls create a complex deployment script
-PLEASE_MODEL=claude-3-opus-20240229 pls review this code for security issues
-```
-
-## 📁 Project Structure
-
-```
-please/
-├── main.go              # Main application entry point
-├── config/              # Configuration management
+legacy-go/
+├── main.go              # Monolithic entry point
+├── config/              # Configuration
 ├── providers/           # AI provider implementations
-│   ├── ollama.go       # Local Ollama integration
-│   ├── openai.go       # OpenAI API integration
-│   └── anthropic.go    # Anthropic Claude integration
-├── script/              # Script operations and test monitoring
-│   ├── operations.go   # Script execution, validation, etc.
-│   ├── test_monitor.go # AI-powered test failure analysis
-│   └── editor.go       # Interactive script editing
-├── ui/                  # User interface components
-├── models/              # Model selection logic
-└── types/               # Type definitions
+├── script/              # Script operations
+├── ui/                  # User interface
+└── types/               # Shared types
 ```
 
-## 🤝 Contributing
+### **C# v6 Clean Architecture**
+```
+src/
+├── Domain/              # ZERO dependencies
+│   ├── Entities/        # Core business models
+│   ├── Enums/           # Domain enums
+│   └── Interfaces/      # Repository abstractions
+├── Application/         # MediatR only
+│   ├── Commands/        # CQRS commands
+│   └── Queries/         # CQRS queries
+├── Infrastructure/      # ALL external dependencies
+│   ├── Providers/       # AI implementations
+│   └── Repositories/    # Data persistence
+└── Presentation/        # Console application
+    └── Console/         # CLI interface
+```
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## 🎯 **Development Strategy**
 
-## 📝 License
+### **Immediate Actions (Next 1-2 hours)**
+1. **Complete C# Infrastructure**: Implement repositories and AI providers
+2. **Wire Console App**: Add dependency injection and basic CLI
+3. **Integration Testing**: Verify end-to-end C# functionality
+4. **Feature Parity**: Ensure C# matches Go capabilities
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+### **Release Strategy**
+- **Go v5**: Immediate releases for bug fixes and minor features
+- **C# v6**: Development releases as features are completed
+- **Transition**: Gradual migration once C# reaches feature parity
 
-## 🎪 Why "Please"?
+## 🔧 **Building Both Versions**
 
-Because we believe in polite computing! **Please** is your courteous digital assistant that:
-- Always asks before executing potentially dangerous operations
-- Explains what it's doing in friendly, understandable language
-- Treats your system with respect and care
-- Maintains a delightfully silly yet helpful personality
+### **Go Version**
+```bash
+cd legacy-go
+go build -o please-go.exe
+```
 
-## 🆘 Support
+### **C# Version** 
+```bash
+dotnet build src/Presentation/Please.Console
+# Output: src/Presentation/Please.Console/bin/Debug/net8.0/Please.Console.exe
+```
 
-- **Documentation**: Check the `--help` flag for detailed usage information
-- **Issues**: Report bugs and request features via GitHub Issues
-- **Discussions**: Join the conversation in GitHub Discussions
+## 📝 **Git Branch Strategy**
 
-## 🌟 Acknowledgments
+```
+main                     # Current development state
+├── release/please-v5-stable    # Go v5.0 stable branch
+├── feature/please-v6-csharp    # C# v6.0 development branch
+└── legacy/archive              # Previous experimental work
+```
 
-- **Ollama**: For making local AI accessible and easy
-- **OpenAI**: For advancing AI accessibility
-- **Anthropic**: For Claude's thoughtful AI capabilities
-- **Go Community**: For the amazing tools and ecosystem
+### **Branch Usage**
+- **main**: Integration and coordination branch
+- **release/please-v5-stable**: Go production releases
+- **feature/please-v6-csharp**: C# development and testing
+
+## 🎪 **Why Dual Implementation?**
+
+### **Business Continuity**
+- **Always releasable**: Go version ensures users always have working software
+- **Risk mitigation**: C# development doesn't block Go improvements
+- **Gradual transition**: Users can test C# version while Go remains available
+
+### **Technical Benefits**
+- **Architecture evolution**: Clean Architecture vs monolithic Go structure
+- **Tooling improvement**: VS/Rider debugging vs VS Code Go
+- **Performance gains**: Better async patterns and HTTP clients
+- **Maintainability**: Clear separation of concerns
+
+### **Development Experience**
+- **Parallel development**: Teams can work on both implementations
+- **Learning opportunity**: Compare patterns and approaches
+- **Future flexibility**: Can maintain both or sunset one based on usage
+
+## 📦 **Dependencies**
+
+### **Go v5 Dependencies**
+- Go 1.21+
+- Standard library only (no external dependencies)
+
+### **C# v6 Dependencies**
+- .NET 8
+- MediatR (CQRS)
+- Microsoft.Extensions.* (Configuration, DI, Logging)
+- NUnit (Testing)
+
+## 🤝 **Contributing**
+
+### **Go v5 Contributions**
+- Work in `legacy-go/` directory
+- Focus on bug fixes and minor enhancements
+- Maintain backward compatibility
+
+### **C# v6 Contributions**
+- Work in `src/` directory
+- Follow Clean Architecture principles
+- Implement features from Go version
+- Add comprehensive tests
+
+## 📈 **Roadmap**
+
+### **Phase 1: C# Foundation (This Week)**
+- ✅ Domain and Application layers
+- 🔄 Infrastructure implementation
+- 🔄 Console application wiring
+- 🔄 Basic integration tests
+
+### **Phase 2: Feature Parity (Next Week)**  
+- 🔄 All Go features in C#
+- 🔄 Performance optimization
+- 🔄 Comprehensive testing
+- 🔄 Documentation
+
+### **Phase 3: Production Release (Following Week)**
+- 🔄 C# v6.0 production release
+- 🔄 User feedback and iteration
+- 🔄 Deprecation strategy for Go (if desired)
+
+## 🆘 **Support**
+
+- **Go v5 Issues**: Report with `[Go]` prefix
+- **C# v6 Issues**: Report with `[C#]` prefix  
+- **General Issues**: Architecture or strategy questions
 
 ---
 
+## 🌟 **Current Focus**
+
+**Active Development**: C# Infrastructure Layer completion  
+**Stable Fallback**: Go v5.0 ready for immediate use  
+**Next Milestone**: Working C# console application  
+
 *Happy scripting with Please! 🎉*
+
+---
+
+*Updated: June 15, 2025*  
+*Status: Dual implementation strategy active*  
+*Contact: [GitHub Issues](../../issues)*
