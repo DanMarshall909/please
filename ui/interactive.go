@@ -17,6 +17,49 @@ import (
 	"please/types"
 )
 
+// InputProvider interface abstracts input operations for testability
+type InputProvider interface {
+	GetSingleKey() rune
+	GetLine() (string, error)
+}
+
+// DefaultInputProvider implements InputProvider using real input
+type DefaultInputProvider struct{}
+
+func (d *DefaultInputProvider) GetSingleKey() rune {
+	return getSingleKeyInput()
+}
+
+func (d *DefaultInputProvider) GetLine() (string, error) {
+	reader := bufio.NewReader(os.Stdin)
+	return reader.ReadString('\n')
+}
+
+// TestInputProvider implements InputProvider for testing
+type TestInputProvider struct {
+	Keys  []rune
+	Lines []string
+	keyIndex, lineIndex int
+}
+
+func (t *TestInputProvider) GetSingleKey() rune {
+	if t.keyIndex < len(t.Keys) {
+		key := t.Keys[t.keyIndex]
+		t.keyIndex++
+		return key
+	}
+	return '\r' // Default to Enter
+}
+
+func (t *TestInputProvider) GetLine() (string, error) {
+	if t.lineIndex < len(t.Lines) {
+		line := t.Lines[t.lineIndex]
+		t.lineIndex++
+		return line, nil
+	}
+	return "", nil
+}
+
 // Global localization manager for backward compatibility
 var globalLocManager *localization.LocalizationManager
 

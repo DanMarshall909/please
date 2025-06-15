@@ -91,17 +91,19 @@ func getFromConfig(cfg *types.LocalizationConfig, cat, field string) string {
 			return cfg.Messages.Banner.Subtitle
 		}
 	case "errors":
-		if field == "provider_connection" {
+		switch field {
+		case "provider_connection":
 			return cfg.Messages.Errors.ProviderConnection
-		}
-		if field == "invalid_input" {
+		case "invalid_input":
 			return cfg.Messages.Errors.InvalidInput
+		case "invalid_choice":
+			return cfg.Messages.Errors.InvalidInput // fallback
 		}
 	case "prompts":
-		if field == "select_provider" {
+		switch field {
+		case "select_provider":
 			return cfg.Messages.Prompts.SelectProvider
-		}
-		if field == "enter_request" {
+		case "enter_request":
 			return cfg.Messages.Prompts.EnterRequest
 		}
 	case "installation":
@@ -119,6 +121,64 @@ func getFromConfig(cfg *types.LocalizationConfig, cat, field string) string {
 			return cfg.Messages.Footer.Tips
 		case "happy":
 			return cfg.Messages.Footer.Happy
+		}
+	case "script_display":
+		switch field {
+		case "task_label":
+			return cfg.Messages.ScriptDisplay.TaskLabel
+		case "model_label":
+			return cfg.Messages.ScriptDisplay.ModelLabel
+		case "platform_label":
+			return cfg.Messages.ScriptDisplay.PlatformLabel
+		case "script_header":
+			return cfg.Messages.ScriptDisplay.ScriptHeader
+		case "success_message":
+			return cfg.Messages.ScriptDisplay.SuccessMessage
+		}
+	case "menu":
+		switch field {
+		case "generate_script":
+			return cfg.Messages.Menu.GenerateScript
+		case "run_last":
+			return cfg.Messages.Menu.RunLast
+		case "help":
+			return cfg.Messages.Menu.Help
+		case "exit":
+			return cfg.Messages.Menu.Exit
+		case "main_prompt":
+			return cfg.Messages.Menu.MainPrompt
+		case "show_help":
+			return cfg.Messages.Menu.ShowHelp
+		case "load_last":
+			return cfg.Messages.Menu.LoadLast
+		case "browse_history":
+			return cfg.Messages.Menu.BrowseHistory
+		case "show_config":
+			return cfg.Messages.Menu.ShowConfig
+		}
+	case "menus":
+		switch field {
+		case "show_help":
+			return cfg.Messages.Menus.ShowHelp
+		case "generate_script":
+			return cfg.Messages.Menus.GenerateScript
+		case "load_last":
+			return cfg.Messages.Menus.LoadLast
+		case "browse_history":
+			return cfg.Messages.Menus.BrowseHistory
+		case "show_config":
+			return cfg.Messages.Menus.ShowConfig
+		case "exit":
+			return cfg.Messages.Menus.Exit
+		case "main_prompt":
+			return cfg.Messages.Menus.MainPrompt
+		}
+	case "success":
+		switch field {
+		case "exit":
+			return cfg.Messages.Success.Exit
+		case "exit_quick":
+			return cfg.Messages.Success.ExitQuick
 		}
 	}
 	return ""
