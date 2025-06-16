@@ -1,24 +1,59 @@
-using NUnit.Framework;
 using Please.Domain.Common;
 
 namespace Please.UnitTests;
 
-[TestFixture]
 public class ResultTests
 {
-    [Test]
+    [Fact]
     public void Test_result_success_contains_value()
     {
         var result = Result<string>.Success("ok");
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.Value, Is.EqualTo("ok"));
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be("ok");
     }
 
-    [Test]
+    [Fact]
     public void Test_result_failure_contains_error_message()
     {
         var result = Result<int>.Failure("fail");
-        Assert.That(result.IsFailure, Is.True);
-        Assert.That(result.Error, Is.EqualTo("fail"));
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be("fail");
+    }
+
+    [Fact]
+    public void Test_map_transforms_success_value()
+    {
+        var initial = Result<int>.Success(1);
+
+        var mapped = initial.Map(v => v + 1);
+
+        mapped.Value.Should().Be(2);
+    }
+
+    [Fact]
+    public void Test_map_returns_failure_when_result_is_failure()
+    {
+        var initial = Result<int>.Failure("nope");
+
+        var mapped = initial.Map(v => v + 1);
+
+        mapped.IsFailure.Should().BeTrue();
+        mapped.Error.Should().Be("nope");
+    }
+
+    [Fact]
+    public async Task Test_map_async_transforms_success_value()
+    {
+        var initial = Result<int>.Success(1);
+
+        var mapped = await initial.MapAsync(async v =>
+        {
+            await Task.Delay(1);
+            return v + 2;
+        });
+
+        mapped.Value.Should().Be(3);
     }
 }
