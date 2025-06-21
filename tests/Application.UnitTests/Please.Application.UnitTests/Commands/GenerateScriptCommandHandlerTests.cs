@@ -5,6 +5,7 @@ using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
 using Please.Domain.Interfaces;
+using Please.Domain.Exceptions;
 
 namespace Please.Application.UnitTests.Commands;
 
@@ -100,4 +101,17 @@ public class GenerateScriptCommandHandlerTests
             Times.Once
         );
     }
+
+    [Test]
+    public void Handle_WhenGenerationFails_ThrowsScriptGenerationException()
+    {
+        var command = GenerateScriptCommand.Create("fail");
+        _mockScriptGenerator
+            .Setup(x => x.GenerateScriptAsync(It.IsAny<ScriptRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ScriptResponse>.Failure("bad"));
+
+        Assert.That(async () => await _handler.Handle(command, CancellationToken.None),
+            Throws.TypeOf<ScriptGenerationException>());
+    }
+
 }
