@@ -1,2 +1,10 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+using Microsoft.Extensions.DependencyInjection;
+using Please.Application;
+
+var services = new ServiceCollection();
+services.AddApplication();
+
+var provider = services.BuildServiceProvider();
+
+// Entry point would resolve command handlers here
+Console.WriteLine("Dependency injection configured.");
