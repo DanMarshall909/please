@@ -1,5 +1,5 @@
 using System;
-using NUnit.Framework;
+using TUnit;
 using Please.Domain.Common;
 using Please.Domain.Entities;
 
@@ -13,8 +13,8 @@ public class StronglyTypedIdTests
     {
         var id = ScriptId.From("00000000-0000-0000-0000-000000000001");
         Guid value = id;
-        Assert.That(value, Is.EqualTo(Guid.Parse("00000000-0000-0000-0000-000000000001")));
-        Assert.That(id.ToString(), Is.EqualTo("00000000-0000-0000-0000-000000000001"));
+        Assert.Equal(Guid.Parse("00000000-0000-0000-0000-000000000001"), value);
+        Assert.Equal("00000000-0000-0000-0000-000000000001", id.ToString());
     }
 
     [Test]
@@ -22,15 +22,15 @@ public class StronglyTypedIdTests
     {
         var id1 = ScriptId.New();
         var id2 = ScriptId.New();
-        Assert.That(id1.Value, Is.Not.EqualTo(Guid.Empty));
-        Assert.That(id2.Value, Is.Not.EqualTo(id1.Value));
+        Assert.NotEqual(Guid.Empty, id1.Value);
+        Assert.NotEqual(id1.Value, id2.Value);
     }
 
     [Test]
     public void provider_id_static_values_are_as_expected()
     {
-        Assert.That(ProviderId.OpenAI.Value, Is.EqualTo("openai"));
-        Assert.That(ProviderId.Anthropic.Value, Is.EqualTo("anthropic"));
-        Assert.That(ProviderId.Ollama.Value, Is.EqualTo("ollama"));
+        Assert.Equal("openai", ProviderId.OpenAI.Value);
+        Assert.Equal("anthropic", ProviderId.Anthropic.Value);
+        Assert.Equal("ollama", ProviderId.Ollama.Value);
     }
 }

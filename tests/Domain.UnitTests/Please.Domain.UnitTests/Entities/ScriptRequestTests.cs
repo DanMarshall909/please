@@ -1,4 +1,4 @@
-using NUnit.Framework;
+using TUnit;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
 
@@ -17,10 +17,10 @@ public class ScriptRequestTests
         var request = ScriptRequest.Create(taskDescription);
 
         // Assert
-        Assert.That(request.TaskDescription, Is.EqualTo(taskDescription));
-        Assert.That(request.RequestTime, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(1)));
-        Assert.That(request.AdditionalParameters, Is.Not.Null);
-        Assert.That(request.AdditionalParameters, Is.Empty);
+        Assert.Equal(taskDescription, request.TaskDescription);
+        Assert.True(Math.Abs((request.RequestTime - DateTime.UtcNow).TotalSeconds) <= 1);
+        Assert.True(request.AdditionalParameters != null);
+        Assert.True(request.AdditionalParameters.Count == 0);
     }
 
     [Test]
@@ -35,9 +35,9 @@ public class ScriptRequestTests
         var request = ScriptRequest.Create(taskDescription, provider, model);
 
         // Assert
-        Assert.That(request.TaskDescription, Is.EqualTo(taskDescription));
-        Assert.That(request.Provider, Is.EqualTo(provider));
-        Assert.That(request.Model, Is.EqualTo(model));
+        Assert.Equal(taskDescription, request.TaskDescription);
+        Assert.Equal(provider, request.Provider);
+        Assert.Equal(model, request.Model);
     }
 
     [Test]
@@ -54,6 +54,6 @@ public class ScriptRequestTests
         };
 
         // Assert
-        Assert.That(request.WorkingDirectory, Is.EqualTo(workingDir));
+        Assert.Equal(workingDir, request.WorkingDirectory);
     }
 }

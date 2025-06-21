@@ -1,4 +1,4 @@
-using NUnit.Framework;
+using TUnit;
 using Please.TestUtilities;
 using Please.Application.Services;
 using Please.Domain.Commands;
@@ -22,15 +22,9 @@ public class CommandProcessorTests
     [SetUp]
     public void SetUp()
     {
-        _context = new FakeContextService();
-        _generator = new FakeScriptGenerator();
-
-        var services = new ServiceCollection();
-        services.AddApplication();
-        services.AddTransient<IContextService>(_ => _context);
-        services.AddTransient<IScriptGenerator>(_ => _generator);
-
-        _provider = services.BuildServiceProvider();
+        _provider = TestSystem.Create();
+        _context = _provider.GetRequiredService<FakeContextService>();
+        _generator = _provider.GetRequiredService<FakeScriptGenerator>();
         _processor = _provider.GetRequiredService<CommandProcessor>();
     }
 
@@ -41,8 +35,8 @@ public class CommandProcessorTests
 
         var result = await _processor.ProcessAsync("list files");
 
-        Assert.That(result.IsFailure, Is.True);
-        Assert.That(result.Error, Is.EqualTo("no context"));
+        Assert.True(result.IsFailure);
+        Assert.Equal("no context", result.Error);
     }
 
     [Test]
@@ -54,8 +48,8 @@ public class CommandProcessorTests
 
         var result = await _processor.ProcessAsync("list");
 
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.Value, Is.EqualTo(expected));
+        Assert.True(result.IsSuccess);
+        Assert.Equal(expected, result.Value);
     }
 }
 

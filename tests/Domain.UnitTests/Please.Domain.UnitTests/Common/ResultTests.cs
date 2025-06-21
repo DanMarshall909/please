@@ -1,4 +1,4 @@
-using NUnit.Framework;
+using TUnit;
 using System.Threading.Tasks;
 using Please.Domain.Common;
 
@@ -11,8 +11,8 @@ public class ResultTests
     public void a_success_result_indicates_success()
     {
         var result = Result.Success();
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.IsFailure, Is.False);
+        Assert.True(result.IsSuccess);
+        Assert.False(result.IsFailure);
     }
 
     [Test]
@@ -20,16 +20,16 @@ public class ResultTests
     {
         const string error = "something went wrong";
         var result = Result.Failure(error);
-        Assert.That(result.IsFailure, Is.True);
-        Assert.That(result.Error, Is.EqualTo(error));
+        Assert.True(result.IsFailure);
+        Assert.Equal(error, result.Error);
     }
 
     [Test]
     public void a_generic_success_holds_the_value()
     {
         var result = Result<int>.Success(42);
-        Assert.That(result.Value, Is.EqualTo(42));
-        Assert.That(result.IsSuccess, Is.True);
+        Assert.Equal(42, result.Value);
+        Assert.True(result.IsSuccess);
     }
 
     [Test]
@@ -37,8 +37,8 @@ public class ResultTests
     {
         var start = Result<int>.Success(2);
         var mapped = start.Map(x => x * 2);
-        Assert.That(mapped.IsSuccess, Is.True);
-        Assert.That(mapped.Value, Is.EqualTo(4));
+        Assert.True(mapped.IsSuccess);
+        Assert.Equal(4, mapped.Value);
     }
 
     [Test]
@@ -46,8 +46,8 @@ public class ResultTests
     {
         var start = Result<int>.Failure("bad");
         var mapped = start.Map(x => x * 2);
-        Assert.That(mapped.IsFailure, Is.True);
-        Assert.That(mapped.Error, Is.EqualTo("bad"));
+        Assert.True(mapped.IsFailure);
+        Assert.Equal("bad", mapped.Error);
     }
 
     [Test]
@@ -55,7 +55,7 @@ public class ResultTests
     {
         var start = Result<int>.Success(3);
         var mapped = await start.MapAsync(x => Task.FromResult(x + 2));
-        Assert.That(mapped.IsSuccess, Is.True);
-        Assert.That(mapped.Value, Is.EqualTo(5));
+        Assert.True(mapped.IsSuccess);
+        Assert.Equal(5, mapped.Value);
     }
 }
