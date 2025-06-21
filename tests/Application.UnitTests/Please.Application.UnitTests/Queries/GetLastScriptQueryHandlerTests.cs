@@ -1,4 +1,4 @@
-using NUnit.Framework;
+using TUnit;
 using Please.TestUtilities;
 using Please.Application.Queries.GetLastScript;
 using Please.Domain.Common;
@@ -29,7 +29,7 @@ public class GetLastScriptQueryHandlerTests
 
         var result = await _handler.Handle(GetLastScriptQuery.Create(), CancellationToken.None);
 
-        Assert.That(result, Is.EqualTo(expected));
+        Assert.Equal(expected, result);
     }
 }
 

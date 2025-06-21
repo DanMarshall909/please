@@ -1,4 +1,4 @@
-using NUnit.Framework;
+using TUnit;
 using Please.Application.Services;
 using Please.TestUtilities;
 using Please.Domain.Entities;
@@ -32,7 +32,7 @@ public class CommandProcessorIntegrationTests
 
         var result = await processor.ProcessAsync("list");
 
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(generator.LastRequest?.TaskDescription, Is.EqualTo("list"));
+        Assert.True(result.IsSuccess);
+        Assert.Equal("list", generator.LastRequest?.TaskDescription);
     }
 }

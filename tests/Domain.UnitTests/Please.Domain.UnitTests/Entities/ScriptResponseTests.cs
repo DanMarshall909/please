@@ -1,4 +1,4 @@
-using NUnit.Framework;
+using TUnit;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
 
@@ -24,7 +24,7 @@ public class ScriptResponseTests
         var requiresConfirmation = response.RequiresConfirmation;
 
         // Assert
-        Assert.That(requiresConfirmation, Is.True);
+        Assert.True(requiresConfirmation);
     }
 
     [Test]
@@ -44,7 +44,7 @@ public class ScriptResponseTests
         var requiresConfirmation = response.RequiresConfirmation;
 
         // Assert
-        Assert.That(requiresConfirmation, Is.True);
+        Assert.True(requiresConfirmation);
     }
 
     [Test]
@@ -64,7 +64,7 @@ public class ScriptResponseTests
         var requiresConfirmation = response.RequiresConfirmation;
 
         // Assert
-        Assert.That(requiresConfirmation, Is.False);
+        Assert.False(requiresConfirmation);
     }
 
     [Test]
@@ -84,7 +84,7 @@ public class ScriptResponseTests
         var isDangerous = response.IsDangerous;
 
         // Assert
-        Assert.That(isDangerous, Is.True);
+        Assert.True(isDangerous);
     }
 
     [Test]
@@ -103,8 +103,8 @@ public class ScriptResponseTests
         var updatedResponse = response.WithWarning("Test warning");
 
         // Assert
-        Assert.That(updatedResponse.Warnings, Contains.Item("Test warning"));
-        Assert.That(updatedResponse.Warnings.Count, Is.EqualTo(1));
+        Assert.True(updatedResponse.Warnings.Contains("Test warning"));
+        Assert.Equal(1, updatedResponse.Warnings.Count);
     }
 
     [Test]
@@ -123,7 +123,7 @@ public class ScriptResponseTests
         var updatedResponse = response.WithSafetyNote("Test safety note");
 
         // Assert
-        Assert.That(updatedResponse.SafetyNotes, Contains.Item("Test safety note"));
-        Assert.That(updatedResponse.SafetyNotes.Count, Is.EqualTo(1));
+        Assert.True(updatedResponse.SafetyNotes.Contains("Test safety note"));
+        Assert.Equal(1, updatedResponse.SafetyNotes.Count);
     }
 }

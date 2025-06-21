@@ -1,4 +1,4 @@
-using NUnit.Framework;
+using TUnit;
 using Please.TestUtilities;
 using Please.Application.Commands.GenerateScript;
 using Please.Domain.Common;
@@ -44,11 +44,11 @@ public class GenerateScriptCommandHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        Assert.That(result, Is.EqualTo(expectedResponse));
-        Assert.That(_scriptGenerator.LastRequest?.TaskDescription, Is.EqualTo(command.TaskDescription));
-        Assert.That(_scriptGenerator.LastRequest?.Provider, Is.EqualTo(command.Provider));
-        Assert.That(_scriptGenerator.LastRequest?.Model, Is.EqualTo(command.Model));
-        Assert.That(_scriptRepository.Scripts, Has.Exactly(1).EqualTo(expectedResponse));
+        Assert.Equal(expectedResponse, result);
+        Assert.Equal(command.TaskDescription, _scriptGenerator.LastRequest?.TaskDescription);
+        Assert.Equal(command.Provider, _scriptGenerator.LastRequest?.Provider);
+        Assert.Equal(command.Model, _scriptGenerator.LastRequest?.Model);
+        Assert.Equal(1, _scriptRepository.Scripts.Count(s => s == expectedResponse));
     }
 
     [Test]
@@ -70,7 +70,7 @@ public class GenerateScriptCommandHandlerTests
         await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        Assert.That(_scriptGenerator.LastRequest?.WorkingDirectory, Is.EqualTo(Environment.CurrentDirectory));
+        Assert.Equal(Environment.CurrentDirectory, _scriptGenerator.LastRequest?.WorkingDirectory);
     }
 
     [Test]
@@ -79,8 +79,7 @@ public class GenerateScriptCommandHandlerTests
         var command = GenerateScriptCommand.Create("fail");
         _scriptGenerator.NextResult = Result<ScriptResponse>.Failure("bad");
 
-        Assert.That(async () => await _handler.Handle(command, CancellationToken.None),
-            Throws.TypeOf<ScriptGenerationException>());
+        Assert.ThrowsAsync<ScriptGenerationException>(async () => await _handler.Handle(command, CancellationToken.None));
     }
 
 }

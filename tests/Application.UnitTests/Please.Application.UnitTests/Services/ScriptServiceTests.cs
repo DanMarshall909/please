@@ -1,4 +1,4 @@
-using NUnit.Framework;
+using TUnit;
 using Please.TestUtilities;
 using Please.Application.Services;
 using Please.Domain.Common;
@@ -21,15 +21,9 @@ public class ScriptServiceTests
     [SetUp]
     public void SetUp()
     {
-        _generator = new FakeScriptGenerator();
-        _repository = new FakeScriptRepository();
-
-        var services = new ServiceCollection();
-        services.AddApplication();
-        services.AddTransient<IScriptGenerator>(_ => _generator);
-        services.AddTransient<IScriptRepository>(_ => _repository);
-
-        _provider = services.BuildServiceProvider();
+        _provider = TestSystem.Create();
+        _generator = _provider.GetRequiredService<FakeScriptGenerator>();
+        _repository = _provider.GetRequiredService<FakeScriptRepository>();
         _service = _provider.GetRequiredService<IScriptService>();
     }
 
@@ -41,8 +35,8 @@ public class ScriptServiceTests
 
         var result = await _service.GenerateScriptAsync(request);
 
-        Assert.That(result.IsFailure, Is.True);
-        Assert.That(result.Error, Is.EqualTo("nope"));
+        Assert.True(result.IsFailure);
+        Assert.Equal("nope", result.Error);
     }
 
     [Test]
@@ -54,8 +48,8 @@ public class ScriptServiceTests
 
         var result = await _service.GenerateScriptAsync(request);
 
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.Value, Is.EqualTo(response));
+        Assert.True(result.IsSuccess);
+        Assert.Equal(response, result.Value);
     }
 
     [Test]
@@ -68,7 +62,7 @@ public class ScriptServiceTests
 
         var result = await _service.GenerateScriptAsync(request);
 
-        Assert.That(result.IsFailure, Is.True);
-        Assert.That(result.Error, Does.Contain("db error"));
+        Assert.True(result.IsFailure);
+        Assert.Contains("db error", result.Error);
     }
 }
