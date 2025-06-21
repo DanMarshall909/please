@@ -28,6 +28,10 @@ func NewLocalizationManager(configDir string) (*LocalizationManager, error) {
 		mgr.config.Messages = cfg.Messages
 		mgr.config.Themes = cfg.Themes
 		mgr.fallback = cfg
+	} else if cfg, err := LoadFromFile(filepath.Join(configDir, "..", "themes", "en-us.json")); err == nil {
+		mgr.config.Messages = cfg.Messages
+		mgr.config.Themes = cfg.Themes
+		mgr.fallback = cfg
 	} else {
 		mgr.fallback = mgr.config
 		mgr.config.Themes = types.Theme{Colors: map[string]string{"primary": "#00ff41"}}
