@@ -42,3 +42,33 @@ desktop.ini
 # Temporary files
 *.tmp
 *.temp
+
+# C# project files
+*.csproj
+*.sln
+*.csproj.user
+*.suo
+*.user
+*.sln.docstates
+
+# Build directories
+bin/
+obj/
+
+# Rider files
+.idea/
+*.sln.iml
+*.DotSettings.user
+
+# Coverage and test output
+coverage/
+ui/coverage/
+script_coverage/
+models_coverage/
+
+# Ignore test results and temp files in tests/
+tests/**/*.tmp
+tests/**/*.log
+tests/**/*.out
+
+
