@@ -5,7 +5,7 @@ namespace Please.Domain.Entities;
 /// <summary>
 /// Represents the response from script generation
 /// </summary>
-public record ScriptResponse
+public partial record ScriptResponse
 {
     public required string Script { get; init; }
     public required string TaskDescription { get; init; }
@@ -14,15 +14,15 @@ public record ScriptResponse
     public required ScriptType ScriptType { get; init; }
     public DateTime GeneratedAt { get; init; } = DateTime.UtcNow;
     public RiskLevel RiskLevel { get; init; }
-    public List<string> Warnings { get; init; } = new();
-    public List<string> SafetyNotes { get; init; } = new();
+    public List<Warning> Warnings { get; init; } = [];
+    public List<SafetyNote> SafetyNotes { get; init; } = [];
     public string? Explanation { get; init; }
-    public Dictionary<string, object> Metadata { get; init; } = new();
+    public Dictionary<string, object> Metadata { get; init; } = [];
 
     /// <summary>
     /// Determines if the script requires user confirmation before execution
     /// </summary>
-    public bool RequiresConfirmation => RiskLevel >= RiskLevel.Medium || Warnings.Any();
+    public bool RequiresConfirmation => RiskLevel >= RiskLevel.Medium || Warnings.Count != 0;
 
     /// <summary>
     /// Checks if the script contains potentially dangerous operations
@@ -39,29 +39,29 @@ public record ScriptResponse
         string model,
         ScriptType scriptType,
         RiskLevel riskLevel = RiskLevel.Low) => new()
-    {
-        Script = script,
-        TaskDescription = taskDescription,
-        Provider = provider,
-        Model = model,
-        ScriptType = scriptType,
-        RiskLevel = riskLevel
-    };
+        {
+            Script = script,
+            TaskDescription = taskDescription,
+            Provider = provider,
+            Model = model,
+            ScriptType = scriptType,
+            RiskLevel = riskLevel
+        };
 
     /// <summary>
     /// Adds a warning to the response
     /// </summary>
-    public ScriptResponse WithWarning(string warning) => this with
+    public ScriptResponse WithWarning(Warning warning) => this with
     {
-        Warnings = Warnings.Concat(new[] { warning }).ToList()
+        Warnings = [.. Warnings, warning]
     };
 
     /// <summary>
     /// Adds a safety note to the response
     /// </summary>
-    public ScriptResponse WithSafetyNote(string note) => this with
+    public ScriptResponse WithSafetyNote(SafetyNote note) => this with
     {
-        SafetyNotes = SafetyNotes.Concat(new[] { note }).ToList()
+        SafetyNotes = [.. SafetyNotes, note]
     };
 
     /// <summary>
@@ -71,4 +71,9 @@ public record ScriptResponse
     {
         RiskLevel = riskLevel
     };
+}
+
+public interface IMessage
+{
+    string Message { get; }
 }

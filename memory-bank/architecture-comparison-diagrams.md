@@ -42,10 +42,10 @@ graph TD
     D3 --> D3A[types/types.go<br/>Core Types]
     D3 --> D3B[types/localization.go<br/>Localization Types]
     
-    style A fill:#ff9999
-    style B fill:#99ccff
-    style C fill:#99ff99
-    style D fill:#ffcc99
+    style A fill:#ff9999;color:black
+    style B fill:#99ccff;color:black
+    style C fill:#99ff99;color:black
+    style D fill:#ffcc99;color:black
 ```
 
 ## C# Clean Architecture (New Implementation)
@@ -104,9 +104,9 @@ graph TD
     D3 --> D3B[Logging Service<br/>Observability]
     
     style A fill:#ff9999
-    style B fill:#99ccff
-    style C fill:#99ff99
-    style D fill:#ffcc99
+    style B fill:#99ccff;color:black
+    style C fill:#99ff99;color:black
+    style D fill:#ffcc99;color:black
 ```
 
 ## Testing Architecture Comparison
@@ -126,10 +126,10 @@ graph TD
     D --> D1[*_bdd_test.go files<br/>Behavior-driven tests]
     D --> D2[Plain English test names<br/>Business scenarios]
     
-    style A fill:#ffcc99
-    style B fill:#99ccff
-    style C fill:#99ff99
-    style D fill:#ff9999
+    style A fill:#ffcc99;color:black
+    style B fill:#99ccff;color:black
+    style C fill:#99ff99;color:black
+    style D fill:#ff9999;color:black
 ```
 
 ### C# Testing Structure
@@ -152,11 +152,11 @@ graph TD
     C1 --> C1A[Outside-in Tests<br/>Real Dependencies]
     C1 --> C1B[End-to-end Scenarios<br/>Full Integration]
     
-    style A fill:#ffcc99
-    style B fill:#99ccff
-    style C fill:#99ff99
+    style A fill:#ffcc99;color:black
+    style B fill:#99ccff;color:black
+    style C fill:#99ff99;color:black
 ```
-
+;color:black
 ## Migration Mapping
 
 ### Data Flow Transformation
@@ -190,12 +190,12 @@ graph LR
     
     style G1 fill:#ff9999
     style G3 fill:#99ff99
-    style G5 fill:#99ccff
-    style C1 fill:#ff9999
-    style C3 fill:#99ff99
-    style C5 fill:#99ccff
+    style G5 fill:#99ccff;color:black
+    style C1 fill:#ff9999;color:black
+    style C3 fill:#99ff99;color:black
+    style C5 fill:#99ccff;color:black
 ```
-
+;color:black
 ## Key Architectural Differences
 
 | Aspect | Go Implementation | C# Implementation |
