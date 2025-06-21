@@ -14,7 +14,7 @@ public class DomainExceptionTests
     }
 
     [Test]
-    public void unsupported_model_message_references_the_provider_and_model()
+    public void unsupported_model_message_references_provider_and_model()
     {
         var ex = new UnsupportedModelException("p", "m");
         Assert.That(ex.Message, Is.EqualTo("Model 'm' is not supported by provider 'p'"));

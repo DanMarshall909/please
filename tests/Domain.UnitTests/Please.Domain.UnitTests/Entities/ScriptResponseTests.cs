@@ -8,7 +8,7 @@ namespace Please.Domain.UnitTests.Entities;
 public class ScriptResponseTests
 {
     [Test]
-    public void RequiresConfirmation_WhenRiskLevelMedium_ShouldReturnTrue()
+    public void requires_confirmation_is_true_when_risk_level_is_medium()
     {
         // Arrange
         var response = ScriptResponse.Create(
@@ -28,7 +28,7 @@ public class ScriptResponseTests
     }
 
     [Test]
-    public void RequiresConfirmation_WhenHasWarnings_ShouldReturnTrue()
+    public void requires_confirmation_is_true_when_response_has_warnings()
     {
         // Arrange
         var response = ScriptResponse.Create(
@@ -48,7 +48,7 @@ public class ScriptResponseTests
     }
 
     [Test]
-    public void RequiresConfirmation_WhenLowRiskNoWarnings_ShouldReturnFalse()
+    public void requires_confirmation_is_false_when_low_risk_and_no_warnings()
     {
         // Arrange
         var response = ScriptResponse.Create(
@@ -68,7 +68,7 @@ public class ScriptResponseTests
     }
 
     [Test]
-    public void IsDangerous_WhenRiskLevelHigh_ShouldReturnTrue()
+    public void is_dangerous_is_true_when_risk_level_is_high()
     {
         // Arrange
         var response = ScriptResponse.Create(
@@ -88,7 +88,7 @@ public class ScriptResponseTests
     }
 
     [Test]
-    public void WithWarning_ShouldAddWarningToList()
+    public void with_warning_adds_warning_to_list()
     {
         // Arrange
         var response = ScriptResponse.Create(
@@ -108,7 +108,7 @@ public class ScriptResponseTests
     }
 
     [Test]
-    public void WithSafetyNote_ShouldAddNoteToList()
+    public void with_safety_note_adds_note_to_list()
     {
         // Arrange
         var response = ScriptResponse.Create(

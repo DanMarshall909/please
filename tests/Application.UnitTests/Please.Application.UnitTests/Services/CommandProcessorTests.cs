@@ -6,6 +6,8 @@ using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
 using Please.Domain.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
+using Please.Application;
 
 namespace Please.Application.UnitTests.Services;
 
@@ -14,6 +16,7 @@ public class CommandProcessorTests
 {
     private FakeContextService _context = null!;
     private FakeScriptGenerator _generator = null!;
+    private IServiceProvider _provider = null!;
     private CommandProcessor _processor = null!;
 
     [SetUp]
@@ -21,7 +24,14 @@ public class CommandProcessorTests
     {
         _context = new FakeContextService();
         _generator = new FakeScriptGenerator();
-        _processor = new CommandProcessor(_context, _generator);
+
+        var services = new ServiceCollection();
+        services.AddApplication();
+        services.AddTransient<IContextService>(_ => _context);
+        services.AddTransient<IScriptGenerator>(_ => _generator);
+
+        _provider = services.BuildServiceProvider();
+        _processor = _provider.GetRequiredService<CommandProcessor>();
     }
 
     [Test]

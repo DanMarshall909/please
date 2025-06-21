@@ -16,6 +16,10 @@ public static class DependencyInjection
         // Register MediatR with all handlers from this assembly
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
+        // Register core application services
+        services.AddTransient<IScriptService, ScriptService>();
+        services.AddTransient<CommandProcessor>();
+
         return services;
     }
 }

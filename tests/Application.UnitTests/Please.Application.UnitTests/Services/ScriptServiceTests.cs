@@ -5,6 +5,8 @@ using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
 using Please.Domain.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
+using Please.Application;
 
 namespace Please.Application.UnitTests.Services;
 
@@ -13,14 +15,22 @@ public class ScriptServiceTests
 {
     private FakeScriptGenerator _generator = null!;
     private FakeScriptRepository _repository = null!;
-    private ScriptService _service = null!;
+    private IServiceProvider _provider = null!;
+    private IScriptService _service = null!;
 
     [SetUp]
     public void SetUp()
     {
         _generator = new FakeScriptGenerator();
         _repository = new FakeScriptRepository();
-        _service = new ScriptService(_generator, _repository);
+
+        var services = new ServiceCollection();
+        services.AddApplication();
+        services.AddTransient<IScriptGenerator>(_ => _generator);
+        services.AddTransient<IScriptRepository>(_ => _repository);
+
+        _provider = services.BuildServiceProvider();
+        _service = _provider.GetRequiredService<IScriptService>();
     }
 
     [Test]

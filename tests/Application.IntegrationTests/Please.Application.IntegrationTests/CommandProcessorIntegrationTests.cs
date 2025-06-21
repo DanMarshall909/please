@@ -4,6 +4,8 @@ using Please.TestUtilities;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
 using Please.Domain.Common;
+using Microsoft.Extensions.DependencyInjection;
+using Please.Application;
 
 namespace Please.Application.IntegrationTests;
 
@@ -19,7 +21,14 @@ public class CommandProcessorIntegrationTests
             NextResult = Result<ScriptResponse>.Success(
                 ScriptResponse.Create("ls", "list", ProviderType.OpenAI, "gpt-4", ScriptType.Bash))
         };
-        var processor = new CommandProcessor(context, generator);
+
+        var services = new ServiceCollection();
+        services.AddApplication();
+        services.AddTransient<IContextService>(_ => context);
+        services.AddTransient<IScriptGenerator>(_ => generator);
+
+        var provider = services.BuildServiceProvider();
+        var processor = provider.GetRequiredService<CommandProcessor>();
 
         var result = await processor.ProcessAsync("list");
 
