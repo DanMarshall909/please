@@ -42,3 +42,9 @@ desktop.ini
 # Temporary files
 *.tmp
 *.temp
+
+# .NET build artifacts
+**/bin/
+**/obj/
+TestResults/
+coverage-report/
