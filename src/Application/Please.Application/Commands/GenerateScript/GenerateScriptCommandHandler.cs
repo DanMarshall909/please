@@ -1,6 +1,7 @@
 using MediatR;
 using Please.Domain.Entities;
 using Please.Domain.Interfaces;
+using Please.Domain.Exceptions;
 
 namespace Please.Application.Commands.GenerateScript;
 
@@ -34,11 +35,14 @@ public class GenerateScriptCommandHandler : IRequestHandler<GenerateScriptComman
         };
 
         // Generate script using AI provider
-        var response = await _scriptGenerator.GenerateScriptAsync(scriptRequest, cancellationToken);
+        var result = await _scriptGenerator.GenerateScriptAsync(scriptRequest, cancellationToken);
 
-        // Save to repository for history
-        await _scriptRepository.SaveScriptAsync(response, cancellationToken);
+        if (result.IsSuccess)
+        {
+            _ = await _scriptRepository.SaveScriptAsync(result.Value!, cancellationToken);
+            return result.Value!;
+        }
 
-        return response;
+        throw new ScriptGenerationException(result.Error);
     }
 }

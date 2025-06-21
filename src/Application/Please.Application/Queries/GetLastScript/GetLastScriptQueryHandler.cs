@@ -18,6 +18,7 @@ public class GetLastScriptQueryHandler : IRequestHandler<GetLastScriptQuery, Scr
 
     public async Task<ScriptResponse?> Handle(GetLastScriptQuery request, CancellationToken cancellationToken)
     {
-        return await _scriptRepository.GetLastScriptAsync(cancellationToken);
+        var result = await _scriptRepository.GetLastScriptAsync(cancellationToken);
+        return result.Value;
     }
 }

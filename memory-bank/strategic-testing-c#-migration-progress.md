@@ -10,6 +10,7 @@ Implement the minimal set of high-value tests that enable confident refactoring 
 - ✅ **Application Layer**: Complete with CQRS pattern (commands, queries, handlers)
 - ✅ **Project Structure**: Proper dependency direction, no circular references
 - ✅ **Build Verification**: Both Domain and Application layers compile successfully
+- ✅ Result pattern and strongly typed IDs implemented with unit tests
 
 ### 2. Strategic Domain Tests (9 tests passing)
 **File**: `tests/Domain.UnitTests/Please.Domain.UnitTests/Entities/ScriptRequestTests.cs`
@@ -59,6 +60,7 @@ tests/Application.UnitTests/Please.Application.UnitTests/Queries/GetLastScriptQu
 - Update `src/Presentation/Please.Console/Program.cs` with dependency injection
 - Basic command parsing and MediatR integration
 - Error handling and user interaction
+- **No unit tests**: the presentation layer is not covered by automated tests
 
 ### 4. Migration Strategy (Priority 4)
 **Incremental migration approach**:

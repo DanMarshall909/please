@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using Moq;
 using Please.Application.Commands.GenerateScript;
+using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
 using Please.Domain.Interfaces;
@@ -38,11 +39,11 @@ public class GenerateScriptCommandHandlerTests
 
         _mockScriptGenerator
             .Setup(x => x.GenerateScriptAsync(It.IsAny<ScriptRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedResponse);
+            .ReturnsAsync(Result<ScriptResponse>.Success(expectedResponse));
 
         _mockScriptRepository
             .Setup(x => x.SaveScriptAsync(It.IsAny<ScriptResponse>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(Result.Success());
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -83,7 +84,7 @@ public class GenerateScriptCommandHandlerTests
 
         _mockScriptGenerator
             .Setup(x => x.GenerateScriptAsync(It.IsAny<ScriptRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedResponse);
+            .ReturnsAsync(Result<ScriptResponse>.Success(expectedResponse));
 
         // Act
         await _handler.Handle(command, CancellationToken.None);
