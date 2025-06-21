@@ -241,3 +241,23 @@ Because we believe in polite computing! **Please** is your courteous digital ass
 ---
 
 *Happy scripting with Please! 🎉*
+
+## 🔨 Building the Legacy Go CLI
+
+The Go implementation lives in the `legacy` folder. Use the provided workspace file to build from the repository root or run the build script inside `legacy`.
+
+```bash
+# Build for the current platform from the repository root
+GOOS=$(go env GOOS) GOARCH=$(go env GOARCH) go build -ldflags="-s -w" -o releases/please-$GOOS-$GOARCH ./legacy
+
+# Or run the cross-platform build script
+cd legacy && bash build.sh
+```
+
+All Go packages should compile and their tests should pass:
+
+```bash
+cd legacy && go test ./...
+cd ../ui && go test ./...
+```
+
