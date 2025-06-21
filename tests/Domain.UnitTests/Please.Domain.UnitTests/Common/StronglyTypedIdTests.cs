@@ -9,7 +9,7 @@ namespace Please.Domain.UnitTests.Common;
 public class StronglyTypedIdTests
 {
     [Test]
-    public void Test_strongly_typed_id_converts_to_underlying_value()
+    public void a_strongly_typed_id_converts_to_the_underlying_value()
     {
         var id = ScriptId.From("00000000-0000-0000-0000-000000000001");
         Guid value = id;
@@ -18,7 +18,7 @@ public class StronglyTypedIdTests
     }
 
     [Test]
-    public void Test_script_id_new_creates_unique_identifier()
+    public void script_id_new_creates_a_unique_identifier()
     {
         var id1 = ScriptId.New();
         var id2 = ScriptId.New();
@@ -27,7 +27,7 @@ public class StronglyTypedIdTests
     }
 
     [Test]
-    public void Test_provider_id_static_values_are_expected()
+    public void provider_id_static_values_are_as_expected()
     {
         Assert.That(ProviderId.OpenAI.Value, Is.EqualTo("openai"));
         Assert.That(ProviderId.Anthropic.Value, Is.EqualTo("anthropic"));
