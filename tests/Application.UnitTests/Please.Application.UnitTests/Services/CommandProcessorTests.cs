@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using Moq;
+using Please.TestUtilities;
 using Please.Application.Services;
 using Please.Domain.Commands;
 using Please.Domain.Common;
@@ -12,23 +12,22 @@ namespace Please.Application.UnitTests.Services;
 [TestFixture]
 public class CommandProcessorTests
 {
-    private Mock<IContextService> _context = null!;
-    private Mock<IScriptGenerator> _generator = null!;
+    private FakeContextService _context = null!;
+    private FakeScriptGenerator _generator = null!;
     private CommandProcessor _processor = null!;
 
     [SetUp]
     public void SetUp()
     {
-        _context = new Mock<IContextService>();
-        _generator = new Mock<IScriptGenerator>();
-        _processor = new CommandProcessor(_context.Object, _generator.Object);
+        _context = new FakeContextService();
+        _generator = new FakeScriptGenerator();
+        _processor = new CommandProcessor(_context, _generator);
     }
 
     [Test]
     public async Task process_async_returns_failure_when_context_service_fails()
     {
-        _context.Setup(c => c.GetContextAsync(It.IsAny<CommandIntent>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<CommandContext>.Failure("no context"));
+        _context.ContextResult = Result<CommandContext>.Failure("no context");
 
         var result = await _processor.ProcessAsync("list files");
 
@@ -39,11 +38,9 @@ public class CommandProcessorTests
     [Test]
     public async Task process_async_invokes_generator_when_context_available()
     {
-        _context.Setup(c => c.GetContextAsync(It.IsAny<CommandIntent>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<CommandContext>.Success(new CommandContext("/tmp")));
+        _context.ContextResult = Result<CommandContext>.Success(new CommandContext("/tmp"));
         var expected = ScriptResponse.Create("ls", "list", ProviderType.OpenAI, "gpt-4", ScriptType.Bash);
-        _generator.Setup(g => g.GenerateScriptAsync(It.IsAny<ScriptRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<ScriptResponse>.Success(expected));
+        _generator.NextResult = Result<ScriptResponse>.Success(expected);
 
         var result = await _processor.ProcessAsync("list");
 

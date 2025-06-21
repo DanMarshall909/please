@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using Moq;
+using Please.TestUtilities;
 using Please.Application.Commands.GenerateScript;
 using Please.Domain.Common;
 using Please.Domain.Entities;
@@ -12,16 +12,16 @@ namespace Please.Application.UnitTests.Commands;
 [TestFixture]
 public class GenerateScriptCommandHandlerTests
 {
-    private Mock<IScriptGenerator> _mockScriptGenerator;
-    private Mock<IScriptRepository> _mockScriptRepository;
-    private GenerateScriptCommandHandler _handler;
+    private FakeScriptGenerator _scriptGenerator = null!;
+    private FakeScriptRepository _scriptRepository = null!;
+    private GenerateScriptCommandHandler _handler = null!;
 
     [SetUp]
     public void SetUp()
     {
-        _mockScriptGenerator = new Mock<IScriptGenerator>();
-        _mockScriptRepository = new Mock<IScriptRepository>();
-        _handler = new GenerateScriptCommandHandler(_mockScriptGenerator.Object, _mockScriptRepository.Object);
+        _scriptGenerator = new FakeScriptGenerator();
+        _scriptRepository = new FakeScriptRepository();
+        _handler = new GenerateScriptCommandHandler(_scriptGenerator, _scriptRepository);
     }
 
     [Test]
@@ -38,36 +38,17 @@ public class GenerateScriptCommandHandlerTests
             RiskLevel.High
         );
 
-        _mockScriptGenerator
-            .Setup(x => x.GenerateScriptAsync(It.IsAny<ScriptRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<ScriptResponse>.Success(expectedResponse));
-
-        _mockScriptRepository
-            .Setup(x => x.SaveScriptAsync(It.IsAny<ScriptResponse>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Success());
+        _scriptGenerator.NextResult = Result<ScriptResponse>.Success(expectedResponse);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
         // Assert
         Assert.That(result, Is.EqualTo(expectedResponse));
-        
-        _mockScriptGenerator.Verify(
-            x => x.GenerateScriptAsync(
-                It.Is<ScriptRequest>(r => 
-                    r.TaskDescription == command.TaskDescription && 
-                    r.Provider == command.Provider &&
-                    r.Model == command.Model
-                ), 
-                It.IsAny<CancellationToken>()
-            ), 
-            Times.Once
-        );
-        
-        _mockScriptRepository.Verify(
-            x => x.SaveScriptAsync(expectedResponse, It.IsAny<CancellationToken>()), 
-            Times.Once
-        );
+        Assert.That(_scriptGenerator.LastRequest?.TaskDescription, Is.EqualTo(command.TaskDescription));
+        Assert.That(_scriptGenerator.LastRequest?.Provider, Is.EqualTo(command.Provider));
+        Assert.That(_scriptGenerator.LastRequest?.Model, Is.EqualTo(command.Model));
+        Assert.That(_scriptRepository.Scripts, Has.Exactly(1).EqualTo(expectedResponse));
     }
 
     [Test]
@@ -83,32 +64,20 @@ public class GenerateScriptCommandHandlerTests
             ScriptType.Bash
         );
 
-        _mockScriptGenerator
-            .Setup(x => x.GenerateScriptAsync(It.IsAny<ScriptRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<ScriptResponse>.Success(expectedResponse));
+        _scriptGenerator.NextResult = Result<ScriptResponse>.Success(expectedResponse);
 
         // Act
         await _handler.Handle(command, CancellationToken.None);
 
         // Assert
-        _mockScriptGenerator.Verify(
-            x => x.GenerateScriptAsync(
-                It.Is<ScriptRequest>(r => 
-                    r.WorkingDirectory == Environment.CurrentDirectory
-                ), 
-                It.IsAny<CancellationToken>()
-            ), 
-            Times.Once
-        );
+        Assert.That(_scriptGenerator.LastRequest?.WorkingDirectory, Is.EqualTo(Environment.CurrentDirectory));
     }
 
     [Test]
     public void Handle_WhenGenerationFails_ThrowsScriptGenerationException()
     {
         var command = GenerateScriptCommand.Create("fail");
-        _mockScriptGenerator
-            .Setup(x => x.GenerateScriptAsync(It.IsAny<ScriptRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<ScriptResponse>.Failure("bad"));
+        _scriptGenerator.NextResult = Result<ScriptResponse>.Failure("bad");
 
         Assert.That(async () => await _handler.Handle(command, CancellationToken.None),
             Throws.TypeOf<ScriptGenerationException>());

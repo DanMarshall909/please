@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using Moq;
+using Please.TestUtilities;
 using Please.Application.Services;
 using Please.Domain.Common;
 using Please.Domain.Entities;
@@ -11,24 +11,23 @@ namespace Please.Application.UnitTests.Services;
 [TestFixture]
 public class ScriptServiceTests
 {
-    private Mock<IScriptGenerator> _generator = null!;
-    private Mock<IScriptRepository> _repository = null!;
+    private FakeScriptGenerator _generator = null!;
+    private FakeScriptRepository _repository = null!;
     private ScriptService _service = null!;
 
     [SetUp]
     public void SetUp()
     {
-        _generator = new Mock<IScriptGenerator>();
-        _repository = new Mock<IScriptRepository>();
-        _service = new ScriptService(_generator.Object, _repository.Object);
+        _generator = new FakeScriptGenerator();
+        _repository = new FakeScriptRepository();
+        _service = new ScriptService(_generator, _repository);
     }
 
     [Test]
     public async Task generate_script_returns_failure_when_generation_fails()
     {
         var request = ScriptRequest.Create("test");
-        _generator.Setup(g => g.GenerateScriptAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<ScriptResponse>.Failure("nope"));
+        _generator.NextResult = Result<ScriptResponse>.Failure("nope");
 
         var result = await _service.GenerateScriptAsync(request);
 
@@ -41,10 +40,7 @@ public class ScriptServiceTests
     {
         var request = ScriptRequest.Create("task");
         var response = ScriptResponse.Create("echo hi", "task", ProviderType.OpenAI, "gpt-4", ScriptType.Bash);
-        _generator.Setup(g => g.GenerateScriptAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<ScriptResponse>.Success(response));
-        _repository.Setup(r => r.SaveScriptAsync(response, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Success());
+        _generator.NextResult = Result<ScriptResponse>.Success(response);
 
         var result = await _service.GenerateScriptAsync(request);
 
@@ -57,10 +53,8 @@ public class ScriptServiceTests
     {
         var request = ScriptRequest.Create("task");
         var response = ScriptResponse.Create("script", "task", ProviderType.OpenAI, "gpt-4", ScriptType.Bash);
-        _generator.Setup(g => g.GenerateScriptAsync(request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<ScriptResponse>.Success(response));
-        _repository.Setup(r => r.SaveScriptAsync(response, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Failure("db error"));
+        _generator.NextResult = Result<ScriptResponse>.Success(response);
+        _repository.NextSaveResult = Result.Failure("db error");
 
         var result = await _service.GenerateScriptAsync(request);
 
