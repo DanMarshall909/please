@@ -62,6 +62,7 @@ obj/
 
 # Coverage and test output
 coverage/
+coverage_artifacts/
 ui/coverage/
 script_coverage/
 models_coverage/
