@@ -29,6 +29,8 @@ public partial record ScriptResponse
     /// </summary>
     public bool IsDangerous => RiskLevel >= RiskLevel.High;
 
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
     /// <summary>
     /// Creates a successful script response
     /// </summary>
@@ -38,14 +40,16 @@ public partial record ScriptResponse
         ProviderType provider,
         string model,
         ScriptType scriptType,
-        RiskLevel riskLevel = RiskLevel.Low) => new()
+        RiskLevel riskLevel = RiskLevel.Low,
+        DateTime? createdAt = null) => new()
         {
             Script = script,
             TaskDescription = taskDescription,
             Provider = provider,
             Model = model,
             ScriptType = scriptType,
-            RiskLevel = riskLevel
+            RiskLevel = riskLevel,
+            CreatedAt = createdAt ?? DateTime.UtcNow
         };
 
     /// <summary>

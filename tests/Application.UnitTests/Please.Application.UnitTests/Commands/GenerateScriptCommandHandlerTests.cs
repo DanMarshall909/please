@@ -4,7 +4,6 @@ using Please.Application.Commands.GenerateScript;
 using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
-using Please.Domain.Interfaces;
 using Please.Domain.Exceptions;
 
 namespace Please.Application.UnitTests.Commands;

@@ -1,13 +1,13 @@
-using TUnit;
+using Shouldly;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
+using Xunit;
 
 namespace Please.Domain.UnitTests.Entities;
 
-[TestFixture]
 public class ScriptRequestTests
 {
-    [Test]
+    [Fact]
     public void script_request_created_with_task_description_sets_required_properties()
     {
         // Arrange
@@ -17,13 +17,13 @@ public class ScriptRequestTests
         var request = ScriptRequest.Create(taskDescription);
 
         // Assert
-        Assert.Equal(taskDescription, request.TaskDescription);
-        Assert.True(Math.Abs((request.RequestTime - DateTime.UtcNow).TotalSeconds) <= 1);
-        Assert.True(request.AdditionalParameters != null);
-        Assert.True(request.AdditionalParameters.Count == 0);
+        request.TaskDescription.ShouldBe(taskDescription);
+        (Math.Abs((request.RequestTime - DateTime.UtcNow).TotalSeconds) <= 1).ShouldBeTrue();
+        request.AdditionalParameters.ShouldNotBeNull();
+        request.AdditionalParameters.Count.ShouldBe(0);
     }
 
-    [Test]
+    [Fact]
     public void script_request_created_with_provider_and_model_sets_all_properties()
     {
         // Arrange
@@ -35,12 +35,12 @@ public class ScriptRequestTests
         var request = ScriptRequest.Create(taskDescription, provider, model);
 
         // Assert
-        Assert.Equal(taskDescription, request.TaskDescription);
-        Assert.Equal(provider, request.Provider);
-        Assert.Equal(model, request.Model);
+        request.TaskDescription.ShouldBe(taskDescription);
+        request.Provider.ShouldBe(provider);
+        request.Model.ShouldBe(model);
     }
 
-    [Test]
+    [Fact]
     public void script_request_with_working_directory_preserves_value()
     {
         // Arrange
@@ -54,6 +54,6 @@ public class ScriptRequestTests
         };
 
         // Assert
-        Assert.Equal(workingDir, request.WorkingDirectory);
+        request.WorkingDirectory.ShouldBe(workingDir);
     }
 }

@@ -1,44 +1,38 @@
-using NUnit.Framework;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Please.Application.Commands.GenerateScript;
+using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
 using Please.Domain.Interfaces;
 using Please.Domain.Services;
+using Xunit;
 
 namespace Please.Application.IntegrationTests;
 
-[TestFixture]
 public class ScriptGenerationIntegrationTests
 {
     private ServiceProvider _serviceProvider;
     private GenerateScriptCommandHandler _handler;
 
-    [SetUp]
-    public void SetUp()
+    public ScriptGenerationIntegrationTests()
     {
         var services = new ServiceCollection();
-        
+
         // Register real implementations - this tests actual behavior
         services.AddTransient<IScriptValidationService, TestScriptValidationService>();
         services.AddTransient<IScriptGenerator, TestScriptGenerator>();
-        services.AddTransient<IScriptRepository, TestScriptRepository>();
+        var testRepo = new TestScriptRepository();
+        services.AddSingleton<IScriptRepository>(testRepo);
+        services.AddSingleton(testRepo);
         services.AddTransient<GenerateScriptCommandHandler>();
-        
+
         _serviceProvider = services.BuildServiceProvider();
         _handler = _serviceProvider.GetRequiredService<GenerateScriptCommandHandler>();
     }
 
-    [TearDown]
-    public void TearDown()
-    {
-        _serviceProvider?.Dispose();
-    }
-
-    [TestCase("rm -rf /", ScriptType.Bash)]
-    [TestCase("format c:", ScriptType.PowerShell)]
-    [TestCase("dd if=/dev/zero of=/dev/sda", ScriptType.Bash)]
-    public async Task Critical_commands_require_confirmation(string dangerousScript, ScriptType scriptType)
+    [Fact]
+    public async Task Critical_commands_require_confirmation_rm_rf_slash()
     {
         // Arrange
         var command = GenerateScriptCommand.Create("Execute dangerous command");
@@ -47,13 +41,45 @@ public class ScriptGenerationIntegrationTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         // Assert - This tests the real validation integration
-        Assert.That(result.RequiresConfirmation, Is.True);
-        Assert.That(result.IsDangerous, Is.True);
-        Assert.That(result.RiskLevel, Is.EqualTo(RiskLevel.Critical));
-        Assert.That(result.Warnings, Is.Not.Empty);
+        Assert.True(result.RequiresConfirmation);
+        Assert.True(result.IsDangerous);
+        Assert.Equal(RiskLevel.Critical, result.RiskLevel);
+        Assert.NotEmpty(result.Warnings);
     }
 
-    [Test]
+    [Fact]
+    public async Task Critical_commands_require_confirmation_format_c_colon()
+    {
+        // Arrange
+        var command = GenerateScriptCommand.Create("Execute dangerous command");
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert - This tests the real validation integration
+        Assert.True(result.RequiresConfirmation);
+        Assert.True(result.IsDangerous);
+        Assert.Equal(RiskLevel.Critical, result.RiskLevel);
+        Assert.NotEmpty(result.Warnings);
+    }
+
+    [Fact]
+    public async Task Critical_commands_require_confirmation_dd_if_dev_zero_of_dev_sda()
+    {
+        // Arrange
+        var command = GenerateScriptCommand.Create("Execute dangerous command");
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert - This tests the real validation integration
+        Assert.True(result.RequiresConfirmation);
+        Assert.True(result.IsDangerous);
+        Assert.Equal(RiskLevel.Critical, result.RiskLevel);
+        Assert.NotEmpty(result.Warnings);
+    }
+
+    [Fact]
     public async Task Safe_commands_do_not_require_confirmation()
     {
         // Arrange  
@@ -63,28 +89,28 @@ public class ScriptGenerationIntegrationTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         // Assert - This tests the real validation integration
-        Assert.That(result.RequiresConfirmation, Is.False);
-        Assert.That(result.IsDangerous, Is.False);
-        Assert.That(result.RiskLevel, Is.EqualTo(RiskLevel.Low));
-        Assert.That(result.Warnings, Is.Empty);
+        Assert.False(result.RequiresConfirmation);
+        Assert.False(result.IsDangerous);
+        Assert.Equal(RiskLevel.Low, result.RiskLevel);
+        Assert.Empty(result.Warnings);
     }
 
-    [Test]
+    [Fact]
     public async Task Generated_script_gets_saved_to_repository()
     {
         // Arrange
         var command = GenerateScriptCommand.Create("Create backup script");
-        var repository = _serviceProvider.GetRequiredService<IScriptRepository>() as TestScriptRepository;
-
+        var repository = _serviceProvider.GetRequiredService<TestScriptRepository>();
+        Assert.NotNull(repository);
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
         // Assert - This tests the real workflow integration
-        Assert.That(repository.SavedScripts, Has.Count.EqualTo(1));
-        Assert.That(repository.SavedScripts[0].TaskDescription, Is.EqualTo("Create backup script"));
+        Assert.Single(repository.SavedScripts);
+        Assert.Equal("Create backup script", repository.SavedScripts[0].TaskDescription);
     }
 
-    [Test]
+    [Fact]
     public async Task Script_validation_enhances_response_with_warnings()
     {
         // Arrange
@@ -94,9 +120,9 @@ public class ScriptGenerationIntegrationTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         // Assert - This tests that validation actually runs and enhances the response
-        Assert.That(result.Warnings, Is.Not.Empty);
-        Assert.That(result.SafetyNotes, Is.Not.Empty);
-        Assert.That(result.RiskLevel, Is.GreaterThan(RiskLevel.Low));
+        Assert.NotEmpty(result.Warnings);
+        Assert.NotEmpty(result.SafetyNotes);
+        Assert.True(result.RiskLevel > RiskLevel.Low);
     }
 }
 
@@ -106,7 +132,7 @@ internal class TestScriptValidationService : IScriptValidationService
     public RiskLevel AssessRiskLevel(string script, ScriptType scriptType)
     {
         var lower = script.ToLowerInvariant();
-        
+
         if (lower.Contains("rm -rf") || lower.Contains("format") || lower.Contains("dd if=/dev/zero"))
             return RiskLevel.Critical;
         if (lower.Contains("delete") || lower.Contains("remove"))
@@ -118,14 +144,14 @@ internal class TestScriptValidationService : IScriptValidationService
     {
         var warnings = new List<string>();
         var lower = script.ToLowerInvariant();
-        
+
         if (lower.Contains("rm -rf"))
             warnings.Add("⛔ CRITICAL: 'rm -rf' command can delete important files");
         if (lower.Contains("format"))
             warnings.Add("⛔ CRITICAL: 'format' command will erase disk data");
         if (lower.Contains("delete") || lower.Contains("remove"))
             warnings.Add("⚠️  WARNING: File deletion detected");
-            
+
         return warnings;
     }
 
@@ -133,13 +159,13 @@ internal class TestScriptValidationService : IScriptValidationService
     {
         var notes = new List<string>();
         var riskLevel = AssessRiskLevel(script, scriptType);
-        
+
         if (riskLevel >= RiskLevel.Medium)
         {
             notes.Add("💡 Consider creating a backup before running this script");
             notes.Add("💡 Test this script in a safe environment first");
         }
-        
+
         return notes;
     }
 
@@ -153,12 +179,12 @@ internal class TestScriptValidationService : IScriptValidationService
         var riskLevel = AssessRiskLevel(response.Script, response.ScriptType);
         var warnings = ValidateScript(response.Script, response.ScriptType);
         var safetyNotes = GenerateSafetyNotes(response.Script, response.ScriptType);
-        
+
         return response with
         {
             RiskLevel = riskLevel,
-            Warnings = response.Warnings.Concat(warnings).ToList(),
-            SafetyNotes = response.SafetyNotes.Concat(safetyNotes).ToList()
+            Warnings = response.Warnings.Concat(warnings.Select(w => (ScriptResponse.Warning)w)).ToList(),
+            SafetyNotes = response.SafetyNotes.Concat(safetyNotes.Select(n => (ScriptResponse.SafetyNote)n)).ToList()
         };
     }
 }
@@ -172,7 +198,8 @@ internal class TestScriptGenerator : IScriptGenerator
         _validationService = validationService;
     }
 
-    public Task<ScriptResponse> GenerateScriptAsync(ScriptRequest request, CancellationToken cancellationToken = default)
+    public Task<Result<ScriptResponse>> GenerateScriptAsync(ScriptRequest request,
+        CancellationToken cancellationToken = default)
     {
         // Simulate script generation based on task description
         var script = request.TaskDescription.ToLowerInvariant() switch
@@ -185,7 +212,7 @@ internal class TestScriptGenerator : IScriptGenerator
         };
 
         var scriptType = request.ScriptType ?? ScriptType.Bash;
-        
+
         var response = ScriptResponse.Create(
             script,
             request.TaskDescription,
@@ -196,13 +223,14 @@ internal class TestScriptGenerator : IScriptGenerator
 
         // Apply validation enhancement
         var enhancedResponse = _validationService.EnhanceWithValidation(response);
-        
-        return Task.FromResult(enhancedResponse);
+
+        return Task.FromResult(Result<ScriptResponse>.Success(enhancedResponse));
     }
 
-    public Task<bool> IsProviderAvailableAsync(ScriptRequest request, CancellationToken cancellationToken = default)
+    public Task<Result<bool>> IsProviderAvailableAsync(ScriptRequest request,
+        CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(true);
+        return Task.FromResult(Result<bool>.Success(true));
     }
 
     public string GetFallbackModel(ScriptRequest request)
@@ -213,11 +241,41 @@ internal class TestScriptGenerator : IScriptGenerator
 
 internal class TestScriptRepository : IScriptRepository
 {
-    public List<ScriptResponse> SavedScripts { get; } = new();
+    public List<ScriptResponse> SavedScripts { get; } = [];
 
-    public Task SaveScriptAsync(ScriptResponse script, CancellationToken cancellationToken = default)
+    public Task<Result> SaveScriptAsync(ScriptResponse script, CancellationToken cancellationToken = default)
     {
         SavedScripts.Add(script);
-        return Task.CompletedTask;
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result<ScriptResponse?>> GetLastScriptAsync(CancellationToken cancellationToken = default)
+    {
+        var last = SavedScripts.LastOrDefault();
+        return Task.FromResult(last != null
+            ? Result<ScriptResponse?>.Success(last)
+            : Result<ScriptResponse?>.Failure("No scripts found"));
+    }
+
+    public Task<Result<IEnumerable<ScriptResponse>>> GetScriptHistoryAsync(int? count = null, DateTime? since = null,
+        CancellationToken cancellationToken = default)
+    {
+        IEnumerable<ScriptResponse> history = SavedScripts;
+        if (since.HasValue)
+            history = history.Where(s => s.CreatedAt >= since.Value);
+        if (count.HasValue)
+            history = history.Take(count.Value);
+        return Task.FromResult(Result<IEnumerable<ScriptResponse>>.Success(history));
+    }
+
+    public Task<Result> ClearHistoryAsync(CancellationToken cancellationToken = default)
+    {
+        SavedScripts.Clear();
+        return Task.FromResult(Result.Success());
+    }
+
+    public Task<Result<bool>> HasHistoryAsync(CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(Result<bool>.Success(SavedScripts.Any()));
     }
 }

@@ -1,10 +1,8 @@
 using TUnit;
 using Please.TestUtilities;
 using Please.Application.Queries.GetLastScript;
-using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
-using Please.Domain.Interfaces;
 
 namespace Please.Application.UnitTests.Queries;
 

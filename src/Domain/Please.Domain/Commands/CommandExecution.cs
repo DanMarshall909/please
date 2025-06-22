@@ -1,5 +1,3 @@
-using System;
-
 namespace Please.Domain.Commands;
 
 /// <summary>

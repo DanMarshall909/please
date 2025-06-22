@@ -4,9 +4,7 @@ using Please.Application.Services;
 using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
-using Please.Domain.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
-using Please.Application;
 
 namespace Please.Application.UnitTests.Services;
 
