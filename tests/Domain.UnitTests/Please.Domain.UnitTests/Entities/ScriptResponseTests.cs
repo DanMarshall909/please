@@ -4,7 +4,6 @@ using Please.Domain.Enums;
 
 namespace Please.Domain.UnitTests.Entities;
 
-[TestFixture]
 public class ScriptResponseTests
 {
     [Test]
@@ -38,7 +37,7 @@ public class ScriptResponseTests
             "gpt-4",
             ScriptType.Bash,
             RiskLevel.Low
-        ).WithWarning("This command does nothing useful");
+        ).WithWarning(new ScriptResponse.Warning("This command does nothing useful"));
 
         // Act
         var requiresConfirmation = response.RequiresConfirmation;
@@ -100,10 +99,10 @@ public class ScriptResponseTests
         );
 
         // Act
-        var updatedResponse = response.WithWarning("Test warning");
+        var updatedResponse = response.WithWarning(new ScriptResponse.Warning("Test warning"));
 
         // Assert
-        Assert.True(updatedResponse.Warnings.Contains("Test warning"));
+        Assert.True(updatedResponse.Warnings.Any(w => w.Message == "Test warning"));
         Assert.Equal(1, updatedResponse.Warnings.Count);
     }
 
