@@ -18,5 +18,6 @@
     <ProjectReference Include="../../../src/Application/Please.Application/Please.Application.csproj" />
     <ProjectReference Include="../../../src/Domain/Please.Domain/Please.Domain.csproj" />
     <ProjectReference Include="../../TestUtilities/Please.TestUtilities/Please.TestUtilities.csproj" />
+    <ProjectReference Include="../../../src/Presentation/Please.Console/Please.Console.csproj" />
   </ItemGroup>
 </Project>

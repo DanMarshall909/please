@@ -1,4 +1,4 @@
-using TUnit;
+using Xunit;
 using Please.TestUtilities;
 using Please.Application.Services;
 using Please.Domain.Commands;
@@ -9,16 +9,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Please.Application.UnitTests.Services;
 
-[TestFixture]
 public class CommandProcessorTests
 {
-    private FakeContextService _context = null!;
-    private FakeScriptGenerator _generator = null!;
-    private IServiceProvider _provider = null!;
-    private CommandProcessor _processor = null!;
+    private readonly FakeContextService _context;
+    private readonly FakeScriptGenerator _generator;
+    private readonly IServiceProvider _provider;
+    private readonly CommandProcessor _processor;
 
-    [SetUp]
-    public void SetUp()
+    public CommandProcessorTests()
     {
         _provider = TestSystem.Create();
         _context = _provider.GetRequiredService<FakeContextService>();
@@ -26,7 +24,7 @@ public class CommandProcessorTests
         _processor = _provider.GetRequiredService<CommandProcessor>();
     }
 
-    [Test]
+    [Fact]
     public async Task process_async_returns_failure_when_context_service_fails()
     {
         _context.ContextResult = Result<CommandContext>.Failure("no context");
@@ -37,7 +35,7 @@ public class CommandProcessorTests
         Assert.Equal("no context", result.Error);
     }
 
-    [Test]
+    [Fact]
     public async Task process_async_invokes_generator_when_context_available()
     {
         _context.ContextResult = Result<CommandContext>.Success(new CommandContext("/tmp"));
