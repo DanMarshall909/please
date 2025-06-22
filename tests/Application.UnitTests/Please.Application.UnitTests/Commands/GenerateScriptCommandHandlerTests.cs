@@ -1,4 +1,4 @@
-using TUnit;
+using Xunit;
 using Please.TestUtilities;
 using Please.Application.Commands.GenerateScript;
 using Please.Domain.Common;
@@ -8,22 +8,18 @@ using Please.Domain.Exceptions;
 
 namespace Please.Application.UnitTests.Commands;
 
-[TestFixture]
 public class GenerateScriptCommandHandlerTests
 {
-    private FakeScriptGenerator _scriptGenerator = null!;
-    private FakeScriptRepository _scriptRepository = null!;
-    private GenerateScriptCommandHandler _handler = null!;
+    private readonly FakeScriptGenerator _scriptGenerator = new();
+    private readonly FakeScriptRepository _scriptRepository = new();
+    private readonly GenerateScriptCommandHandler _handler;
 
-    [SetUp]
-    public void SetUp()
+    public GenerateScriptCommandHandlerTests()
     {
-        _scriptGenerator = new FakeScriptGenerator();
-        _scriptRepository = new FakeScriptRepository();
         _handler = new GenerateScriptCommandHandler(_scriptGenerator, _scriptRepository);
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_WithValidCommand_ShouldGenerateAndSaveScript()
     {
         // Arrange
@@ -50,7 +46,7 @@ public class GenerateScriptCommandHandlerTests
         Assert.Equal(1, _scriptRepository.Scripts.Count(s => s == expectedResponse));
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_WithMinimalCommand_ShouldSetWorkingDirectoryToCurrentDirectory()
     {
         // Arrange
@@ -72,7 +68,7 @@ public class GenerateScriptCommandHandlerTests
         Assert.Equal(Environment.CurrentDirectory, _scriptGenerator.LastRequest?.WorkingDirectory);
     }
 
-    [Test]
+    [Fact]
     public void Handle_WhenGenerationFails_ThrowsScriptGenerationException()
     {
         var command = GenerateScriptCommand.Create("fail");

@@ -1,5 +1,6 @@
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using Please.ConsoleHost;
 using Please.Application.Commands.GenerateScript;
 using Please.Domain.Common;
 using Please.Domain.Entities;
@@ -17,17 +18,16 @@ public class ScriptGenerationIntegrationTests
 
     public ScriptGenerationIntegrationTests()
     {
-        var services = new ServiceCollection();
-
-        // Register real implementations - this tests actual behavior
-        services.AddTransient<IScriptValidationService, TestScriptValidationService>();
-        services.AddTransient<IScriptGenerator, TestScriptGenerator>();
-        var testRepo = new TestScriptRepository();
-        services.AddSingleton<IScriptRepository>(testRepo);
-        services.AddSingleton(testRepo);
-        services.AddTransient<GenerateScriptCommandHandler>();
-
-        _serviceProvider = services.BuildServiceProvider();
+        _serviceProvider = PleaseHost.CreateServiceProvider(services =>
+        {
+            // Register real implementations - this tests actual behavior
+            services.AddTransient<IScriptValidationService, TestScriptValidationService>();
+            services.AddTransient<IScriptGenerator, TestScriptGenerator>();
+            var testRepo = new TestScriptRepository();
+            services.AddSingleton<IScriptRepository>(testRepo);
+            services.AddSingleton(testRepo);
+            services.AddTransient<GenerateScriptCommandHandler>();
+        });
         _handler = _serviceProvider.GetRequiredService<GenerateScriptCommandHandler>();
     }
 

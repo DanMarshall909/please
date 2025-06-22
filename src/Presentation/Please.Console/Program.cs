@@ -1,12 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Please.Application;
+using Please.ConsoleHost;
 
-var services = new ServiceCollection();
-services.AddLogging(builder => builder.AddConsole());
-services.AddApplication();
-
-var provider = services.BuildServiceProvider();
+var provider = PleaseHost.CreateServiceProvider();
 
 // Entry point would resolve command handlers here
 var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");

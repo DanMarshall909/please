@@ -1,4 +1,4 @@
-using TUnit;
+using Xunit;
 using Please.TestUtilities;
 using Please.Application.Queries.GetLastScript;
 using Please.Domain.Entities;
@@ -6,20 +6,18 @@ using Please.Domain.Enums;
 
 namespace Please.Application.UnitTests.Queries;
 
-[TestFixture]
 public class GetLastScriptQueryHandlerTests
 {
-    private FakeScriptRepository _repository = null!;
-    private GetLastScriptQueryHandler _handler = null!;
+    private readonly FakeScriptRepository _repository;
+    private readonly GetLastScriptQueryHandler _handler;
 
-    [SetUp]
-    public void SetUp()
+    public GetLastScriptQueryHandlerTests()
     {
         _repository = new FakeScriptRepository();
         _handler = new GetLastScriptQueryHandler(_repository);
     }
 
-    [Test]
+    [Fact]
     public async Task Handle_Returns_last_script_from_repository()
     {
         var expected = ScriptResponse.Create("echo hi", "task", ProviderType.OpenAI, "gpt-4", ScriptType.Bash);

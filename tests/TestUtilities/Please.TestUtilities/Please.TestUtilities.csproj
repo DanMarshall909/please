@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="../../../src/Domain/Please.Domain/Please.Domain.csproj" />
     <ProjectReference Include="../../../src/Application/Please.Application/Please.Application.csproj" />
+    <ProjectReference Include="../../../src/Presentation/Please.Console/Please.Console.csproj" />
   </ItemGroup>
 
   <ItemGroup>

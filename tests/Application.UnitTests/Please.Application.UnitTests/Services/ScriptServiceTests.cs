@@ -1,4 +1,4 @@
-using TUnit;
+using Xunit;
 using Please.TestUtilities;
 using Please.Application.Services;
 using Please.Domain.Common;
@@ -8,16 +8,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Please.Application.UnitTests.Services;
 
-[TestFixture]
 public class ScriptServiceTests
 {
-    private FakeScriptGenerator _generator = null!;
-    private FakeScriptRepository _repository = null!;
-    private IServiceProvider _provider = null!;
-    private IScriptService _service = null!;
+    private readonly FakeScriptGenerator _generator;
+    private readonly FakeScriptRepository _repository;
+    private readonly IServiceProvider _provider;
+    private readonly IScriptService _service;
 
-    [SetUp]
-    public void SetUp()
+    public ScriptServiceTests()
     {
         _provider = TestSystem.Create();
         _generator = _provider.GetRequiredService<FakeScriptGenerator>();
@@ -25,7 +23,7 @@ public class ScriptServiceTests
         _service = _provider.GetRequiredService<IScriptService>();
     }
 
-    [Test]
+    [Fact]
     public async Task generate_script_returns_failure_when_generation_fails()
     {
         var request = ScriptRequest.Create("test");
@@ -37,7 +35,7 @@ public class ScriptServiceTests
         Assert.Equal("nope", result.Error);
     }
 
-    [Test]
+    [Fact]
     public async Task generate_script_saves_and_returns_response_when_successful()
     {
         var request = ScriptRequest.Create("task");
@@ -50,7 +48,7 @@ public class ScriptServiceTests
         Assert.Equal(response, result.Value);
     }
 
-    [Test]
+    [Fact]
     public async Task generate_script_returns_failure_when_save_fails()
     {
         var request = ScriptRequest.Create("task");
