@@ -9,6 +9,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.0" />
+    <ProjectReference Include="..\..\Application\Please.Application\Please.Application.csproj" />
+    <ProjectReference Include="..\..\Domain\Please.Domain\Please.Domain.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,36 +1,34 @@
-using System;
-using TUnit;
-using Please.Domain.Common;
+using Xunit;
 using Please.Domain.Entities;
+using Shouldly;
 
 namespace Please.Domain.UnitTests.Common;
 
-[TestFixture]
 public class StronglyTypedIdTests
 {
-    [Test]
+    [Fact]
     public void a_strongly_typed_id_converts_to_the_underlying_value()
     {
         var id = ScriptId.From("00000000-0000-0000-0000-000000000001");
         Guid value = id;
-        Assert.Equal(Guid.Parse("00000000-0000-0000-0000-000000000001"), value);
-        Assert.Equal("00000000-0000-0000-0000-000000000001", id.ToString());
+        value.ShouldBe(Guid.Parse("00000000-0000-0000-0000-000000000001"));
+        id.ToString().ShouldBe("00000000-0000-0000-0000-000000000001");
     }
 
-    [Test]
+    [Fact]
     public void script_id_new_creates_a_unique_identifier()
     {
         var id1 = ScriptId.New();
         var id2 = ScriptId.New();
-        Assert.NotEqual(Guid.Empty, id1.Value);
-        Assert.NotEqual(id1.Value, id2.Value);
+        id1.Value.ShouldNotBe(Guid.Empty);
+        id1.Value.ShouldNotBe(id2.Value);
     }
 
-    [Test]
+    [Fact]
     public void provider_id_static_values_are_as_expected()
     {
-        Assert.Equal("openai", ProviderId.OpenAI.Value);
-        Assert.Equal("anthropic", ProviderId.Anthropic.Value);
-        Assert.Equal("ollama", ProviderId.Ollama.Value);
+        ProviderId.OpenAI.Value.ShouldBe("openai");
+        ProviderId.Anthropic.Value.ShouldBe("anthropic");
+        ProviderId.Ollama.Value.ShouldBe("ollama");
     }
 }

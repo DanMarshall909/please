@@ -9,12 +9,14 @@
 ## 🏗️ REFINED ARCHITECTURE
 
 ### **Core Patterns**
+
 - ✅ **Result Pattern**: Explicit error handling, no exceptions for business logic
 - ✅ **Strongly Typed IDs**: Type-safe entity identification
 - ✅ **Direct Services**: No MediatR, simple dependency injection
 - ✅ **Single Project**: Folder-based organization for minimal binary size
 
 ### **Project Structure**
+
 ```
 src/Please/
 ├── Domain/
@@ -54,6 +56,7 @@ src/Please/
 ## 🔧 CORE IMPLEMENTATIONS
 
 ### **1. Result Pattern**
+
 ```csharp
 // Domain/Common/Result.cs
 public abstract record Result
@@ -61,10 +64,10 @@ public abstract record Result
     public bool IsSuccess { get; init; }
     public bool IsFailure => !IsSuccess;
     public string Error { get; init; } = string.Empty;
-    
+
     public static Result Success() => new SuccessResult();
     public static Result Failure(string error) => new FailureResult(error);
-    
+
     protected Result() { }
 }
 
@@ -75,40 +78,40 @@ public sealed record SuccessResult : Result
 
 public sealed record FailureResult(string Error) : Result
 {
-    public FailureResult(string error) : base() 
-    { 
-        IsSuccess = false; 
-        Error = error; 
+    public FailureResult(string error) : base()
+    {
+        IsSuccess = false;
+        Error = error;
     }
 }
 
 public sealed record Result<T> : Result
 {
     public T? Value { get; init; }
-    
-    public static Result<T> Success(T value) => new() 
-    { 
-        IsSuccess = true, 
-        Value = value 
+
+    public static Result<T> Success(T value) => new()
+    {
+        IsSuccess = true,
+        Value = value
     };
-    
-    public static Result<T> Failure(string error) => new() 
-    { 
-        IsSuccess = false, 
-        Error = error 
+
+    public static Result<T> Failure(string error) => new()
+    {
+        IsSuccess = false,
+        Error = error
     };
-    
+
     // Railway-oriented programming extensions
     public Result<TNext> Map<TNext>(Func<T, TNext> map)
     {
-        return IsSuccess 
+        return IsSuccess
             ? Result<TNext>.Success(map(Value!))
             : Result<TNext>.Failure(Error);
     }
-    
+
     public async Task<Result<TNext>> MapAsync<TNext>(Func<T, Task<TNext>> map)
     {
-        return IsSuccess 
+        return IsSuccess
             ? Result<TNext>.Success(await map(Value!))
             : Result<TNext>.Failure(Error);
     }
@@ -116,13 +119,14 @@ public sealed record Result<T> : Result
 ```
 
 ### **2. Strongly Typed IDs**
+
 ```csharp
 // Domain/Common/StronglyTypedId.cs
-public abstract record StronglyTypedId<T>(T Value) 
+public abstract record StronglyTypedId<T>(T Value)
     where T : IComparable<T>, IEquatable<T>
 {
     public override string ToString() => Value?.ToString() ?? string.Empty;
-    
+
     public static implicit operator T(StronglyTypedId<T> id) => id.Value;
 }
 
@@ -143,6 +147,7 @@ public sealed record ProviderId(string Value) : StronglyTypedId<string>(Value)
 ```
 
 ### **3. Updated Domain Entities**
+
 ```csharp
 // Domain/Entities/ScriptResponse.cs
 public sealed class ScriptResponse
@@ -159,7 +164,7 @@ public sealed class ScriptResponse
     public DateTime CreatedAt { get; private set; }
 
     private ScriptResponse() { } // EF Constructor
-    
+
     public static Result<ScriptResponse> Create(
         string script,
         string taskDescription,
@@ -170,10 +175,10 @@ public sealed class ScriptResponse
     {
         if (string.IsNullOrWhiteSpace(script))
             return Result<ScriptResponse>.Failure("Script content cannot be empty");
-            
+
         if (string.IsNullOrWhiteSpace(taskDescription))
             return Result<ScriptResponse>.Failure("Task description cannot be empty");
-            
+
         if (string.IsNullOrWhiteSpace(model))
             return Result<ScriptResponse>.Failure("Model cannot be empty");
 
@@ -189,43 +194,44 @@ public sealed class ScriptResponse
             CreatedAt = DateTime.UtcNow
         });
     }
-    
+
     public ScriptResponse WithWarning(string warning)
     {
         if (!string.IsNullOrWhiteSpace(warning))
             Warnings.Add(warning);
         return this;
     }
-    
+
     public ScriptResponse WithSafetyNote(string note)
     {
         if (!string.IsNullOrWhiteSpace(note))
             SafetyNotes.Add(note);
         return this;
     }
-    
-    public bool RequiresConfirmation => 
+
+    public bool RequiresConfirmation =>
         RiskLevel >= RiskLevel.Medium || Warnings.Any();
-        
+
     public bool IsDangerous => RiskLevel == RiskLevel.High;
 }
 ```
 
 ### **4. Service Layer (No MediatR)**
+
 ```csharp
 // Application/Services/IScriptService.cs
 public interface IScriptService
 {
     Task<Result<ScriptResponse>> GenerateScriptAsync(
-        ScriptRequest request, 
+        ScriptRequest request,
         CancellationToken cancellationToken = default);
-        
+
     Task<Result<ScriptResponse>> GetScriptAsync(
-        ScriptId id, 
+        ScriptId id,
         CancellationToken cancellationToken = default);
-        
+
     Task<Result<IEnumerable<ScriptResponse>>> GetRecentScriptsAsync(
-        int count = 10, 
+        int count = 10,
         CancellationToken cancellationToken = default);
 }
 
@@ -234,15 +240,15 @@ public sealed class ScriptService : IScriptService
 {
     private readonly IScriptGenerator _generator;
     private readonly IScriptRepository _repository;
-    
+
     public ScriptService(IScriptGenerator generator, IScriptRepository repository)
     {
         _generator = generator;
         _repository = repository;
     }
-    
+
     public async Task<Result<ScriptResponse>> GenerateScriptAsync(
-        ScriptRequest request, 
+        ScriptRequest request,
         CancellationToken cancellationToken = default)
     {
         try
@@ -250,11 +256,11 @@ public sealed class ScriptService : IScriptService
             var generationResult = await _generator.GenerateScriptAsync(request, cancellationToken);
             if (generationResult.IsFailure)
                 return Result<ScriptResponse>.Failure(generationResult.Error);
-                
+
             var saveResult = await _repository.SaveScriptAsync(generationResult.Value!, cancellationToken);
             if (saveResult.IsFailure)
                 return Result<ScriptResponse>.Failure($"Failed to save script: {saveResult.Error}");
-                
+
             return Result<ScriptResponse>.Success(generationResult.Value!);
         }
         catch (Exception ex)
@@ -265,24 +271,76 @@ public sealed class ScriptService : IScriptService
 }
 ```
 
-## 🎯 MIGRATION STRATEGY
+## 🚦 STRATEGIC FOCUS
+
+- **Go enhancement and UI testing are DEFERRED**. No further Go development is planned; the Go codebase is preserved in `legacy/` for reference/specification only.
+- **C# Result Pattern migration is the SOLE active track**. All implementation, testing, and documentation must align with this direction.
+- **TDD with 85%+ coverage is mandatory** for all new C# code.
+- **All business logic must use Result<T> and strongly typed IDs**.
+- **No MediatR**: Direct service dependencies only.
+
+## 📊 EXPECTED BENEFITS
+
+### **Technical Benefits**
+
+- ✅ **Small Binary**: 2-5MB (vs 30-50MB with MediatR)
+- ✅ **Fast Startup**: Direct service calls, no reflection
+- ✅ **Explicit Errors**: Result pattern eliminates hidden exceptions
+- ✅ **Type Safety**: Strongly typed IDs prevent ID mix-ups
+
+### **Development Benefits**
+
+- ✅ **Testability**: Easy to mock Result<T> patterns
+- ✅ **Maintainability**: Simple, direct service calls
+- ✅ **Railway Programming**: Chain operations safely
+- ✅ **Cross-Platform**: Single codebase, multiple targets
+
+## 🧪 TESTING STRATEGY
+
+### **TDD Approach** (Following test-driven-development.clinerules)
+
+1. **RED**: Write failing test for Result pattern
+2. **GREEN**: Implement minimal code to pass
+3. **REFACTOR**: Improve while maintaining tests
+4. **COVER**: Verify 85%+ coverage maintained
+
+### **Test Categories Required**
+
+- Result Pattern Tests (success/failure)
+- Strongly Typed ID Tests (validation/conversion)
+- Entity Factory Tests (ScriptResponse.Create, ScriptRequest.Create)
+- Service Integration Tests (end-to-end workflows)
+
+### **Coverage Commands**
+
+```bash
+dotnet test --collect:"XPlat Code Coverage"
+dotnet build && dotnet test
+reportgenerator -reports:"coverage.xml" -targetdir:"coveragereport"
+```
+
+## 🛠️ MIGRATION STRATEGY
 
 ### **Phase 1: Infrastructure Setup (30 min)**
+
 1. **Create single Please project** (replace multi-project solution)
 2. **Implement Result pattern** and strongly typed IDs
 3. **Remove MediatR dependencies** entirely
 
 ### **Phase 2: Domain Migration (45 min)**
+
 1. **Update entities** with Result pattern
 2. **Convert interfaces** to use Result<T>
 3. **Add strongly typed IDs** throughout
 
 ### **Phase 3: Service Layer (30 min)**
+
 1. **Replace Command/Query handlers** with direct services
 2. **Implement ScriptService** with Result pattern
 3. **Update dependency injection** for simple DI
 
 ### **Phase 4: Build Optimization (15 min)**
+
 1. **Configure AOT publishing**
 2. **Enable trimming and single-file output**
 3. **Test cross-platform builds**
@@ -301,7 +359,7 @@ public sealed class ScriptService : IScriptService
     <TrimMode>link</TrimMode>
     <RuntimeIdentifiers>win-x64;linux-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="8.0.0" />
     <!-- Minimal dependencies only -->
@@ -309,61 +367,7 @@ public sealed class ScriptService : IScriptService
 </Project>
 ```
 
-## 📊 EXPECTED BENEFITS
-
-### **Technical Benefits**
-- ✅ **Small Binary**: 2-5MB (vs 30-50MB with MediatR)
-- ✅ **Fast Startup**: Direct service calls, no reflection
-- ✅ **Explicit Errors**: Result pattern eliminates hidden exceptions
-- ✅ **Type Safety**: Strongly typed IDs prevent ID mix-ups
-
-### **Development Benefits**
-- ✅ **Testability**: Easy to mock Result<T> patterns
-- ✅ **Maintainability**: Simple, direct service calls
-- ✅ **Railway Programming**: Chain operations safely
-- ✅ **Cross-Platform**: Single codebase, multiple targets
-
-## 🧪 TESTING STRATEGY
-
-### **TDD Approach** (Following test-driven-development.clinerules)
-1. **RED**: Write failing test for Result pattern
-2. **GREEN**: Implement minimal code to pass
-3. **REFACTOR**: Improve while maintaining tests
-4. **COVER**: Verify 85%+ coverage maintained
-
-### **Test Examples**
-```csharp
-[Test]
-public void ScriptResponse_Create_WithValidInput_ShouldReturnSuccess()
-{
-    // Arrange
-    var script = "echo 'hello'";
-    var task = "Print greeting";
-    var provider = ProviderType.OpenAI;
-    var model = "gpt-4";
-    
-    // Act
-    var result = ScriptResponse.Create(script, task, provider, model);
-    
-    // Assert
-    Assert.That(result.IsSuccess, Is.True);
-    Assert.That(result.Value!.Script, Is.EqualTo(script));
-    Assert.That(result.Value.TaskDescription, Is.EqualTo(task));
-}
-
-[Test]
-public void ScriptResponse_Create_WithEmptyScript_ShouldReturnFailure()
-{
-    // Act
-    var result = ScriptResponse.Create("", "task", ProviderType.OpenAI, "gpt-4");
-    
-    // Assert
-    Assert.That(result.IsFailure, Is.True);
-    Assert.That(result.Error, Contains.Substring("Script content cannot be empty"));
-}
-```
-
-## 🚀 IMMEDIATE NEXT STEPS
+## 🚨 IMMEDIATE NEXT STEPS
 
 1. **Create new single project structure**
 2. **Implement Result pattern and strongly typed IDs**
@@ -372,3 +376,5 @@ public void ScriptResponse_Create_WithEmptyScript_ShouldReturnFailure()
 5. **Configure optimized build for small executable**
 
 **Timeline**: 2 hours to working single executable with Result pattern implementation.
+
+_This document supersedes all previous Go enhancement plans. C# Result Pattern migration is the only active focus as of June 21, 2025._

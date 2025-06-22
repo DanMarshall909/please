@@ -5,7 +5,7 @@ using Please.Domain.Entities;
 using Please.Domain.Enums;
 using Please.Domain.Common;
 using Microsoft.Extensions.DependencyInjection;
-using Please.Application;
+using Please.Domain.Interfaces;
 
 namespace Please.Application.IntegrationTests;
 
