@@ -1,4 +1,7 @@
 using TUnit;
+using TestFixtureAttribute = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
+using TestAttribute = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+using SetUpAttribute = Microsoft.VisualStudio.TestTools.UnitTesting.TestInitializeAttribute;
 using Please.Domain.Exceptions;
 
 namespace Please.Domain.UnitTests.Exceptions;

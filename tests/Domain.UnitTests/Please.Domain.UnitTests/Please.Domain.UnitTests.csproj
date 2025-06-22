@@ -12,10 +12,13 @@
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.4.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.4.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Domain\Please.Domain\Please.Domain.csproj" />
+    <ProjectReference Include="..\..\TestUtilities\Please.TestUtilities\Please.TestUtilities.csproj" />
   </ItemGroup>
 
 </Project>

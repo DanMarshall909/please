@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Please.Application;
+using Please.Domain.Interfaces;
 
 var services = new ServiceCollection();
 services.AddLogging(builder => builder.AddConsole());
@@ -10,4 +11,5 @@ var provider = services.BuildServiceProvider();
 
 // Entry point would resolve command handlers here
 var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
-logger.LogInformation("Dependency injection configured.");
+var localization = provider.GetRequiredService<ILocalizationService>();
+logger.LogInformation(localization.GetString("DependencyInjectionConfigured"));

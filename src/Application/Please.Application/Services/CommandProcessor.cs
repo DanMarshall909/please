@@ -14,31 +14,33 @@ public sealed class CommandProcessor
     private readonly IContextService _contextService;
     private readonly IScriptGenerator _scriptGenerator;
     private readonly ILogger<CommandProcessor> _logger;
+    private readonly ILocalizationService _localization;
 
-    public CommandProcessor(IContextService contextService, IScriptGenerator scriptGenerator, ILogger<CommandProcessor> logger)
+    public CommandProcessor(IContextService contextService, IScriptGenerator scriptGenerator, ILogger<CommandProcessor> logger, ILocalizationService localization)
     {
         _contextService = contextService;
         _scriptGenerator = scriptGenerator;
         _logger = logger;
+        _localization = localization;
     }
 
     public async Task<Result<ScriptResponse>> ProcessAsync(string command, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Processing command '{Command}'", command);
+        _logger.LogInformation(_localization.GetString("ProcessingCommand"), command);
         var intent = new CommandIntent(command);
         var contextResult = await _contextService.GetContextAsync(intent, cancellationToken);
         if (contextResult.IsFailure)
         {
-            _logger.LogWarning("Context retrieval failed: {Error}", contextResult.Error);
+            _logger.LogWarning(_localization.GetString("ContextFailed"), contextResult.Error);
             return Result<ScriptResponse>.Failure(contextResult.Error);
         }
 
         var request = ScriptRequest.Create(command);
         var result = await _scriptGenerator.GenerateScriptAsync(request, cancellationToken);
         if (result.IsSuccess)
-            _logger.LogInformation("Command processed successfully");
+            _logger.LogInformation(_localization.GetString("CommandProcessed"));
         else
-            _logger.LogWarning("Command processing failed: {Error}", result.Error);
+            _logger.LogWarning(_localization.GetString("ProcessingFailed"), result.Error);
         return result;
     }
 }

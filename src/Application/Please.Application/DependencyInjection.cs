@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using Please.Domain.Interfaces;
+using Please.Application.Services;
 using System.Reflection;
 
 namespace Please.Application;
@@ -19,6 +21,7 @@ public static class DependencyInjection
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
         // Register core application services
+        services.AddTransient<ILocalizationService, LocalizationService>();
         services.AddTransient<IScriptService, ScriptService>();
         services.AddTransient<CommandProcessor>();
 

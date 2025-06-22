@@ -13,5 +13,8 @@
   <ItemGroup>
     <ProjectReference Include="../../../src/Domain/Please.Domain/Please.Domain.csproj" />
     <ProjectReference Include="../../../src/Application/Please.Application/Please.Application.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.4.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.4.0" />
   </ItemGroup>
 </Project>
