@@ -48,4 +48,3 @@ public class CommandProcessorTests
         Assert.Equal(expected, result.Value);
     }
 }
-

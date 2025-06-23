@@ -11,10 +11,8 @@ public sealed class FakeContextService : IContextService
 
     public List<CommandExecution> StoredExecutions { get; } = new();
 
-    public Task<Result<CommandContext>> GetContextAsync(CommandIntent intent, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(ContextResult);
-    }
+    public Task<Result<CommandContext>> GetContextAsync(CommandIntent intent,
+        CancellationToken cancellationToken = default) => Task.FromResult(ContextResult);
 
     public Task<Result> StorePatternAsync(CommandExecution execution, CancellationToken cancellationToken = default)
     {

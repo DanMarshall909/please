@@ -27,10 +27,11 @@ public record GenerateScriptCommand : IRequest<ScriptResponse>
     /// <summary>
     /// Creates a generate script command with provider specification
     /// </summary>
-    public static GenerateScriptCommand Create(string taskDescription, ProviderType provider, string? model = null) => new()
-    {
-        TaskDescription = taskDescription,
-        Provider = provider,
-        Model = model
-    };
+    public static GenerateScriptCommand Create(string taskDescription, ProviderType provider, string? model = null) =>
+        new()
+        {
+            TaskDescription = taskDescription,
+            Provider = provider,
+            Model = model
+        };
 }

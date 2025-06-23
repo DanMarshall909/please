@@ -21,7 +21,7 @@ public class ScriptResponseTests
         );
 
         // Act
-        var requiresConfirmation = response.RequiresConfirmation;
+        bool requiresConfirmation = response.RequiresConfirmation;
 
         // Assert
         requiresConfirmation.ShouldBeTrue();
@@ -41,7 +41,7 @@ public class ScriptResponseTests
         ).WithWarning(new ScriptResponse.Warning("This command does nothing useful"));
 
         // Act
-        var requiresConfirmation = response.RequiresConfirmation;
+        bool requiresConfirmation = response.RequiresConfirmation;
 
         // Assert
         requiresConfirmation.ShouldBeTrue();
@@ -61,7 +61,7 @@ public class ScriptResponseTests
         );
 
         // Act
-        var requiresConfirmation = response.RequiresConfirmation;
+        bool requiresConfirmation = response.RequiresConfirmation;
 
         // Assert
         requiresConfirmation.ShouldBeFalse();
@@ -81,7 +81,7 @@ public class ScriptResponseTests
         );
 
         // Act
-        var isDangerous = response.IsDangerous;
+        bool isDangerous = response.IsDangerous;
 
         // Assert
         isDangerous.ShouldBeTrue();
@@ -139,7 +139,7 @@ public class ScriptResponseTests
             "gpt-4",
             ScriptType.Bash,
             RiskLevel.Low,
-            createdAt: customDate
+            customDate
         );
 
         // Act

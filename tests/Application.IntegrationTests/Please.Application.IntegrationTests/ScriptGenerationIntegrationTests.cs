@@ -1,4 +1,3 @@
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Please.ConsoleHost;
 using Please.Application.Commands.GenerateScript;
@@ -82,7 +81,7 @@ public class ScriptGenerationIntegrationTests
     [Fact]
     public async Task Safe_commands_do_not_require_confirmation()
     {
-        // Arrange  
+        // Arrange
         var command = GenerateScriptCommand.Create("List files in current directory");
 
         // Act
@@ -131,7 +130,7 @@ internal class TestScriptValidationService : IScriptValidationService
 {
     public RiskLevel AssessRiskLevel(string script, ScriptType scriptType)
     {
-        var lower = script.ToLowerInvariant();
+        string lower = script.ToLowerInvariant();
 
         if (lower.Contains("rm -rf") || lower.Contains("format") || lower.Contains("dd if=/dev/zero"))
             return RiskLevel.Critical;
@@ -143,7 +142,7 @@ internal class TestScriptValidationService : IScriptValidationService
     public List<string> ValidateScript(string script, ScriptType scriptType)
     {
         var warnings = new List<string>();
-        var lower = script.ToLowerInvariant();
+        string lower = script.ToLowerInvariant();
 
         if (lower.Contains("rm -rf"))
             warnings.Add("⛔ CRITICAL: 'rm -rf' command can delete important files");
@@ -169,10 +168,8 @@ internal class TestScriptValidationService : IScriptValidationService
         return notes;
     }
 
-    public bool ContainsDangerousOperations(string script, ScriptType scriptType)
-    {
-        return AssessRiskLevel(script, scriptType) >= RiskLevel.High;
-    }
+    public bool ContainsDangerousOperations(string script, ScriptType scriptType) =>
+        AssessRiskLevel(script, scriptType) >= RiskLevel.High;
 
     public ScriptResponse EnhanceWithValidation(ScriptResponse response)
     {
@@ -193,16 +190,13 @@ internal class TestScriptGenerator : IScriptGenerator
 {
     private readonly IScriptValidationService _validationService;
 
-    public TestScriptGenerator(IScriptValidationService validationService)
-    {
-        _validationService = validationService;
-    }
+    public TestScriptGenerator(IScriptValidationService validationService) => _validationService = validationService;
 
     public Task<Result<ScriptResponse>> GenerateScriptAsync(ScriptRequest request,
         CancellationToken cancellationToken = default)
     {
         // Simulate script generation based on task description
-        var script = request.TaskDescription.ToLowerInvariant() switch
+        string script = request.TaskDescription.ToLowerInvariant() switch
         {
             var desc when desc.Contains("dangerous") => "rm -rf /",
             var desc when desc.Contains("delete") || desc.Contains("temporary") => "rm -rf /tmp/*",
@@ -228,15 +222,10 @@ internal class TestScriptGenerator : IScriptGenerator
     }
 
     public Task<Result<bool>> IsProviderAvailableAsync(ScriptRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(Result<bool>.Success(true));
-    }
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult(Result<bool>.Success(true));
 
-    public string GetFallbackModel(ScriptRequest request)
-    {
-        return "gpt-3.5-turbo";
-    }
+    public string GetFallbackModel(ScriptRequest request) => "gpt-3.5-turbo";
 }
 
 internal class TestScriptRepository : IScriptRepository
@@ -274,8 +263,6 @@ internal class TestScriptRepository : IScriptRepository
         return Task.FromResult(Result.Success());
     }
 
-    public Task<Result<bool>> HasHistoryAsync(CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(Result<bool>.Success(SavedScripts.Any()));
-    }
+    public Task<Result<bool>> HasHistoryAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult(Result<bool>.Success(SavedScripts.Any()));
 }

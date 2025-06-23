@@ -20,11 +20,12 @@ public sealed class FakeScriptRepository : IScriptRepository
 
     public Task<Result<ScriptResponse?>> GetLastScriptAsync(CancellationToken cancellationToken = default)
     {
-        ScriptResponse? last = _scripts.Count > 0 ? _scripts[^1] : null;
+        var last = _scripts.Count > 0 ? _scripts[^1] : null;
         return Task.FromResult(Result<ScriptResponse?>.Success(last));
     }
 
-    public Task<Result<IEnumerable<ScriptResponse>>> GetScriptHistoryAsync(int? count = null, DateTime? since = null, CancellationToken cancellationToken = default)
+    public Task<Result<IEnumerable<ScriptResponse>>> GetScriptHistoryAsync(int? count = null, DateTime? since = null,
+        CancellationToken cancellationToken = default)
     {
         IEnumerable<ScriptResponse> result = _scripts;
         if (since.HasValue)
@@ -40,8 +41,6 @@ public sealed class FakeScriptRepository : IScriptRepository
         return Task.FromResult(Result.Success());
     }
 
-    public Task<Result<bool>> HasHistoryAsync(CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(Result<bool>.Success(_scripts.Count > 0));
-    }
+    public Task<Result<bool>> HasHistoryAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult(Result<bool>.Success(_scripts.Count > 0));
 }

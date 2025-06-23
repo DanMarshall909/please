@@ -28,4 +28,3 @@ public class GetLastScriptQueryHandlerTests
         Assert.Equal(expected, result);
     }
 }
-

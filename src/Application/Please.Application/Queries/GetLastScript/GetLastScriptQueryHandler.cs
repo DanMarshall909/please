@@ -11,10 +11,7 @@ public class GetLastScriptQueryHandler : IRequestHandler<GetLastScriptQuery, Scr
 {
     private readonly IScriptRepository _scriptRepository;
 
-    public GetLastScriptQueryHandler(IScriptRepository scriptRepository)
-    {
-        _scriptRepository = scriptRepository;
-    }
+    public GetLastScriptQueryHandler(IScriptRepository scriptRepository) => _scriptRepository = scriptRepository;
 
     public async Task<ScriptResponse?> Handle(GetLastScriptQuery request, CancellationToken cancellationToken)
     {

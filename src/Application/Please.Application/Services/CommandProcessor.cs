@@ -15,14 +15,16 @@ public sealed class CommandProcessor
     private readonly IScriptGenerator _scriptGenerator;
     private readonly ILogger<CommandProcessor> _logger;
 
-    public CommandProcessor(IContextService contextService, IScriptGenerator scriptGenerator, ILogger<CommandProcessor> logger)
+    public CommandProcessor(IContextService contextService, IScriptGenerator scriptGenerator,
+        ILogger<CommandProcessor> logger)
     {
         _contextService = contextService;
         _scriptGenerator = scriptGenerator;
         _logger = logger;
     }
 
-    public async Task<Result<ScriptResponse>> ProcessAsync(string command, CancellationToken cancellationToken = default)
+    public async Task<Result<ScriptResponse>> ProcessAsync(string command,
+        CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Processing command '{Command}'", command);
         var intent = new CommandIntent(command);
@@ -42,4 +44,3 @@ public sealed class CommandProcessor
         return result;
     }
 }
-

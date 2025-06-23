@@ -11,7 +11,8 @@ public interface IScriptGenerator
     /// <summary>
     /// Generates a script based on the provided request
     /// </summary>
-    Task<Result<ScriptResponse>> GenerateScriptAsync(ScriptRequest request, CancellationToken cancellationToken = default);
+    Task<Result<ScriptResponse>> GenerateScriptAsync(ScriptRequest request,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Validates if the provider and model combination is supported

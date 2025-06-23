@@ -8,5 +8,3 @@ public sealed record CommandExecution(string CommandText, DateTime ExecutedAt)
     public static CommandExecution Create(string commandText) =>
         new(commandText, DateTime.UtcNow);
 }
-
-

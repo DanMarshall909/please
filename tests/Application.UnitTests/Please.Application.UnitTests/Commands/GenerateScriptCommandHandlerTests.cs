@@ -14,10 +14,8 @@ public class GenerateScriptCommandHandlerTests
     private readonly FakeScriptRepository _scriptRepository = new();
     private readonly GenerateScriptCommandHandler _handler;
 
-    public GenerateScriptCommandHandlerTests()
-    {
+    public GenerateScriptCommandHandlerTests() =>
         _handler = new GenerateScriptCommandHandler(_scriptGenerator, _scriptRepository);
-    }
 
     [Fact]
     public async Task Handle_WithValidCommand_ShouldGenerateAndSaveScript()
@@ -74,7 +72,7 @@ public class GenerateScriptCommandHandlerTests
         var command = GenerateScriptCommand.Create("fail");
         _scriptGenerator.NextResult = Result<ScriptResponse>.Failure("bad");
 
-        Assert.ThrowsAsync<ScriptGenerationException>(async () => await _handler.Handle(command, CancellationToken.None));
+        Assert.ThrowsAsync<ScriptGenerationException>(async () =>
+            await _handler.Handle(command, CancellationToken.None));
     }
-
 }

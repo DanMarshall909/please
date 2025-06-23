@@ -9,15 +9,14 @@ public abstract record Result
     public static Result Success() => new SuccessResult();
     public static Result Failure(string error) => new FailureResult(error);
 
-    protected Result() { }
+    protected Result()
+    {
+    }
 }
 
 public sealed record SuccessResult : Result
 {
-    public SuccessResult()
-    {
-        IsSuccess = true;
-    }
+    public SuccessResult() => IsSuccess = true;
 }
 
 public sealed record FailureResult : Result
@@ -39,23 +38,19 @@ public sealed record Result<T> : Result
         Value = value
     };
 
-    public static Result<T> Failure(string error) => new()
+    public new static Result<T> Failure(string error) => new()
     {
         IsSuccess = false,
         Error = error
     };
 
-    public Result<TNext> Map<TNext>(Func<T, TNext> map)
-    {
-        return IsSuccess
+    public Result<TNext> Map<TNext>(Func<T, TNext> map) =>
+        IsSuccess
             ? Result<TNext>.Success(map(Value!))
             : Result<TNext>.Failure(Error);
-    }
 
-    public async Task<Result<TNext>> MapAsync<TNext>(Func<T, Task<TNext>> map)
-    {
-        return IsSuccess
+    public async Task<Result<TNext>> MapAsync<TNext>(Func<T, Task<TNext>> map) =>
+        IsSuccess
             ? Result<TNext>.Success(await map(Value!))
             : Result<TNext>.Failure(Error);
-    }
 }
