@@ -6,7 +6,7 @@ namespace Please.TestUtilities;
 
 public sealed class FakeScriptRepository : IScriptRepository
 {
-    private readonly List<ScriptResponse> _scripts = new();
+    private readonly List<ScriptResponse> _scripts = [];
 
     public IReadOnlyList<ScriptResponse> Scripts => _scripts;
     public Result NextSaveResult { get; set; } = Result.Success();

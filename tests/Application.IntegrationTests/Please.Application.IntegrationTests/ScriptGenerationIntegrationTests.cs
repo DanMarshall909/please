@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
-using Please.ConsoleHost;
 using Please.Application.Commands.GenerateScript;
+using Please.Console;
 using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
@@ -102,7 +102,7 @@ public class ScriptGenerationIntegrationTests
         var repository = _serviceProvider.GetRequiredService<TestScriptRepository>();
         Assert.NotNull(repository);
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        await _handler.Handle(command, CancellationToken.None);
 
         // Assert - This tests the real workflow integration
         Assert.Single(repository.SavedScripts);
@@ -180,8 +180,9 @@ internal class TestScriptValidationService : IScriptValidationService
         return response with
         {
             RiskLevel = riskLevel,
-            Warnings = response.Warnings.Concat(warnings.Select(w => (ScriptResponse.Warning)w)).ToList(),
-            SafetyNotes = response.SafetyNotes.Concat(safetyNotes.Select(n => (ScriptResponse.SafetyNote)n)).ToList()
+            Warnings = response.Warnings.Concat(warnings.Select(w => new ScriptResponse.Warning(w))).ToList(),
+            SafetyNotes = response.SafetyNotes.Concat(safetyNotes.Select(n => new ScriptResponse.SafetyNote(n)))
+                .ToList()
         };
     }
 }
@@ -210,7 +211,7 @@ internal class TestScriptGenerator : IScriptGenerator
         var response = ScriptResponse.Create(
             script,
             request.TaskDescription,
-            request.Provider ?? ProviderType.OpenAI,
+            request.Provider ?? ProviderType.OpenAi,
             request.Model ?? "gpt-4",
             scriptType
         );

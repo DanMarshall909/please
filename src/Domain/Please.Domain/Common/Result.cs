@@ -8,10 +8,6 @@ public abstract record Result
 
     public static Result Success() => new SuccessResult();
     public static Result Failure(string error) => new FailureResult(error);
-
-    protected Result()
-    {
-    }
 }
 
 public sealed record SuccessResult : Result

@@ -20,7 +20,7 @@ public class GetLastScriptQueryHandlerTests
     [Fact]
     public async Task Handle_Returns_last_script_from_repository()
     {
-        var expected = ScriptResponse.Create("echo hi", "task", ProviderType.OpenAI, "gpt-4", ScriptType.Bash);
+        var expected = ScriptResponse.Create("echo hi", "task", ProviderType.OpenAi, "gpt-4", ScriptType.Bash);
         await _repository.SaveScriptAsync(expected);
 
         var result = await _handler.Handle(GetLastScriptQuery.Create(), CancellationToken.None);

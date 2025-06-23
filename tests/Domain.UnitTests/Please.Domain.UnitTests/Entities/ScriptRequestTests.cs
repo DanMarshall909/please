@@ -28,7 +28,7 @@ public class ScriptRequestTests
     {
         // Arrange
         var taskDescription = "Create backup script";
-        var provider = ProviderType.OpenAI;
+        var provider = ProviderType.OpenAi;
         var model = "gpt-4";
 
         // Act

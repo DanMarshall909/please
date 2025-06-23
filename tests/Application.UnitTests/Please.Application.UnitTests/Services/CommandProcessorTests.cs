@@ -13,15 +13,14 @@ public class CommandProcessorTests
 {
     private readonly FakeContextService _context;
     private readonly FakeScriptGenerator _generator;
-    private readonly IServiceProvider _provider;
     private readonly CommandProcessor _processor;
 
     public CommandProcessorTests()
     {
-        _provider = TestSystem.Create();
-        _context = _provider.GetRequiredService<FakeContextService>();
-        _generator = _provider.GetRequiredService<FakeScriptGenerator>();
-        _processor = _provider.GetRequiredService<CommandProcessor>();
+        var provider = TestSystem.Create();
+        _context = provider.GetRequiredService<FakeContextService>();
+        _generator = provider.GetRequiredService<FakeScriptGenerator>();
+        _processor = provider.GetRequiredService<CommandProcessor>();
     }
 
     [Fact]
@@ -39,7 +38,7 @@ public class CommandProcessorTests
     public async Task process_async_invokes_generator_when_context_available()
     {
         _context.ContextResult = Result<CommandContext>.Success(new CommandContext("/tmp"));
-        var expected = ScriptResponse.Create("ls", "list", ProviderType.OpenAI, "gpt-4", ScriptType.Bash);
+        var expected = ScriptResponse.Create("ls", "list", ProviderType.OpenAi, "gpt-4", ScriptType.Bash);
         _generator.NextResult = Result<ScriptResponse>.Success(expected);
 
         var result = await _processor.ProcessAsync("list");

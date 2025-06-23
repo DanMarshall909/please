@@ -9,7 +9,7 @@ public sealed class FakeContextService : IContextService
     public Result<CommandContext> ContextResult { get; set; } =
         Result<CommandContext>.Success(new CommandContext("/"));
 
-    public List<CommandExecution> StoredExecutions { get; } = new();
+    public List<CommandExecution> StoredExecutions { get; } = [];
 
     public Task<Result<CommandContext>> GetContextAsync(CommandIntent intent,
         CancellationToken cancellationToken = default) => Task.FromResult(ContextResult);

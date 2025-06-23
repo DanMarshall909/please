@@ -27,7 +27,7 @@ public class StronglyTypedIdTests
     [Fact]
     public void provider_id_static_values_are_as_expected()
     {
-        ProviderId.OpenAI.Value.ShouldBe("openai");
+        ProviderId.OpenAi.Value.ShouldBe("openai");
         ProviderId.Anthropic.Value.ShouldBe("anthropic");
         ProviderId.Ollama.Value.ShouldBe("ollama");
     }

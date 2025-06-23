@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Please.ConsoleHost;
+using Please.Console;
 
 var provider = PleaseHost.CreateServiceProvider();
 

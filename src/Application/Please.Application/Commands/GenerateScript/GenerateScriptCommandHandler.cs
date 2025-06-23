@@ -37,12 +37,8 @@ public class GenerateScriptCommandHandler : IRequestHandler<GenerateScriptComman
         // Generate script using AI provider
         var result = await _scriptGenerator.GenerateScriptAsync(scriptRequest, cancellationToken);
 
-        if (result.IsSuccess)
-        {
-            _ = await _scriptRepository.SaveScriptAsync(result.Value!, cancellationToken);
-            return result.Value!;
-        }
-
-        throw new ScriptGenerationException(result.Error);
+        if (!result.IsSuccess) throw new ScriptGenerationException(result.Error);
+        _ = await _scriptRepository.SaveScriptAsync(result.Value!, cancellationToken);
+        return result.Value!;
     }
 }

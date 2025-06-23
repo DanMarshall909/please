@@ -4,8 +4,8 @@ using Please.TestUtilities;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
 using Please.Domain.Common;
-using Please.ConsoleHost;
 using Microsoft.Extensions.DependencyInjection;
+using Please.Console;
 using Please.Domain.Interfaces;
 
 namespace Please.Application.IntegrationTests;
@@ -19,7 +19,7 @@ public class CommandProcessorIntegrationTests
         var generator = new FakeScriptGenerator
         {
             NextResult = Result<ScriptResponse>.Success(
-                ScriptResponse.Create("ls", "list", ProviderType.OpenAI, "gpt-4", ScriptType.Bash))
+                ScriptResponse.Create("ls", "list", ProviderType.OpenAi, "gpt-4", ScriptType.Bash))
         };
 
         var provider = PleaseHost.CreateServiceProvider(services =>

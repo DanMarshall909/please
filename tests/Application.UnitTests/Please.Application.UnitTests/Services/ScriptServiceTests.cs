@@ -12,15 +12,14 @@ public class ScriptServiceTests
 {
     private readonly FakeScriptGenerator _generator;
     private readonly FakeScriptRepository _repository;
-    private readonly IServiceProvider _provider;
     private readonly IScriptService _service;
 
     public ScriptServiceTests()
     {
-        _provider = TestSystem.Create();
-        _generator = _provider.GetRequiredService<FakeScriptGenerator>();
-        _repository = _provider.GetRequiredService<FakeScriptRepository>();
-        _service = _provider.GetRequiredService<IScriptService>();
+        var provider = TestSystem.Create();
+        _generator = provider.GetRequiredService<FakeScriptGenerator>();
+        _repository = provider.GetRequiredService<FakeScriptRepository>();
+        _service = provider.GetRequiredService<IScriptService>();
     }
 
     [Fact]
@@ -39,7 +38,7 @@ public class ScriptServiceTests
     public async Task generate_script_saves_and_returns_response_when_successful()
     {
         var request = ScriptRequest.Create("task");
-        var response = ScriptResponse.Create("echo hi", "task", ProviderType.OpenAI, "gpt-4", ScriptType.Bash);
+        var response = ScriptResponse.Create("echo hi", "task", ProviderType.OpenAi, "gpt-4", ScriptType.Bash);
         _generator.NextResult = Result<ScriptResponse>.Success(response);
 
         var result = await _service.GenerateScriptAsync(request);
@@ -52,7 +51,7 @@ public class ScriptServiceTests
     public async Task generate_script_returns_failure_when_save_fails()
     {
         var request = ScriptRequest.Create("task");
-        var response = ScriptResponse.Create("script", "task", ProviderType.OpenAI, "gpt-4", ScriptType.Bash);
+        var response = ScriptResponse.Create("script", "task", ProviderType.OpenAi, "gpt-4", ScriptType.Bash);
         _generator.NextResult = Result<ScriptResponse>.Success(response);
         _repository.NextSaveResult = Result.Failure("db error");
 

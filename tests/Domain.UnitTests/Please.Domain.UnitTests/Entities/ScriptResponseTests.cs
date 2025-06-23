@@ -14,7 +14,7 @@ public class ScriptResponseTests
         var response = ScriptResponse.Create(
             "rm -rf /",
             "Delete all files",
-            ProviderType.OpenAI,
+            ProviderType.OpenAi,
             "gpt-4",
             ScriptType.Bash,
             RiskLevel.Medium
@@ -34,10 +34,9 @@ public class ScriptResponseTests
         var response = ScriptResponse.Create(
             "echo 'safe command'",
             "Echo text",
-            ProviderType.OpenAI,
+            ProviderType.OpenAi,
             "gpt-4",
-            ScriptType.Bash,
-            RiskLevel.Low
+            ScriptType.Bash
         ).WithWarning(new ScriptResponse.Warning("This command does nothing useful"));
 
         // Act
@@ -54,10 +53,9 @@ public class ScriptResponseTests
         var response = ScriptResponse.Create(
             "ls -la",
             "List files",
-            ProviderType.OpenAI,
+            ProviderType.OpenAi,
             "gpt-4",
-            ScriptType.Bash,
-            RiskLevel.Low
+            ScriptType.Bash
         );
 
         // Act
@@ -74,7 +72,7 @@ public class ScriptResponseTests
         var response = ScriptResponse.Create(
             "sudo rm -rf /",
             "Delete system files",
-            ProviderType.OpenAI,
+            ProviderType.OpenAi,
             "gpt-4",
             ScriptType.Bash,
             RiskLevel.High
@@ -94,7 +92,7 @@ public class ScriptResponseTests
         var response = ScriptResponse.Create(
             "test script",
             "Test task",
-            ProviderType.OpenAI,
+            ProviderType.OpenAi,
             "gpt-4",
             ScriptType.Bash
         );
@@ -114,16 +112,16 @@ public class ScriptResponseTests
         var response = ScriptResponse.Create(
             "test script",
             "Test task",
-            ProviderType.OpenAI,
+            ProviderType.OpenAi,
             "gpt-4",
             ScriptType.Bash
         );
 
         // Act
-        var updatedResponse = response.WithSafetyNote("Test safety note");
+        var updatedResponse = response.WithSafetyNote(new ScriptResponse.SafetyNote("Test safety note"));
 
         // Assert
-        updatedResponse.SafetyNotes.Contains("Test safety note").ShouldBeTrue();
+        updatedResponse.SafetyNotes.Contains(new ScriptResponse.SafetyNote("Test safety note")).ShouldBeTrue();
         updatedResponse.SafetyNotes.Count.ShouldBe(1);
     }
 
@@ -135,7 +133,7 @@ public class ScriptResponseTests
         var response = ScriptResponse.Create(
             "echo test",
             "Test created at",
-            ProviderType.OpenAI,
+            ProviderType.OpenAi,
             "gpt-4",
             ScriptType.Bash,
             RiskLevel.Low,

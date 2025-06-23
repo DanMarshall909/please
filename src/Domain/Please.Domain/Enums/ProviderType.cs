@@ -5,7 +5,7 @@ namespace Please.Domain.Enums;
 /// </summary>
 public enum ProviderType
 {
-    OpenAI,
+    OpenAi,
     Anthropic,
     Ollama
 }

@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Please.Application;
 
-namespace Please.ConsoleHost;
+namespace Please.Console;
 
 /// <summary>
 /// Creates a service provider configured the same way as production.

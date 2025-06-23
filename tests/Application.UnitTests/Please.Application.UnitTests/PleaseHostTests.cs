@@ -1,9 +1,9 @@
 using Xunit;
-using Please.ConsoleHost;
 using Please.Application.Services;
 using Please.Domain.Interfaces;
 using Please.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
+using Please.Console;
 
 namespace Please.Application.UnitTests;
 

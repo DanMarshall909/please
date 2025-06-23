@@ -21,11 +21,11 @@ public class GenerateScriptCommandHandlerTests
     public async Task Handle_WithValidCommand_ShouldGenerateAndSaveScript()
     {
         // Arrange
-        var command = GenerateScriptCommand.Create("Deploy to production", ProviderType.OpenAI, "gpt-4");
+        var command = GenerateScriptCommand.Create("Deploy to production", ProviderType.OpenAi, "gpt-4");
         var expectedResponse = ScriptResponse.Create(
             "kubectl apply -f production.yaml",
             "Deploy to production",
-            ProviderType.OpenAI,
+            ProviderType.OpenAi,
             "gpt-4",
             ScriptType.Bash,
             RiskLevel.High
@@ -52,7 +52,7 @@ public class GenerateScriptCommandHandlerTests
         var expectedResponse = ScriptResponse.Create(
             "ls -la",
             "List files",
-            ProviderType.OpenAI,
+            ProviderType.OpenAi,
             "gpt-4",
             ScriptType.Bash
         );
@@ -67,12 +67,12 @@ public class GenerateScriptCommandHandlerTests
     }
 
     [Fact]
-    public void Handle_WhenGenerationFails_ThrowsScriptGenerationException()
+    public async Task Handle_WhenGenerationFails_ThrowsScriptGenerationException()
     {
         var command = GenerateScriptCommand.Create("fail");
         _scriptGenerator.NextResult = Result<ScriptResponse>.Failure("bad");
 
-        Assert.ThrowsAsync<ScriptGenerationException>(async () =>
+        await Assert.ThrowsAsync<ScriptGenerationException>(async () =>
             await _handler.Handle(command, CancellationToken.None));
     }
 }
