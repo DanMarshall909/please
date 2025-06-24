@@ -1,90 +1,67 @@
-# Please - Go Implementation (Legacy)
+# Please v5 - Go Legacy Implementation
 
-This folder contains the original Go implementation of the Please CLI tool, preserved as reference during the C# rewrite.
+This directory contains the stable Go implementation of Please from commit `ba2db8dd654f86c71155309ab7ad0bb45f3f2117`.
 
-## 📂 **Contents**
+## ✅ Status
+- **Build**: ✅ Working (`go build -o please.exe`)
+- **Core Tests**: ✅ Passing (config, localization, models, providers, script, types)
+- **Main Tests**: ⚠️ Minor localization test failures (non-blocking)
+- **Tagged**: `v5.0-stable`
 
-### **Go Source Files (Already Moved)**
-- `main.go` - Main entry point and CLI logic
-- `core_logic_test.go` - Core business logic tests
-- `integration_contract_test.go` - Integration contract tests
+## 🚀 Quick Start
 
-### **Go Packages (To Be Moved)**
-When VS Code tabs are closed, these should be moved here:
-- `ui/` - User interface and menu system
-- `config/` - Configuration management
-- `localization/` - Internationalization system
-- `models/` - Data models and selection logic
-- `providers/` - AI provider implementations (OpenAI, Anthropic, Ollama)
-- `script/` - Script operations and validation
-- `types/` - Type definitions
-- `themes/` - Localization theme files
-- `releases/` - Binary releases
+```bash
+# Build Go version
+cd legacy-go
+go build -o please.exe
 
-### **Build Files**
-- `please` - Go binary
-- `pls.bat` - Windows alias script
-- Various coverage files
+# Test Go version
+go test ./...
 
-## 🎯 **Purpose**
+# Run Go version
+./please.exe --help
+```
 
-This legacy implementation serves as:
+## 📦 Structure
 
-1. **Functional Reference** - Defines what the C# version must do
-2. **Test Specifications** - Go tests become C# test requirements  
-3. **Business Logic Reference** - Complex algorithms and decision trees
-4. **Provider Integration Examples** - API usage patterns for AI providers
-5. **CLI Behavior Specification** - Exact command-line interface requirements
+```
+legacy-go/
+├── main.go                  # Entry point
+├── config/                  # Configuration management
+├── localization/            # Internationalization
+├── models/                  # Selection logic
+├── providers/               # AI provider implementations
+├── script/                  # Script operations
+├── types/                   # Type definitions
+├── ui/                      # User interface
+└── themes/                  # Localization themes
+```
 
-## 🏗️ **Architecture Lessons**
+## 🎯 Features
 
-### **What Worked Well**
-- Provider abstraction pattern
-- CQRS-like command structure
-- Comprehensive test coverage for main business logic
-- Localization system design
-- Risk assessment for script safety
+- ✅ Multi-provider AI support (OpenAI, Anthropic, Ollama)
+- ✅ Cross-platform script generation (Windows, Linux, macOS)
+- ✅ Interactive menu system
+- ✅ Script validation and safety checks
+- ✅ Localization support (multiple languages)
+- ✅ Test monitoring with AI analysis
 
-### **Technical Debt Identified**
-- Global variables throughout the codebase
-- Tight coupling between UI and business logic
-- Retrofitted localization (not designed-in)
-- Mixed responsibilities in single functions
-- Limited dependency injection
+## 🔄 Relationship to v6
 
-### **C# Improvements**
-- Clean Architecture with strict layer boundaries
-- Dependency injection throughout
-- CQRS pattern with MediatR
-- Async/await for all I/O operations
-- Proper error handling with exceptions
-- Structured logging with Serilog
+This Go implementation serves as:
+- **Reference implementation** for C# migration
+- **Stable fallback** while v6 is developed
+- **Test specification source** for C# feature parity
 
-## 📋 **Migration Notes**
+## 📝 Notes
 
-### **Key Functions to Preserve**
-- `isLastScriptCommand()` - Natural language command recognition
-- `getFallbackModel()` - Provider-specific model selection
-- `generateScript()` - Core script generation workflow
-- Risk assessment logic in UI layer
-- Provider configuration validation
-
-### **Test Translation Priority**
-1. **integration_contract_test.go** → C# Integration Tests
-2. **core_logic_test.go** → C# Unit Tests  
-3. **main_test.go** → C# CLI Tests
-4. Package-specific tests → C# Component Tests
-
-### **Business Rules to Preserve**
-- Command-line argument parsing behavior
-- Provider selection algorithm
-- Model fallback logic
-- Script risk classification
-- User confirmation workflows
-- History and configuration file formats
+- This is the **last stable Go version** before C# migration
+- All future Go development should happen in this directory
+- Main branch focuses on C# Clean Architecture implementation
+- Both versions will be maintained as separate executables
 
 ---
 
-*Preserved: June 15, 2025*  
-*Status: Reference Implementation for C# Rewrite*  
-*Next: C# Clean Architecture Implementation*
+*Generated from commit: ba2db8dd654f86c71155309ab7ad0bb45f3f2117*  
+*Branch: release/please-v5-stable*  
+*Date: June 15, 2025*
