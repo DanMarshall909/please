@@ -15,15 +15,7 @@ public class PleaseHostTests
         // Register all required dependencies for AOT compatibility
         var provider = PleaseHost.CreateServiceProvider(services =>
         {
-            // Register test doubles
-            services.AddSingleton<FakeScriptGenerator>();
-            services.AddSingleton<FakeScriptRepository>();
-            services.AddSingleton<FakeContextService>();
-
-            // Register interfaces
-            services.AddSingleton<IScriptGenerator>(sp => sp.GetRequiredService<FakeScriptGenerator>());
-            services.AddSingleton<IScriptRepository>(sp => sp.GetRequiredService<FakeScriptRepository>());
-            services.AddSingleton<IContextService>(sp => sp.GetRequiredService<FakeContextService>());
+            services.AddTestDoubles();
         });
 
         object? service = provider.GetService(typeof(IScriptService));
@@ -36,14 +28,8 @@ public class PleaseHostTests
         var fake = new FakeScriptGenerator();
         var provider = PleaseHost.CreateServiceProvider(services =>
         {
-            // Register the fake generator
+            services.AddTestDoubles();
             services.AddSingleton<IScriptGenerator>(fake);
-
-            // Register other required dependencies
-            services.AddSingleton<FakeScriptRepository>();
-            services.AddSingleton<FakeContextService>();
-            services.AddSingleton<IScriptRepository>(sp => sp.GetRequiredService<FakeScriptRepository>());
-            services.AddSingleton<IContextService>(sp => sp.GetRequiredService<FakeContextService>());
         });
 
         var resolved = provider.GetRequiredService<IScriptGenerator>();
