@@ -5,6 +5,7 @@ using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
 using Microsoft.Extensions.DependencyInjection;
+using Please.Domain.Interfaces;
 
 namespace Please.Application.UnitTests.Services;
 
@@ -16,7 +17,20 @@ public class ScriptServiceTests
 
     public ScriptServiceTests()
     {
-        var provider = TestSystem.Create();
+        // Create a test service provider with explicit configuration for AOT compatibility
+        var provider = TestSystem.Create(services =>
+        {
+            // Ensure the test doubles are properly configured
+            services.AddSingleton<FakeScriptGenerator>();
+            services.AddSingleton<FakeScriptRepository>();
+            services.AddSingleton<FakeContextService>();
+
+            // Register interfaces with their implementations
+            services.AddSingleton<IScriptGenerator>(sp => sp.GetRequiredService<FakeScriptGenerator>());
+            services.AddSingleton<IScriptRepository>(sp => sp.GetRequiredService<FakeScriptRepository>());
+            services.AddSingleton<IContextService>(sp => sp.GetRequiredService<FakeContextService>());
+        });
+
         _generator = provider.GetRequiredService<FakeScriptGenerator>();
         _repository = provider.GetRequiredService<FakeScriptRepository>();
         _service = provider.GetRequiredService<IScriptService>();

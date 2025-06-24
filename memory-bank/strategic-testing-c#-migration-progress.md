@@ -11,6 +11,7 @@ Implement the minimal set of high-value tests that enable confident refactoring 
 - ✅ **Project Structure**: Proper dependency direction, no circular references
 - ✅ **Build Verification**: Both Domain and Application layers compile successfully
 - ✅ Result pattern and strongly typed IDs implemented with unit tests
+- ✅ **Native AOT Compatibility**: Tests updated to work with Native AOT compilation
 
 ### 2. Strategic Domain Tests (9 tests passing)
 **File**: `tests/Domain.UnitTests/Please.Domain.UnitTests/Entities/ScriptRequestTests.cs`
@@ -18,7 +19,7 @@ Implement the minimal set of high-value tests that enable confident refactoring 
 - ✅ ScriptRequest creation with provider and model
 - ✅ Working directory preservation
 
-**File**: `tests/Domain.UnitTests/Please.Domain.UnitTests/Entities/ScriptResponseTests.cs` 
+**File**: `tests/Domain.UnitTests/Please.Domain.UnitTests/Entities/ScriptResponseTests.cs`
 - ✅ RequiresConfirmation logic (medium risk, warnings)
 - ✅ IsDangerous detection (high risk level)
 - ✅ Warning and safety note collection
@@ -51,7 +52,7 @@ tests/Application.UnitTests/Please.Application.UnitTests/Queries/GetLastScriptQu
 ### 2. Infrastructure Layer (Priority 2)
 **Required for working system**:
 - `src/Infrastructure/Please.Infrastructure/Repositories/ScriptRepository.cs`
-- `src/Infrastructure/Please.Infrastructure/Services/ScriptGenerator.cs` 
+- `src/Infrastructure/Please.Infrastructure/Services/ScriptGenerator.cs`
 - `src/Infrastructure/Please.Infrastructure/DependencyInjection.cs`
 - Basic integration test to verify end-to-end flow
 

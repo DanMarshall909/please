@@ -11,12 +11,16 @@ public static class TestSystem
     {
         return PleaseHost.CreateServiceProvider(services =>
         {
-            services.AddTransient<FakeScriptGenerator>();
-            services.AddTransient<FakeScriptRepository>();
-            services.AddTransient<FakeContextService>();
-            services.AddTransient<IScriptGenerator>(sp => sp.GetRequiredService<FakeScriptGenerator>());
-            services.AddTransient<IScriptRepository>(sp => sp.GetRequiredService<FakeScriptRepository>());
-            services.AddTransient<IContextService>(sp => sp.GetRequiredService<FakeContextService>());
+            // Register test doubles with explicit interface implementations for AOT compatibility
+            services.AddSingleton<FakeScriptGenerator>();
+            services.AddSingleton<FakeScriptRepository>();
+            services.AddSingleton<FakeContextService>();
+
+            // Use direct registration instead of factory methods for AOT compatibility
+            services.AddSingleton<IScriptGenerator, FakeScriptGenerator>();
+            services.AddSingleton<IScriptRepository, FakeScriptRepository>();
+            services.AddSingleton<IContextService, FakeContextService>();
+
             services.AddLogging(builder => builder.AddDebug());
             configure?.Invoke(services);
         });

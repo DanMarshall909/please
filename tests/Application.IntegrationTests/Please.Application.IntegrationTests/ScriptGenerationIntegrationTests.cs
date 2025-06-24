@@ -6,6 +6,7 @@ using Please.Domain.Entities;
 using Please.Domain.Enums;
 using Please.Domain.Interfaces;
 using Please.Domain.Services;
+using Please.TestUtilities;
 using Xunit;
 
 namespace Please.Application.IntegrationTests;
@@ -26,6 +27,10 @@ public class ScriptGenerationIntegrationTests
             services.AddSingleton<IScriptRepository>(testRepo);
             services.AddSingleton(testRepo);
             services.AddTransient<GenerateScriptCommandHandler>();
+
+            // Register required services for AOT compatibility
+            services.AddSingleton<FakeContextService>();
+            services.AddSingleton<IContextService>(sp => sp.GetRequiredService<FakeContextService>());
         });
         _handler = _serviceProvider.GetRequiredService<GenerateScriptCommandHandler>();
     }

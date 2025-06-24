@@ -7,7 +7,7 @@ namespace Please.TestUtilities;
 public sealed class FakeContextService : IContextService
 {
     public Result<CommandContext> ContextResult { get; set; } =
-        Result<CommandContext>.Success(new CommandContext("/"));
+        Result<CommandContext>.Failure("no context");
 
     public List<CommandExecution> StoredExecutions { get; } = [];
 

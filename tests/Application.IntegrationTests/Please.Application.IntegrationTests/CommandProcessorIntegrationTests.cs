@@ -7,6 +7,7 @@ using Please.Domain.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Please.Console;
 using Please.Domain.Interfaces;
+using Please.Domain.Commands;
 
 namespace Please.Application.IntegrationTests;
 
@@ -15,7 +16,10 @@ public class CommandProcessorIntegrationTests
     [Fact]
     public async Task process_async_flows_through_context_and_generator()
     {
-        var context = new FakeContextService();
+        var context = new FakeContextService
+        {
+            ContextResult = Result<CommandContext>.Success(new CommandContext("/"))
+        };
         var generator = new FakeScriptGenerator
         {
             NextResult = Result<ScriptResponse>.Success(
@@ -24,8 +28,13 @@ public class CommandProcessorIntegrationTests
 
         var provider = PleaseHost.CreateServiceProvider(services =>
         {
-            services.AddTransient<IContextService>(_ => context);
-            services.AddTransient<IScriptGenerator>(_ => generator);
+            // Register test doubles with explicit interface implementations for AOT compatibility
+            services.AddSingleton<IContextService>(_ => context);
+            services.AddSingleton<IScriptGenerator>(_ => generator);
+
+            // Register required repository for AOT compatibility
+            services.AddSingleton<FakeScriptRepository>();
+            services.AddSingleton<IScriptRepository>(sp => sp.GetRequiredService<FakeScriptRepository>());
         });
         var processor = provider.GetRequiredService<CommandProcessor>();
 
