@@ -6,7 +6,6 @@ using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
 using Microsoft.Extensions.DependencyInjection;
-using Please.Domain.Interfaces;
 
 namespace Please.Application.UnitTests.Services;
 

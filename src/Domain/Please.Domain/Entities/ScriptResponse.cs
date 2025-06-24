@@ -42,15 +42,15 @@ public partial record ScriptResponse
         ScriptType scriptType,
         RiskLevel riskLevel = RiskLevel.Low,
         DateTime? createdAt = null) => new()
-    {
-        Script = script,
-        TaskDescription = taskDescription,
-        Provider = provider,
-        Model = model,
-        ScriptType = scriptType,
-        RiskLevel = riskLevel,
-        CreatedAt = createdAt ?? DateTime.UtcNow
-    };
+        {
+            Script = script,
+            TaskDescription = taskDescription,
+            Provider = provider,
+            Model = model,
+            ScriptType = scriptType,
+            RiskLevel = riskLevel,
+            CreatedAt = createdAt ?? DateTime.UtcNow
+        };
 
     /// <summary>
     /// Adds a warning to the response

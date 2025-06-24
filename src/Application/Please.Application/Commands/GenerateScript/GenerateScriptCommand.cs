@@ -1,4 +1,3 @@
-using Please.Domain.Entities;
 using Please.Domain.Enums;
 
 namespace Please.Application.Commands.GenerateScript;

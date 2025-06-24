@@ -1,5 +1,3 @@
-using Please.Domain.Entities;
-
 namespace Please.Application.Queries.GetLastScript;
 
 /// <summary>
