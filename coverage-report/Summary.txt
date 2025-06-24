@@ -1,0 +1,63 @@
+Summary
+  Generated on: 24/06/2025 - 9:07:46 PM
+  Coverage date: 24/06/2025 - 9:05:48 PM
+  Parser: MultiReport (3x Cobertura)
+  Assemblies: 4
+  Classes: 35
+  Files: 30
+  Line coverage: 82.3%
+  Covered lines: 411
+  Uncovered lines: 88
+  Coverable lines: 499
+  Total lines: 1087
+  Branch coverage: 72.7% (48 of 66)
+  Covered branches: 48
+  Total branches: 66
+  Method coverage: 78.4% (124 of 158)
+  Full method coverage: 76.5% (121 of 158)
+  Covered methods: 124
+  Fully covered methods: 121
+  Total methods: 158
+
+Please.Application                                                          83.7%
+  Please.Application.Commands.GenerateScript.GenerateScriptCommand           100%
+  Please.Application.Commands.GenerateScript.GenerateScriptCommandHandler    100%
+  Please.Application.DependencyInjection                                      37%
+  Please.Application.Queries.GetLastScript.GetLastScriptQuery                 50%
+  Please.Application.Queries.GetLastScript.GetLastScriptQueryHandler         100%
+  Please.Application.Services.CommandProcessor                              95.4%
+  Please.Application.Services.ScriptService                                  100%
+
+Please.Console                                                                80%
+  Please.Console.PleaseHost                                                  100%
+  Program                                                                      0%
+
+Please.Domain                                                               83.7%
+  Please.Domain.Commands.CommandContext                                      100%
+  Please.Domain.Commands.CommandExecution                                      0%
+  Please.Domain.Commands.CommandIntent                                       100%
+  Please.Domain.Common.FailureResult                                        83.3%
+  Please.Domain.Common.Result                                               83.3%
+  Please.Domain.Common.Result<T>                                            94.4%
+  Please.Domain.Common.StronglyTypedId<T>                                    100%
+  Please.Domain.Common.SuccessResult                                          50%
+  Please.Domain.Entities.ProviderId                                          100%
+  Please.Domain.Entities.ScriptId                                             75%
+  Please.Domain.Entities.ScriptRequest                                       100%
+  Please.Domain.Entities.ScriptResponse                                     87.1%
+  Please.Domain.Exceptions.DomainException                                    50%
+  Please.Domain.Exceptions.ScriptGenerationException                          50%
+  Please.Domain.Exceptions.ScriptValidationException                          50%
+  Please.Domain.Exceptions.UnsupportedModelException                         100%
+  Please.Domain.Exceptions.UnsupportedProviderException                      100%
+
+Please.TestUtilities                                                          81%
+  Please.TestUtilities.Builders.GenerateScriptCommandBuilder                90.4%
+  Please.TestUtilities.Builders.ScriptRequestBuilder                         100%
+  Please.TestUtilities.Builders.ScriptResponseBuilder                       93.2%
+  Please.TestUtilities.FakeContextService                                     50%
+  Please.TestUtilities.FakeScriptGenerator                                  72.7%
+  Please.TestUtilities.FakeScriptRepository                                   48%
+  Please.TestUtilities.Shouldly.ShouldlyExtensions                             0%
+  Please.TestUtilities.TestModule                                            100%
+  Please.TestUtilities.TestSystem                                            100%
