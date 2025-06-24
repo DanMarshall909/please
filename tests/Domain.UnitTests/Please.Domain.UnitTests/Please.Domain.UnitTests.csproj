@@ -18,7 +18,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\src\Domain\Please.Domain\Please.Domain.csproj"/>
+        <ProjectReference Include="../../../src/Domain/Please.Domain/Please.Domain.csproj"/>
+        <ProjectReference Include="../../TestUtilities/Please.TestUtilities/Please.TestUtilities.csproj"/>
     </ItemGroup>
 
 </Project>

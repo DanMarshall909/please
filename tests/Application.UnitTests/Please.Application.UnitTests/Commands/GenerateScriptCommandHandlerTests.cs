@@ -1,5 +1,6 @@
 using Xunit;
 using Please.TestUtilities;
+using Please.TestUtilities.Builders;
 using Please.Application.Commands.GenerateScript;
 using Please.Domain.Common;
 using Please.Domain.Entities;
@@ -17,19 +18,25 @@ public class GenerateScriptCommandHandlerTests
     public GenerateScriptCommandHandlerTests() =>
         _handler = new GenerateScriptCommandHandler(_scriptGenerator, _scriptRepository);
 
-    [Fact]
-    public async Task valid_script_request_generates_and_saves_script()
+    [Theory]
+    [InlineData("Deploy to production", ProviderType.OpenAi, "gpt-4", RiskLevel.High)]
+    [InlineData("Create backup", ProviderType.Anthropic, "claude-3", RiskLevel.Medium)]
+    [InlineData("List files", ProviderType.Ollama, "llama2", RiskLevel.Low)]
+    public async Task valid_script_request_generates_and_saves_script(string task, ProviderType provider, string model, RiskLevel riskLevel)
     {
         // Arrange
-        var command = GenerateScriptCommand.Create("Deploy to production", ProviderType.OpenAi, "gpt-4");
-        var expectedResponse = ScriptResponse.Create(
-            "kubectl apply -f production.yaml",
-            "Deploy to production",
-            ProviderType.OpenAi,
-            "gpt-4",
-            ScriptType.Bash,
-            RiskLevel.High
-        );
+        var command = GenerateScriptCommandBuilder.Create()
+            .WithTask(task)
+            .WithProvider(provider)
+            .WithModel(model)
+            .Build();
+
+        var expectedResponse = ScriptResponseBuilder.Create()
+            .WithTask(task)
+            .WithProvider(provider)
+            .WithModel(model)
+            .WithRiskLevel(riskLevel)
+            .Build();
 
         _scriptGenerator.NextResult = Result<ScriptResponse>.Success(expectedResponse);
 
@@ -48,14 +55,13 @@ public class GenerateScriptCommandHandlerTests
     public async Task script_request_without_working_directory_uses_current_directory()
     {
         // Arrange
-        var command = GenerateScriptCommand.Create("List files");
-        var expectedResponse = ScriptResponse.Create(
-            "ls -la",
-            "List files",
-            ProviderType.OpenAi,
-            "gpt-4",
-            ScriptType.Bash
-        );
+        var command = GenerateScriptCommandBuilder.Create()
+            .WithTask("List files")
+            .Build();
+
+        var expectedResponse = ScriptResponseBuilder.Create()
+            .WithTask("List files")
+            .Build();
 
         _scriptGenerator.NextResult = Result<ScriptResponse>.Success(expectedResponse);
 
@@ -66,13 +72,51 @@ public class GenerateScriptCommandHandlerTests
         Assert.Equal(Environment.CurrentDirectory, _scriptGenerator.LastRequest?.WorkingDirectory);
     }
 
-    [Fact]
-    public async Task failed_script_generation_throws_descriptive_exception()
+    [Theory]
+    [InlineData("Generation failed")]
+    [InlineData("Network timeout")]
+    [InlineData("Invalid API key")]
+    public async Task failed_script_generation_throws_descriptive_exception(string errorMessage)
     {
-        var command = GenerateScriptCommand.Create("fail");
-        _scriptGenerator.NextResult = Result<ScriptResponse>.Failure("bad");
+        // Arrange
+        var command = GenerateScriptCommandBuilder.Create()
+            .WithTask("Test task")
+            .Build();
 
-        await Assert.ThrowsAsync<ScriptGenerationException>(async () =>
+        _scriptGenerator.NextResult = Result<ScriptResponse>.Failure(errorMessage);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<ScriptGenerationException>(async () =>
             await _handler.Handle(command, CancellationToken.None));
+
+        Assert.Contains(errorMessage, exception.Message);
+    }
+
+    [Theory]
+    [InlineData(ScriptType.Bash, "/home/user")]
+    [InlineData(ScriptType.PowerShell, "C:\\Projects")]
+    [InlineData(ScriptType.Python, "/var/lib")]
+    public async Task script_request_preserves_script_type_and_working_directory(ScriptType scriptType, string workingDir)
+    {
+        // Arrange
+        var command = GenerateScriptCommandBuilder.Create()
+            .WithTask("Custom task")
+            .WithScriptType(scriptType)
+            .WithWorkingDirectory(workingDir)
+            .Build();
+
+        var expectedResponse = ScriptResponseBuilder.Create()
+            .WithTask("Custom task")
+            .WithScriptType(scriptType)
+            .Build();
+
+        _scriptGenerator.NextResult = Result<ScriptResponse>.Success(expectedResponse);
+
+        // Act
+        await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(scriptType, _scriptGenerator.LastRequest?.ScriptType);
+        Assert.Equal(workingDir, _scriptGenerator.LastRequest?.WorkingDirectory);
     }
 }

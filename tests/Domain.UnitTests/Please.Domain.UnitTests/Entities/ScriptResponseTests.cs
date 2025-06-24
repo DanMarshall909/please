@@ -2,127 +2,84 @@ using Shouldly;
 using Xunit;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
+using Please.TestUtilities.Builders;
 
 namespace Please.Domain.UnitTests.Entities;
 
 public class ScriptResponseTests
 {
-    [Fact]
-    public void medium_risk_scripts_require_user_confirmation()
+    [Theory]
+    [InlineData(RiskLevel.Medium, true)]
+    [InlineData(RiskLevel.High, true)]
+    [InlineData(RiskLevel.Critical, true)]
+    [InlineData(RiskLevel.Low, false)]
+    public void scripts_with_elevated_risk_require_user_confirmation(RiskLevel riskLevel, bool expectedConfirmation)
     {
         // Arrange
-        var response = ScriptResponse.Create(
-            "rm -rf /",
-            "Delete all files",
-            ProviderType.OpenAi,
-            "gpt-4",
-            ScriptType.Bash,
-            RiskLevel.Medium
-        );
+        var response = ScriptResponseBuilder.Create()
+            .WithRiskLevel(riskLevel)
+            .Build();
 
-        // Act
-        bool requiresConfirmation = response.RequiresConfirmation;
-
-        // Assert
-        requiresConfirmation.ShouldBeTrue();
+        // Act & Assert
+        response.RequiresConfirmation.ShouldBe(expectedConfirmation);
     }
 
     [Fact]
     public void scripts_with_warnings_require_user_confirmation()
     {
         // Arrange
-        var response = ScriptResponse.Create(
-            "echo 'safe command'",
-            "Echo text",
-            ProviderType.OpenAi,
-            "gpt-4",
-            ScriptType.Bash
-        ).WithWarning(new ScriptResponse.Warning("This command does nothing useful"));
+        var response = ScriptResponseBuilder.Create()
+            .WithWarning("This command does nothing useful")
+            .Build();
 
-        // Act
-        bool requiresConfirmation = response.RequiresConfirmation;
-
-        // Assert
-        requiresConfirmation.ShouldBeTrue();
+        // Act & Assert
+        response.RequiresConfirmation.ShouldBeTrue();
     }
 
-    [Fact]
-    public void safe_scripts_without_warnings_do_not_require_confirmation()
+    [Theory]
+    [InlineData(RiskLevel.High, true)]
+    [InlineData(RiskLevel.Critical, true)]
+    [InlineData(RiskLevel.Medium, false)]
+    [InlineData(RiskLevel.Low, false)]
+    public void high_risk_scripts_are_marked_as_dangerous(RiskLevel riskLevel, bool expectedDangerous)
     {
         // Arrange
-        var response = ScriptResponse.Create(
-            "ls -la",
-            "List files",
-            ProviderType.OpenAi,
-            "gpt-4",
-            ScriptType.Bash
-        );
+        var response = ScriptResponseBuilder.Create()
+            .WithRiskLevel(riskLevel)
+            .Build();
 
-        // Act
-        bool requiresConfirmation = response.RequiresConfirmation;
-
-        // Assert
-        requiresConfirmation.ShouldBeFalse();
-    }
-
-    [Fact]
-    public void high_risk_scripts_are_marked_as_dangerous()
-    {
-        // Arrange
-        var response = ScriptResponse.Create(
-            "sudo rm -rf /",
-            "Delete system files",
-            ProviderType.OpenAi,
-            "gpt-4",
-            ScriptType.Bash,
-            RiskLevel.High
-        );
-
-        // Act
-        bool isDangerous = response.IsDangerous;
-
-        // Assert
-        isDangerous.ShouldBeTrue();
+        // Act & Assert
+        response.IsDangerous.ShouldBe(expectedDangerous);
     }
 
     [Fact]
     public void script_response_can_collect_multiple_warnings()
     {
         // Arrange
-        var response = ScriptResponse.Create(
-            "test script",
-            "Test task",
-            ProviderType.OpenAi,
-            "gpt-4",
-            ScriptType.Bash
-        );
+        var response = ScriptResponseBuilder.Create()
+            .WithWarning("First warning")
+            .WithWarning("Second warning")
+            .Build();
 
-        // Act
-        var updatedResponse = response.WithWarning(new ScriptResponse.Warning("Test warning"));
-
-        // Assert
-        updatedResponse.Warnings.Any(w => w.Message == "Test warning").ShouldBeTrue();
-        updatedResponse.Warnings.Count.ShouldBe(1);
+        // Act & Assert
+        response.Warnings.Count.ShouldBe(2);
+        response.Warnings.Any(w => w.Message == "First warning").ShouldBeTrue();
+        response.Warnings.Any(w => w.Message == "Second warning").ShouldBeTrue();
     }
 
     [Fact]
     public void script_response_can_collect_safety_recommendations()
     {
         // Arrange
-        var response = ScriptResponse.Create(
-            "test script",
-            "Test task",
-            ProviderType.OpenAi,
-            "gpt-4",
-            ScriptType.Bash
-        );
+        var response = ScriptResponseBuilder.Create()
+            .WithSafetyNote("First safety note")
+            .WithSafetyNote("Second safety note")
+            .Build();
 
-        // Act
-        var updatedResponse = response.WithSafetyNote(new ScriptResponse.SafetyNote("Test safety note"));
-
-        // Assert
-        updatedResponse.SafetyNotes.Contains(new ScriptResponse.SafetyNote("Test safety note")).ShouldBeTrue();
-        updatedResponse.SafetyNotes.Count.ShouldBe(1);
+        // Act & Assert
+        response.SafetyNotes.Count.ShouldBe(2);
+        response.SafetyNotes.Any(n => n.Message == "First safety note").ShouldBeTrue();
+        response.SafetyNotes.Any(n => n.Message == "Second safety note").ShouldBeTrue();
     }
 
     [Fact]
@@ -130,20 +87,28 @@ public class ScriptResponseTests
     {
         // Arrange
         var customDate = new DateTime(2024, 1, 2, 3, 4, 5, DateTimeKind.Utc);
-        var response = ScriptResponse.Create(
-            "echo test",
-            "Test created at",
-            ProviderType.OpenAi,
-            "gpt-4",
-            ScriptType.Bash,
-            RiskLevel.Low,
-            customDate
-        );
+        var response = ScriptResponseBuilder.Create()
+            .WithCreatedAt(customDate)
+            .Build();
 
-        // Act
-        var createdAt = response.CreatedAt;
+        // Act & Assert
+        response.CreatedAt.ShouldBe(customDate);
+    }
+
+    [Theory]
+    [InlineData(ProviderType.OpenAi, "gpt-4")]
+    [InlineData(ProviderType.Anthropic, "claude-3")]
+    [InlineData(ProviderType.Ollama, "llama2")]
+    public void script_response_stores_provider_and_model_details(ProviderType provider, string model)
+    {
+        // Arrange & Act
+        var response = ScriptResponseBuilder.Create()
+            .WithProvider(provider)
+            .WithModel(model)
+            .Build();
 
         // Assert
-        createdAt.ShouldBe(customDate);
+        response.Provider.ShouldBe(provider);
+        response.Model.ShouldBe(model);
     }
 }
