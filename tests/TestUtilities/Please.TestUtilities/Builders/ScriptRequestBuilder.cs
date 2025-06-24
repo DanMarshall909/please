@@ -64,7 +64,7 @@ public class ScriptRequestBuilder
     {
         ScriptRequest request;
 
-        if (_provider.HasValue && _model != null)
+        if (_provider.HasValue)
         {
             request = ScriptRequest.Create(_taskDescription, _provider.Value, _model);
         }
