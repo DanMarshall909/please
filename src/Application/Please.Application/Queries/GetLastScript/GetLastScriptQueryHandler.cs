@@ -1,4 +1,3 @@
-using MediatR;
 using Please.Domain.Entities;
 using Please.Domain.Interfaces;
 
@@ -7,7 +6,7 @@ namespace Please.Application.Queries.GetLastScript;
 /// <summary>
 /// Handles queries to retrieve the last generated script
 /// </summary>
-public class GetLastScriptQueryHandler : IRequestHandler<GetLastScriptQuery, ScriptResponse?>
+public class GetLastScriptQueryHandler
 {
     private readonly IScriptRepository _scriptRepository;
 

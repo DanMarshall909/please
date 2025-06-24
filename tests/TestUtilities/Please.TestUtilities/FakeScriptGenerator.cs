@@ -9,7 +9,7 @@ public sealed class FakeScriptGenerator : IScriptGenerator
     public ScriptRequest? LastRequest { get; private set; }
 
     public Result<ScriptResponse> NextResult { get; set; } =
-        Result<ScriptResponse>.Failure("Not configured");
+        Result<ScriptResponse>.Failure("nope");
 
     public Result<bool> ProviderAvailable { get; set; } =
         Result<bool>.Success(true);
