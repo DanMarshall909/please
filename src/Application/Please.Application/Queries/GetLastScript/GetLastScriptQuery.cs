@@ -1,4 +1,3 @@
-using MediatR;
 using Please.Domain.Entities;
 
 namespace Please.Application.Queries.GetLastScript;
@@ -6,7 +5,7 @@ namespace Please.Application.Queries.GetLastScript;
 /// <summary>
 /// Query to retrieve the last generated script
 /// </summary>
-public record GetLastScriptQuery : IRequest<ScriptResponse?>
+public record GetLastScriptQuery
 {
     /// <summary>
     /// Creates a new instance of GetLastScriptQuery

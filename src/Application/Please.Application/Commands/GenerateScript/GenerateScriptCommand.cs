@@ -1,4 +1,3 @@
-using MediatR;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
 
@@ -7,7 +6,7 @@ namespace Please.Application.Commands.GenerateScript;
 /// <summary>
 /// Command to generate a script based on user requirements
 /// </summary>
-public record GenerateScriptCommand : IRequest<ScriptResponse>
+public record GenerateScriptCommand
 {
     public required string TaskDescription { get; init; }
     public ProviderType? Provider { get; init; }

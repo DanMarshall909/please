@@ -1,4 +1,3 @@
-using MediatR;
 using Please.Domain.Entities;
 using Please.Domain.Interfaces;
 using Please.Domain.Exceptions;
@@ -8,7 +7,7 @@ namespace Please.Application.Commands.GenerateScript;
 /// <summary>
 /// Handles script generation commands
 /// </summary>
-public class GenerateScriptCommandHandler : IRequestHandler<GenerateScriptCommand, ScriptResponse>
+public class GenerateScriptCommandHandler
 {
     private readonly IScriptGenerator _scriptGenerator;
     private readonly IScriptRepository _scriptRepository;

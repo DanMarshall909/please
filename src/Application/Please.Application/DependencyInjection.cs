@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 using Please.Application.Services;
 
 namespace Please.Application;
@@ -15,9 +14,6 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddLogging();
-
-        // Register MediatR with all handlers from this assembly
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
         // Register core application services
         services.AddTransient<IScriptService, ScriptService>();
