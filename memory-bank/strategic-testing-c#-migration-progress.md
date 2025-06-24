@@ -12,6 +12,7 @@ Implement the minimal set of high-value tests that enable confident refactoring 
 - ✅ **Build Verification**: Both Domain and Application layers compile successfully
 - ✅ Result pattern and strongly typed IDs implemented with unit tests
 - ✅ **Native AOT Compatibility**: Tests updated to work with Native AOT compilation
+- 🔄 **Test Refactoring**: [Roadmap created](native-aot-test-refactoring-roadmap.md) for enterprise-grade improvements
 
 ### 2. Strategic Domain Tests (9 tests passing)
 **File**: `tests/Domain.UnitTests/Please.Domain.UnitTests/Entities/ScriptRequestTests.cs`
