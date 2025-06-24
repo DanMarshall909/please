@@ -15,17 +15,31 @@ Implement the minimal set of high-value tests that enable confident refactoring 
 - 🔄 **Test Refactoring**: [Roadmap created](native-aot-test-refactoring-roadmap.md) for enterprise-grade improvements
 - ✅ **TestModule Pattern**: Centralized registration of test doubles
 
-### 2. Strategic Domain Tests (9 tests passing)
+### 2. Strategic Domain Tests (20 tests passing)
 **File**: `tests/Domain.UnitTests/Please.Domain.UnitTests/Entities/ScriptRequestTests.cs`
-- ✅ ScriptRequest creation with task description
-- ✅ ScriptRequest creation with provider and model
-- ✅ Working directory preservation
+- ✅ ScriptRequest creation with task description and timestamp validation
+- ✅ ScriptRequest creation with multiple providers (OpenAI, Anthropic, Ollama)
+- ✅ Working directory preservation across different paths
+- ✅ Script type preference handling (Bash, PowerShell, Python)
+- ✅ Force execution flag preservation
+- ✅ Additional parameters storage and retrieval
 
 **File**: `tests/Domain.UnitTests/Please.Domain.UnitTests/Entities/ScriptResponseTests.cs`
-- ✅ RequiresConfirmation logic (medium risk, warnings)
-- ✅ IsDangerous detection (high risk level)
-- ✅ Warning and safety note collection
-- ✅ Risk assessment business rules
+- ✅ RequiresConfirmation logic with parameterized risk levels
+- ✅ IsDangerous detection for high/critical risk levels
+- ✅ Multiple warnings and safety notes collection
+- ✅ Custom creation timestamp preservation
+- ✅ Provider and model details storage validation
+- ✅ Comprehensive risk assessment business rules
+
+### 3. Test Infrastructure Modernization (COMPLETED)
+**File**: `tests/TestUtilities/Please.TestUtilities/Builders/`
+- ✅ **ScriptResponseBuilder**: Fluent API for test script responses with defaults
+- ✅ **ScriptRequestBuilder**: Comprehensive request building with parameters
+- ✅ **GenerateScriptCommandBuilder**: CQRS command creation for tests
+- ✅ **Builder Pattern**: Eliminates test duplication, improves maintainability
+- ✅ **Parameterized Tests**: Theory/InlineData for comprehensive scenario coverage
+- ✅ **Plain English Test Names**: Behavior-focused, readable test descriptions
 
 ### 3. Core Business Logic Coverage
 - ✅ **Risk Assessment**: Critical safety logic for script execution
