@@ -12,7 +12,6 @@ public static class ShouldlyExtensions
     {
         var clone = scriptResponse with { };
         foreach (var exclude in excludeProperties)
-        {
             if (exclude.Body is MemberExpression member)
             {
                 var prop = (PropertyInfo)member.Member;
@@ -27,7 +26,6 @@ public static class ShouldlyExtensions
             {
                 throw new ArgumentException($"Unsupported expression: {exclude}");
             }
-        }
 
         expected.ShouldBeEquivalentTo(clone);
     }

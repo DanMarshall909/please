@@ -13,10 +13,7 @@ public class PleaseHostTests
     public void create_service_provider_resolves_script_service()
     {
         // Register all required dependencies for AOT compatibility
-        var provider = PleaseHost.CreateServiceProvider(services =>
-        {
-            services.AddTestDoubles();
-        });
+        var provider = PleaseHost.CreateServiceProvider(services => { services.AddTestDoubles(); });
 
         object? service = provider.GetService(typeof(IScriptService));
         Assert.NotNull(service);

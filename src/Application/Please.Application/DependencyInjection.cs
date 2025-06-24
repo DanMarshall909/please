@@ -54,9 +54,13 @@ public static class DependencyInjection
     private class UnusedScriptGenerator : IScriptGenerator
     {
         public string GetFallbackModel(Domain.Entities.ScriptRequest request) => string.Empty;
-        public Task<Domain.Common.Result<bool>> IsProviderAvailableAsync(Domain.Entities.ScriptRequest request, CancellationToken cancellationToken = default)
+
+        public Task<Domain.Common.Result<bool>> IsProviderAvailableAsync(Domain.Entities.ScriptRequest request,
+            CancellationToken cancellationToken = default)
             => Task.FromResult(Domain.Common.Result<bool>.Success(false));
-        public Task<Domain.Common.Result<Domain.Entities.ScriptResponse>> GenerateScriptAsync(Domain.Entities.ScriptRequest request, CancellationToken cancellationToken = default)
+
+        public Task<Domain.Common.Result<Domain.Entities.ScriptResponse>> GenerateScriptAsync(
+            Domain.Entities.ScriptRequest request, CancellationToken cancellationToken = default)
             => Task.FromResult(Domain.Common.Result<Domain.Entities.ScriptResponse>.Failure("Not implemented"));
     }
 
@@ -64,21 +68,33 @@ public static class DependencyInjection
     {
         public Task<Domain.Common.Result> ClearHistoryAsync(CancellationToken cancellationToken = default)
             => Task.FromResult(Domain.Common.Result.Success());
-        public Task<Domain.Common.Result<Domain.Entities.ScriptResponse?>> GetLastScriptAsync(CancellationToken cancellationToken = default)
+
+        public Task<Domain.Common.Result<Domain.Entities.ScriptResponse?>> GetLastScriptAsync(
+            CancellationToken cancellationToken = default)
             => Task.FromResult(Domain.Common.Result<Domain.Entities.ScriptResponse?>.Success(null));
-        public Task<Domain.Common.Result<IEnumerable<Domain.Entities.ScriptResponse>>> GetScriptHistoryAsync(int? count = null, DateTime? since = null, CancellationToken cancellationToken = default)
-            => Task.FromResult(Domain.Common.Result<IEnumerable<Domain.Entities.ScriptResponse>>.Success(Array.Empty<Domain.Entities.ScriptResponse>()));
+
+        public Task<Domain.Common.Result<IEnumerable<Domain.Entities.ScriptResponse>>> GetScriptHistoryAsync(
+            int? count = null, DateTime? since = null, CancellationToken cancellationToken = default)
+            => Task.FromResult(
+                Domain.Common.Result<IEnumerable<Domain.Entities.ScriptResponse>>.Success(
+                    Array.Empty<Domain.Entities.ScriptResponse>()));
+
         public Task<Domain.Common.Result<bool>> HasHistoryAsync(CancellationToken cancellationToken = default)
             => Task.FromResult(Domain.Common.Result<bool>.Success(false));
-        public Task<Domain.Common.Result> SaveScriptAsync(Domain.Entities.ScriptResponse response, CancellationToken cancellationToken = default)
+
+        public Task<Domain.Common.Result> SaveScriptAsync(Domain.Entities.ScriptResponse response,
+            CancellationToken cancellationToken = default)
             => Task.FromResult(Domain.Common.Result.Success());
     }
 
     private class UnusedContextService : IContextService
     {
-        public Task<Domain.Common.Result<Domain.Commands.CommandContext>> GetContextAsync(Domain.Commands.CommandIntent intent, CancellationToken cancellationToken = default)
+        public Task<Domain.Common.Result<Domain.Commands.CommandContext>> GetContextAsync(
+            Domain.Commands.CommandIntent intent, CancellationToken cancellationToken = default)
             => Task.FromResult(Domain.Common.Result<Domain.Commands.CommandContext>.Failure("Not implemented"));
-        public Task<Domain.Common.Result> StorePatternAsync(Domain.Commands.CommandExecution execution, CancellationToken cancellationToken = default)
+
+        public Task<Domain.Common.Result> StorePatternAsync(Domain.Commands.CommandExecution execution,
+            CancellationToken cancellationToken = default)
             => Task.FromResult(Domain.Common.Result.Success());
     }
 }
