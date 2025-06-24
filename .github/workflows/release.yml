@@ -1,156 +1,180 @@
-name: Build and Release
+name: Build & Release ❶
+
+################################################################################
+# This workflow:
+#   • Builds and tests the .NET + Go solution using your own build scripts
+#   • Cross-compiles Go binaries for Windows / Linux / macOS (amd64 & arm64)
+#   • Runs SonarCloud analysis (optional – keep the secrets or remove the step)
+#   • Publishes a GitHub Release on version tags.  Pushes to main/master still
+#     run the build+test job but **do not** create a release.
+#
+#  Quick release:
+#     git tag v1.2.3
+#     git push origin v1.2.3
+################################################################################
 
 on:
   push:
     branches: [ master, main ]
-    tags: [ 'v*' ]
+    tags:     [ 'v*' ]
   pull_request:
     branches: [ master, main ]
 
-permissions:
-  contents: write
+env:
+  DOTNET_VERSION: '8.0.x'
+  GO_VERSION:     '1.22'
+  CONFIGURATION:  Release
 
+permissions:
+  contents: write           # required for gh-release
+
+################################################################################
+# 1️⃣ Build-and-test job (runs on Ubuntu; your Makefiles cross-compile the rest)
+################################################################################
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - goos: windows
-            goarch: amd64
-            ext: .exe
-            name: please-windows-amd64.exe
-          - goos: linux
-            goarch: amd64
-            ext: ""
-            name: please-linux-amd64
-          - goos: linux
-            goarch: arm64
-            ext: ""
-            name: please-linux-arm64
-          - goos: darwin
-            goarch: amd64
-            ext: ""
-            name: please-macos-amd64
-          - goos: darwin
-            goarch: arm64
-            ext: ""
-            name: please-macos-arm64
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.21'
+      # ──────────────────────────────────────────────────────────────────────────
+      # Toolchains
+      # ──────────────────────────────────────────────────────────────────────────
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Build binary
-      env:
-        GOOS: ${{ matrix.goos }}
-        GOARCH: ${{ matrix.goarch }}
-      run: |
-        go build -ldflags="-s -w" -o ${{ matrix.name }} main.go
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
 
-    - name: Run SonarQube Scan
-      uses: SonarSource/sonarcloud-github-action@v2
-      with:
-        args: -Dsonar.qualitygate.wait=true
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ matrix.name }}
-        path: ${{ matrix.name }}
+      # ──────────────────────────────────────────────────────────────────────────
+      # Make all helper scripts executable
+      # ──────────────────────────────────────────────────────────────────────────
+      - name: Make workflow scripts executable
+        run: chmod +x .github/workflows/*.sh
 
+      # ──────────────────────────────────────────────────────────────────────────
+      # Clean workspace (your script)
+      # ──────────────────────────────────────────────────────────────────────────
+      - name: Clean previous outputs
+        run: .github/workflows/build_clean_command.sh
+
+      # ──────────────────────────────────────────────────────────────────────────
+      # Initialise Go module if it doesn't exist (your script)
+      # ──────────────────────────────────────────────────────────────────────────
+      - name: Initialise Go module
+        run: .github/workflows/go_mod_initialization.sh
+
+      # ──────────────────────────────────────────────────────────────────────────
+      # Project-level build configuration (your script)
+      # ──────────────────────────────────────────────────────────────────────────
+      - name: Configure build
+        run: .github/workflows/build_configuration_script.sh
+
+      # ──────────────────────────────────────────────────────────────────────────
+      # Generate root Makefile that includes your build-management Makefiles
+      # (creates ./Makefile so `make` works both locally and in CI)
+      # ──────────────────────────────────────────────────────────────────────────
+      - name: Generate composite Makefile
+        run: .github/workflows/makefile.sh
+
+      # ──────────────────────────────────────────────────────────────────────────
+      # Build & test everything *once* via your CI target.
+      #  - `make ci` runs: deps → build → test (see build_management_pipeline.mk)
+      #  - `make build-all` cross-compiles Go binaries for all target platforms.
+      # ──────────────────────────────────────────────────────────────────────────
+      - name: Run CI build (dotnet + go, cross-compiled)
+        run: |
+          make ci
+          make build-all        # produces the platform binaries in ./bin/
+
+      # ──────────────────────────────────────────────────────────────────────────
+      # Optional static-analysis scan (remove if you don’t use SonarCloud)
+      # ──────────────────────────────────────────────────────────────────────────
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN:     ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL:  ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: -Dsonar.qualitygate.wait=true
+        if: ${{ env.SONAR_TOKEN != '' && env.SONAR_HOST_URL != '' }}
+
+      # ──────────────────────────────────────────────────────────────────────────
+      # Upload build artefacts for the next job
+      # ──────────────────────────────────────────────────────────────────────────
+      - name: Upload artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: |
+            bin/please-*          # Go cross-compiled binaries
+            **/bin/${{ env.CONFIGURATION }}/**/*.dll
+            **/bin/${{ env.CONFIGURATION }}/**/*.exe
+          if-no-files-found: error
+
+  ################################################################################
+  # 2️⃣ Release job – only when the ref is a version tag (v*).
+  ################################################################################
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-    
+    if: startsWith(github.ref, 'refs/tags/v')
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Download all artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: ./artifacts/
-        
-    - name: Prepare release files
-      run: |
-        mkdir -p dist
-        # Copy all artifacts to dist directory
-        find ./artifacts/ -name "please-*" -type f -exec cp {} ./dist/ \;
-        ls -la ./dist/
-        
-    - name: Generate release tag
-      id: tag
-      run: |
-        if [[ $GITHUB_REF == refs/tags/* ]]; then
-          echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-          echo "prerelease=false" >> $GITHUB_OUTPUT
-        else
-          echo "tag=latest-$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
-          echo "prerelease=true" >> $GITHUB_OUTPUT
-        fi
-        
-    - name: Create Release
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: ${{ steps.tag.outputs.tag }}
-        name: Please ${{ steps.tag.outputs.tag }}
-        body: |
-          🤖 **Please - Your Overly Helpful Digital Assistant**
-          
-          Cross-platform AI-powered script generator with natural language interface.
-          
-          ## Downloads
-          
-          Choose the appropriate binary for your platform:
-          
-          ### Windows
-          - **please-windows-amd64.exe** - Windows 64-bit (Intel/AMD)
-          
-          ### Linux  
-          - **please-linux-amd64** - Linux 64-bit (Intel/AMD)
-          - **please-linux-arm64** - Linux ARM64 (ARM processors)
-          
-          ### macOS
-          - **please-macos-amd64** - macOS Intel (x86_64)
-          - **please-macos-arm64** - macOS Apple Silicon (M1/M2/M3)
-          
-          ## Quick Start
-          
-          1. Download the binary for your platform
-          2. Make executable (Linux/macOS): `chmod +x <binary-name>`
-          3. Run: `./please-<platform> help`
-          
-          ## Usage Examples
-          
-          ```bash
-          please backup my documents folder
-          please show system memory usage
-          please create a git commit script
-          please organize photos by date
-          ```
-          
-          ## Requirements
-          
-          - No dependencies - single binary
-          - AI Provider: Ollama (recommended), OpenAI, or Anthropic
-          
-          ---
-          
-          Built automatically from commit: ${{ github.sha }}
-        draft: false
-        prerelease: ${{ steps.tag.outputs.prerelease }}
-        files: |
-          dist/please-windows-amd64.exe
-          dist/please-linux-amd64
-          dist/please-linux-arm64
-          dist/please-macos-amd64
-          dist/please-macos-arm64
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
+
+      - name: Download artefacts
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries
+          path: dist
+
+      # ------------------------------------------------------------------------
+      # Generate simple release notes – customise as you wish
+      # ------------------------------------------------------------------------
+      - name: Create release notes
+        run: |
+          echo "## Please $TAG"                      >  RELEASE_NOTES.md
+          echo                                        >> RELEASE_NOTES.md
+          echo "**Built from commit \`${{ github.sha }}\`**" >> RELEASE_NOTES.md
+          echo                                        >> RELEASE_NOTES.md
+          echo "### Binaries"                        >> RELEASE_NOTES.md
+          for f in dist/please-*; do echo "- \`$(basename $f)\`" >> RELEASE_NOTES.md; done
+        env:
+          TAG: ${{ github.ref_name }}
+
+      # ------------------------------------------------------------------------
+      # Publish the GitHub Release with all artefacts
+      # ------------------------------------------------------------------------
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name:   ${{ github.ref_name }}
+          name:       Please ${{ github.ref_name }}
+          body_path:  RELEASE_NOTES.md
+          files:      dist/*
+          draft:      false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  ################################################################################
+  # 3️⃣ (Optional) Tidy up artefacts after release – keeps CI storage clean
+  ################################################################################
+  cleanup:
+    needs: release
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Delete artefacts
+        uses: geekyeggo/delete-artifact@v2
+        with:
+          name: binaries
+          failOnError: false

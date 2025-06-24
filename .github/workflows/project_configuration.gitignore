@@ -1,0 +1,31 @@
+﻿
+# .NET
+bin/
+obj/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+.vs/
+.vscode/
+*.dll
+*.exe
+*.pdb
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# Binaries
+/bin/
+
+# IDE
+.idea/
+*.swp
+*.swo

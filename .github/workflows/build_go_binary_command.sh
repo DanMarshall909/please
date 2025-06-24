@@ -1,0 +1,1 @@
+﻿make build-go GOOS=linux GOARCH=amd64
