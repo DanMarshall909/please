@@ -17,19 +17,7 @@ public class ScriptServiceTests
 
     public ScriptServiceTests()
     {
-        // Create a test service provider with explicit configuration for AOT compatibility
-        var provider = TestSystem.Create(services =>
-        {
-            // Ensure the test doubles are properly configured
-            services.AddSingleton<FakeScriptGenerator>();
-            services.AddSingleton<FakeScriptRepository>();
-            services.AddSingleton<FakeContextService>();
-
-            // Register interfaces with their implementations
-            services.AddSingleton<IScriptGenerator>(sp => sp.GetRequiredService<FakeScriptGenerator>());
-            services.AddSingleton<IScriptRepository>(sp => sp.GetRequiredService<FakeScriptRepository>());
-            services.AddSingleton<IContextService>(sp => sp.GetRequiredService<FakeContextService>());
-        });
+        var provider = TestSystem.Create();
 
         _generator = provider.GetRequiredService<FakeScriptGenerator>();
         _repository = provider.GetRequiredService<FakeScriptRepository>();

@@ -20,6 +20,8 @@ public class ScriptGenerationIntegrationTests
     {
         _serviceProvider = PleaseHost.CreateServiceProvider(services =>
         {
+            services.AddTestDoubles();
+
             // Register real implementations - this tests actual behavior
             services.AddTransient<IScriptValidationService, TestScriptValidationService>();
             services.AddTransient<IScriptGenerator, TestScriptGenerator>();
@@ -28,8 +30,6 @@ public class ScriptGenerationIntegrationTests
             services.AddSingleton(testRepo);
             services.AddTransient<GenerateScriptCommandHandler>();
 
-            // Register required services for AOT compatibility
-            services.AddSingleton<FakeContextService>();
             services.AddSingleton<IContextService>(sp => sp.GetRequiredService<FakeContextService>());
         });
         _handler = _serviceProvider.GetRequiredService<GenerateScriptCommandHandler>();

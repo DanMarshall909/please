@@ -16,7 +16,7 @@ This document outlines the strategies and patterns implemented to ensure test co
 
 ### TestSystem.cs Changes
 
-The `TestSystem.cs` file was updated to use direct registration of interfaces instead of factory methods:
+The `TestSystem.cs` file now leverages a `TestModule` with an `AddTestDoubles` extension method to centralize registration of common fakes:
 
 ```csharp
 public static class TestSystem
@@ -25,15 +25,7 @@ public static class TestSystem
     {
         return PleaseHost.CreateServiceProvider(services =>
         {
-            // Register test doubles with explicit interface implementations for AOT compatibility
-            services.AddSingleton<FakeScriptGenerator>();
-            services.AddSingleton<FakeScriptRepository>();
-            services.AddSingleton<FakeContextService>();
-
-            // Use direct registration instead of factory methods for AOT compatibility
-            services.AddSingleton<IScriptGenerator, FakeScriptGenerator>();
-            services.AddSingleton<IScriptRepository, FakeScriptRepository>();
-            services.AddSingleton<IContextService, FakeContextService>();
+            services.AddTestDoubles();
 
             services.AddLogging(builder => builder.AddDebug());
             configure?.Invoke(services);
@@ -57,19 +49,8 @@ Example from ScriptServiceTests.cs:
 ```csharp
 public ScriptServiceTests()
 {
-    // Create a test service provider with explicit configuration for AOT compatibility
-    var provider = TestSystem.Create(services =>
-    {
-        // Ensure the test doubles are properly configured
-        services.AddSingleton<FakeScriptGenerator>();
-        services.AddSingleton<FakeScriptRepository>();
-        services.AddSingleton<FakeContextService>();
-
-        // Register interfaces with their implementations
-        services.AddSingleton<IScriptGenerator>(sp => sp.GetRequiredService<FakeScriptGenerator>());
-        services.AddSingleton<IScriptRepository>(sp => sp.GetRequiredService<FakeScriptRepository>());
-        services.AddSingleton<IContextService>(sp => sp.GetRequiredService<FakeContextService>());
-    });
+    // Create a test service provider with all test doubles pre-registered
+    var provider = TestSystem.Create();
 
     _generator = provider.GetRequiredService<FakeScriptGenerator>();
     _repository = provider.GetRequiredService<FakeScriptRepository>();

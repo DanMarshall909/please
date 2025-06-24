@@ -28,13 +28,9 @@ public class CommandProcessorIntegrationTests
 
         var provider = PleaseHost.CreateServiceProvider(services =>
         {
-            // Register test doubles with explicit interface implementations for AOT compatibility
+            services.AddTestDoubles();
             services.AddSingleton<IContextService>(_ => context);
             services.AddSingleton<IScriptGenerator>(_ => generator);
-
-            // Register required repository for AOT compatibility
-            services.AddSingleton<FakeScriptRepository>();
-            services.AddSingleton<IScriptRepository>(sp => sp.GetRequiredService<FakeScriptRepository>());
         });
         var processor = provider.GetRequiredService<CommandProcessor>();
 
