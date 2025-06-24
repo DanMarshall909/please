@@ -8,7 +8,7 @@ namespace Please.Domain.UnitTests.Entities;
 public class ScriptRequestTests
 {
     [Fact]
-    public void script_request_created_with_task_description_sets_required_properties()
+    public void new_script_request_contains_task_description_and_timestamp()
     {
         // Arrange
         var taskDescription = "Deploy application to production";
@@ -24,7 +24,7 @@ public class ScriptRequestTests
     }
 
     [Fact]
-    public void script_request_created_with_provider_and_model_sets_all_properties()
+    public void script_request_with_specific_ai_provider_stores_provider_details()
     {
         // Arrange
         var taskDescription = "Create backup script";
@@ -41,7 +41,7 @@ public class ScriptRequestTests
     }
 
     [Fact]
-    public void script_request_with_working_directory_preserves_value()
+    public void script_request_with_working_directory_preserves_location()
     {
         // Arrange
         var workingDir = "/home/user/projects";

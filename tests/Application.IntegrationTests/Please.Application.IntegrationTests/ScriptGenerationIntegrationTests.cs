@@ -36,7 +36,7 @@ public class ScriptGenerationIntegrationTests
     }
 
     [Fact]
-    public async Task Critical_commands_require_confirmation_rm_rf_slash()
+    public async Task dangerous_script_commands_require_user_confirmation()
     {
         // Arrange
         var command = GenerateScriptCommand.Create("Execute dangerous command");
@@ -52,39 +52,7 @@ public class ScriptGenerationIntegrationTests
     }
 
     [Fact]
-    public async Task Critical_commands_require_confirmation_format_c_colon()
-    {
-        // Arrange
-        var command = GenerateScriptCommand.Create("Execute dangerous command");
-
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert - This tests the real validation integration
-        Assert.True(result.RequiresConfirmation);
-        Assert.True(result.IsDangerous);
-        Assert.Equal(RiskLevel.Critical, result.RiskLevel);
-        Assert.NotEmpty(result.Warnings);
-    }
-
-    [Fact]
-    public async Task Critical_commands_require_confirmation_dd_if_dev_zero_of_dev_sda()
-    {
-        // Arrange
-        var command = GenerateScriptCommand.Create("Execute dangerous command");
-
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        // Assert - This tests the real validation integration
-        Assert.True(result.RequiresConfirmation);
-        Assert.True(result.IsDangerous);
-        Assert.Equal(RiskLevel.Critical, result.RiskLevel);
-        Assert.NotEmpty(result.Warnings);
-    }
-
-    [Fact]
-    public async Task Safe_commands_do_not_require_confirmation()
+    public async Task safe_commands_do_not_require_confirmation()
     {
         // Arrange
         var command = GenerateScriptCommand.Create("List files in current directory");
@@ -100,7 +68,7 @@ public class ScriptGenerationIntegrationTests
     }
 
     [Fact]
-    public async Task Generated_script_gets_saved_to_repository()
+    public async Task generated_scripts_are_saved_to_repository()
     {
         // Arrange
         var command = GenerateScriptCommand.Create("Create backup script");
@@ -115,7 +83,7 @@ public class ScriptGenerationIntegrationTests
     }
 
     [Fact]
-    public async Task Script_validation_enhances_response_with_warnings()
+    public async Task script_validation_adds_warnings_and_safety_notes()
     {
         // Arrange
         var command = GenerateScriptCommand.Create("Delete temporary files");

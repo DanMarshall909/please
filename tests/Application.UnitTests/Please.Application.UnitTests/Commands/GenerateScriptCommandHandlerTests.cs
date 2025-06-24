@@ -18,7 +18,7 @@ public class GenerateScriptCommandHandlerTests
         _handler = new GenerateScriptCommandHandler(_scriptGenerator, _scriptRepository);
 
     [Fact]
-    public async Task Handle_WithValidCommand_ShouldGenerateAndSaveScript()
+    public async Task valid_script_request_generates_and_saves_script()
     {
         // Arrange
         var command = GenerateScriptCommand.Create("Deploy to production", ProviderType.OpenAi, "gpt-4");
@@ -45,7 +45,7 @@ public class GenerateScriptCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithMinimalCommand_ShouldSetWorkingDirectoryToCurrentDirectory()
+    public async Task script_request_without_working_directory_uses_current_directory()
     {
         // Arrange
         var command = GenerateScriptCommand.Create("List files");
@@ -67,7 +67,7 @@ public class GenerateScriptCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenGenerationFails_ThrowsScriptGenerationException()
+    public async Task failed_script_generation_throws_descriptive_exception()
     {
         var command = GenerateScriptCommand.Create("fail");
         _scriptGenerator.NextResult = Result<ScriptResponse>.Failure("bad");

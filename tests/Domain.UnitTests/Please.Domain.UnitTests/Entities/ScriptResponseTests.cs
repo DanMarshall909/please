@@ -8,7 +8,7 @@ namespace Please.Domain.UnitTests.Entities;
 public class ScriptResponseTests
 {
     [Fact]
-    public void requires_confirmation_is_true_when_risk_level_is_medium()
+    public void medium_risk_scripts_require_user_confirmation()
     {
         // Arrange
         var response = ScriptResponse.Create(
@@ -28,7 +28,7 @@ public class ScriptResponseTests
     }
 
     [Fact]
-    public void requires_confirmation_is_true_when_response_has_warnings()
+    public void scripts_with_warnings_require_user_confirmation()
     {
         // Arrange
         var response = ScriptResponse.Create(
@@ -47,7 +47,7 @@ public class ScriptResponseTests
     }
 
     [Fact]
-    public void requires_confirmation_is_false_when_low_risk_and_no_warnings()
+    public void safe_scripts_without_warnings_do_not_require_confirmation()
     {
         // Arrange
         var response = ScriptResponse.Create(
@@ -66,7 +66,7 @@ public class ScriptResponseTests
     }
 
     [Fact]
-    public void is_dangerous_is_true_when_risk_level_is_high()
+    public void high_risk_scripts_are_marked_as_dangerous()
     {
         // Arrange
         var response = ScriptResponse.Create(
@@ -86,7 +86,7 @@ public class ScriptResponseTests
     }
 
     [Fact]
-    public void with_warning_adds_warning_to_list()
+    public void script_response_can_collect_multiple_warnings()
     {
         // Arrange
         var response = ScriptResponse.Create(
@@ -106,7 +106,7 @@ public class ScriptResponseTests
     }
 
     [Fact]
-    public void with_safety_note_adds_note_to_list()
+    public void script_response_can_collect_safety_recommendations()
     {
         // Arrange
         var response = ScriptResponse.Create(
@@ -126,7 +126,7 @@ public class ScriptResponseTests
     }
 
     [Fact]
-    public void created_at_is_settable_and_respected()
+    public void script_response_preserves_custom_creation_timestamp()
     {
         // Arrange
         var customDate = new DateTime(2024, 1, 2, 3, 4, 5, DateTimeKind.Utc);
