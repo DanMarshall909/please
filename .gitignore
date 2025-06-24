@@ -43,9 +43,7 @@ desktop.ini
 *.tmp
 *.temp
 
-# C# project files
-*.csproj
-*.sln
+# C# build output
 *.csproj.user
 *.suo
 *.user
@@ -62,14 +60,25 @@ obj/
 
 # Coverage and test output
 coverage/
+coverage-report/
 coverage_artifacts/
-ui/coverage/
-script_coverage/
-models_coverage/
+TestResults/
+*.coverage
+*.coveragexml
+*.cobertura.xml
 
 # Ignore test results and temp files in tests/
 tests/**/*.tmp
 tests/**/*.log
 tests/**/*.out
 
+# PowerShell scripts directory artifacts
+scripts/*.log
 
+# Memory bank working files (keep actual content)
+memory-bank/**/*.tmp
+
+# Legacy Go build artifacts
+legacy-go/please
+legacy-go/please.exe
+legacy-go/*.test
