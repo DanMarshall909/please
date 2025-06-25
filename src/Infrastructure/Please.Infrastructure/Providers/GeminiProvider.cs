@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Interfaces;
+using Please.Infrastructure.Serialization;
 
 namespace Please.Infrastructure.Providers;
 
@@ -38,26 +39,26 @@ public class GeminiProvider : IProvider
             var model = request.Model ?? _configuration.DefaultModel;
             var prompt = buildPrompt(request);
 
-            var requestBody = new
+            var requestBody = new GeminiRequest
             {
-                contents = new[]
+                Contents = new[]
                 {
-                    new
+                    new GeminiContentItem
                     {
-                        parts = new[]
+                        Parts = new[]
                         {
-                            new { text = prompt }
+                            new GeminiPart { Text = prompt }
                         }
                     }
                 },
-                generationConfig = new
+                GenerationConfig = new GeminiGenerationConfig
                 {
-                    temperature = 0.1,
-                    maxOutputTokens = 1000
+                    Temperature = 0.1,
+                    MaxOutputTokens = 1000
                 }
             };
 
-            var json = JsonSerializer.Serialize(requestBody);
+            var json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.GeminiRequest);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             _logger.LogInformation("Sending request to Gemini with model {Model}", model);
@@ -73,7 +74,7 @@ public class GeminiProvider : IProvider
             }
 
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            var apiResponse = JsonSerializer.Deserialize<GeminiResponse>(responseContent);
+            var apiResponse = JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.GeminiResponse);
 
             var script = apiResponse?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text?.Trim();
 
@@ -174,27 +175,4 @@ public class GeminiProvider : IProvider
 
         return prompt.ToString();
     }
-}
-
-/// <summary>
-/// Gemini API response structure
-/// </summary>
-internal class GeminiResponse
-{
-    public GeminiCandidate[]? Candidates { get; set; }
-}
-
-internal class GeminiCandidate
-{
-    public GeminiContent? Content { get; set; }
-}
-
-internal class GeminiContent
-{
-    public GeminiPart[]? Parts { get; set; }
-}
-
-internal class GeminiPart
-{
-    public string? Text { get; set; }
 }

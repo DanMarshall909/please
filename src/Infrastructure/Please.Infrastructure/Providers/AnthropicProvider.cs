@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Interfaces;
+using Please.Infrastructure.Serialization;
 
 namespace Please.Infrastructure.Providers;
 
@@ -45,18 +46,18 @@ public class AnthropicProvider : IProvider
             var systemPrompt = buildSystemPrompt(request);
             var userPrompt = buildUserPrompt(request);
 
-            var requestBody = new
+            var requestBody = new AnthropicRequest
             {
-                model = model,
-                max_tokens = 1000,
-                system = systemPrompt,
-                messages = new[]
+                Model = model,
+                MaxTokens = 1000,
+                System = systemPrompt,
+                Messages = new[]
                 {
-                    new { role = "user", content = userPrompt }
+                    new AnthropicMessage { Role = "user", Content = userPrompt }
                 }
             };
 
-            var json = JsonSerializer.Serialize(requestBody);
+            var json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.AnthropicRequest);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             _logger.LogInformation("Sending request to Anthropic with model {Model}", model);
@@ -71,7 +72,7 @@ public class AnthropicProvider : IProvider
             }
 
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            var apiResponse = JsonSerializer.Deserialize<AnthropicResponse>(responseContent);
+            var apiResponse = JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.AnthropicResponse);
 
             var script = apiResponse?.Content?.FirstOrDefault()?.Text?.Trim();
 
@@ -110,14 +111,14 @@ public class AnthropicProvider : IProvider
             }
 
             // Anthropic doesn't have a models endpoint, but we can test with a minimal request
-            var testBody = new
+            var testBody = new AnthropicRequest
             {
-                model = _configuration.DefaultModel,
-                max_tokens = 1,
-                messages = new[] { new { role = "user", content = "test" } }
+                Model = _configuration.DefaultModel,
+                MaxTokens = 1,
+                Messages = new[] { new AnthropicMessage { Role = "user", Content = "test" } }
             };
 
-            var json = JsonSerializer.Serialize(testBody);
+            var json = JsonSerializer.Serialize(testBody, ApiSerializationContext.Default.AnthropicRequest);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.PostAsync("/messages", content, cancellationToken);
@@ -183,18 +184,4 @@ Guidelines:
 
         return prompt.ToString();
     }
-}
-
-/// <summary>
-/// Anthropic API response structure
-/// </summary>
-internal class AnthropicResponse
-{
-    public AnthropicContent[]? Content { get; set; }
-}
-
-internal class AnthropicContent
-{
-    public string? Text { get; set; }
-    public string? Type { get; set; }
 }

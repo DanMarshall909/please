@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Interfaces;
+using Please.Infrastructure.Serialization;
 
 namespace Please.Infrastructure.Providers;
 
@@ -47,19 +48,19 @@ public class OpenRouterProvider : IProvider
             var systemPrompt = buildSystemPrompt(request);
             var userPrompt = buildUserPrompt(request);
 
-            var requestBody = new
+            var requestBody = new OpenRouterRequest
             {
-                model = model,
-                messages = new[]
+                Model = model,
+                Messages = new[]
                 {
-                    new { role = "system", content = systemPrompt },
-                    new { role = "user", content = userPrompt }
+                    new OpenRouterMessage { Role = "system", Content = systemPrompt },
+                    new OpenRouterMessage { Role = "user", Content = userPrompt }
                 },
-                temperature = 0.1,
-                max_tokens = 1000
+                Temperature = 0.1,
+                MaxTokens = 1000
             };
 
-            var json = JsonSerializer.Serialize(requestBody);
+            var json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.OpenRouterRequest);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             _logger.LogInformation("Sending request to OpenRouter with model {Model}", model);
@@ -74,7 +75,7 @@ public class OpenRouterProvider : IProvider
             }
 
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            var apiResponse = JsonSerializer.Deserialize<OpenRouterResponse>(responseContent);
+            var apiResponse = JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.OpenRouterResponse);
 
             var script = apiResponse?.Choices?.FirstOrDefault()?.Message?.Content?.Trim();
 
@@ -182,22 +183,4 @@ Guidelines:
 
         return prompt.ToString();
     }
-}
-
-/// <summary>
-/// OpenRouter API response structure (same as OpenAI)
-/// </summary>
-internal class OpenRouterResponse
-{
-    public OpenRouterChoice[]? Choices { get; set; }
-}
-
-internal class OpenRouterChoice
-{
-    public OpenRouterMessage? Message { get; set; }
-}
-
-internal class OpenRouterMessage
-{
-    public string? Content { get; set; }
 }
