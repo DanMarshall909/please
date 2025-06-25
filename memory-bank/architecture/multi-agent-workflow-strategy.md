@@ -135,7 +135,7 @@ USER COMMAND: "please find files larger than 10kb"
 public interface IContextService
 {
     Task<Result<CommandContext>> GetContextAsync(CommandIntent intent);
-    Task<Result> StorePatternAsync(CommandExecution execution);
+    Task<VoidResult> StorePatternAsync(CommandExecution execution);
 }
 
 public class CommandProcessor

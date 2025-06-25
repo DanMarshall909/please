@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using Please.Application.Services;
 using Please.Domain.Common;
 using Please.Domain.Entities;
@@ -6,7 +5,7 @@ using Please.Domain.Enums;
 using Please.Domain.Interfaces;
 using Please.Domain.Services;
 using Please.TestUtilities;
-using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace Please.Application.IntegrationTests;
 
@@ -31,6 +30,8 @@ public class ScriptGenerationIntegrationTests
         services.AddTransient<IScriptService, ScriptService>();
 
         services.AddSingleton<IContextService>(sp => sp.GetRequiredService<FakeContextService>());
+
+        services.AddLogging(config => config.AddDebug());
 
         _serviceProvider = services.BuildServiceProvider();
         _scriptService = _serviceProvider.GetRequiredService<IScriptService>();
@@ -212,10 +213,10 @@ internal class TestScriptRepository : IScriptRepository
 {
     public List<ScriptResponse> SavedScripts { get; } = [];
 
-    public Task<Result> SaveScriptAsync(ScriptResponse script, CancellationToken cancellationToken = default)
+    public Task<VoidResult> SaveScriptAsync(ScriptResponse script, CancellationToken cancellationToken = default)
     {
         SavedScripts.Add(script);
-        return Task.FromResult(Result.Success());
+        return Task.FromResult(VoidResult.Success());
     }
 
     public Task<Result<ScriptResponse?>> GetLastScriptAsync(CancellationToken cancellationToken = default)
@@ -237,10 +238,10 @@ internal class TestScriptRepository : IScriptRepository
         return Task.FromResult(Result<IEnumerable<ScriptResponse>>.Success(history));
     }
 
-    public Task<Result> ClearHistoryAsync(CancellationToken cancellationToken = default)
+    public Task<VoidResult> ClearHistoryAsync(CancellationToken cancellationToken = default)
     {
         SavedScripts.Clear();
-        return Task.FromResult(Result.Success());
+        return Task.FromResult(VoidResult.Success());
     }
 
     public Task<Result<bool>> HasHistoryAsync(CancellationToken cancellationToken = default) =>

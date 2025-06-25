@@ -9,5 +9,5 @@ namespace Please.Domain.Interfaces;
 public interface IContextService
 {
     Task<Result<CommandContext>> GetContextAsync(CommandIntent intent, CancellationToken cancellationToken = default);
-    Task<Result> StorePatternAsync(CommandExecution execution, CancellationToken cancellationToken = default);
+    Task<VoidResult> StorePatternAsync(CommandExecution execution, CancellationToken cancellationToken = default);
 }

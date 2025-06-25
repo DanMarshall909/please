@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Please.Application.Services;
+using Please.Domain.Common;
 using Please.Domain.Interfaces;
 
 namespace Please.Application;
@@ -66,8 +67,8 @@ public static class DependencyInjection
 
     private class UnusedScriptRepository : IScriptRepository
     {
-        public Task<Domain.Common.Result> ClearHistoryAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(Domain.Common.Result.Success());
+        public Task<VoidResult> ClearHistoryAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(VoidResult.Success());
 
         public Task<Domain.Common.Result<Domain.Entities.ScriptResponse?>> GetLastScriptAsync(
             CancellationToken cancellationToken = default)
@@ -82,9 +83,9 @@ public static class DependencyInjection
         public Task<Domain.Common.Result<bool>> HasHistoryAsync(CancellationToken cancellationToken = default)
             => Task.FromResult(Domain.Common.Result<bool>.Success(false));
 
-        public Task<Domain.Common.Result> SaveScriptAsync(Domain.Entities.ScriptResponse response,
+        public Task<VoidResult> SaveScriptAsync(Domain.Entities.ScriptResponse response,
             CancellationToken cancellationToken = default)
-            => Task.FromResult(Domain.Common.Result.Success());
+            => Task.FromResult(VoidResult.Success());
     }
 
     private class UnusedContextService : IContextService
@@ -93,8 +94,8 @@ public static class DependencyInjection
             Domain.Commands.CommandIntent intent, CancellationToken cancellationToken = default)
             => Task.FromResult(Domain.Common.Result<Domain.Commands.CommandContext>.Failure("Not implemented"));
 
-        public Task<Domain.Common.Result> StorePatternAsync(Domain.Commands.CommandExecution execution,
+        public Task<VoidResult> StorePatternAsync(Domain.Commands.CommandExecution execution,
             CancellationToken cancellationToken = default)
-            => Task.FromResult(Domain.Common.Result.Success());
+            => Task.FromResult(VoidResult.Success());
     }
 }

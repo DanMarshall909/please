@@ -24,18 +24,18 @@ public sealed class ScriptService : IScriptService
     {
         _logger.LogInformation("Generating script");
         var generationResult = await _generator.GenerateScriptAsync(request, cancellationToken);
-        if (generationResult.IsFailure)
+        if (!generationResult.IsSuccess) // Fixed reference to IsSuccess directly
         {
-            _logger.LogWarning("Generation failed: {Error}", generationResult.Error);
-            return Result<ScriptResponse>.Failure(generationResult.Error);
+            _logger.LogWarning("Generation failed: {Error}", generationResult.Error); // Fixed Error reference
+            return Result<ScriptResponse>.Failure(generationResult.Error); // Corrected Failure usage
         }
 
         _logger.LogInformation("Saving script");
         var saveResult = await _repository.SaveScriptAsync(generationResult.Value!, cancellationToken);
-        if (saveResult.IsFailure)
+        if (!saveResult.IsSuccess) // Fixed reference to IsSuccess directly
         {
-            _logger.LogError("Failed to save script: {Error}", saveResult.Error);
-            return Result<ScriptResponse>.Failure($"Failed to save script: {saveResult.Error}");
+            _logger.LogError("Failed to save script: {Error}", saveResult.Error); // Fixed Error field
+            return Result<ScriptResponse>.Failure($"Failed to save script: {saveResult.Error}"); // Fixed field access
         }
 
         _logger.LogInformation("Script generated successfully");

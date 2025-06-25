@@ -1,11 +1,9 @@
-using Xunit;
 using Please.TestUtilities;
 using Please.Application.Services;
 using Please.Domain.Commands;
 using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Please.Application.UnitTests.Services;
 

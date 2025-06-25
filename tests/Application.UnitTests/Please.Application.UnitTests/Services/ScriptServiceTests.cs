@@ -1,10 +1,8 @@
-using Xunit;
 using Please.TestUtilities;
 using Please.Application.Services;
 using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Please.Application.UnitTests.Services;
 
@@ -54,7 +52,7 @@ public class ScriptServiceTests
         var request = ScriptRequest.Create("task");
         var response = ScriptResponse.Create("script", "task", ProviderType.OpenAi, "gpt-4", ScriptType.Bash);
         _generator.NextResult = Result<ScriptResponse>.Success(response);
-        _repository.NextSaveResult = Result.Failure("db error");
+        _repository.NextSaveResult = VoidResult.Failure("db error");
 
         var result = await _service.GenerateScriptAsync(request);
 

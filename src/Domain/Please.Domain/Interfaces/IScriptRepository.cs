@@ -11,7 +11,7 @@ public interface IScriptRepository
     /// <summary>
     /// Saves a script response to history
     /// </summary>
-    Task<Result> SaveScriptAsync(ScriptResponse response, CancellationToken cancellationToken = default);
+    Task<VoidResult> SaveScriptAsync(ScriptResponse response, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves the last generated script
@@ -29,7 +29,7 @@ public interface IScriptRepository
     /// <summary>
     /// Clears script history
     /// </summary>
-    Task<Result> ClearHistoryAsync(CancellationToken cancellationToken = default);
+    Task<VoidResult> ClearHistoryAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks if any scripts exist in history

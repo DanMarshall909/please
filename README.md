@@ -55,7 +55,7 @@ dotnet run -- "list files in current directory"
 
 ### **🔄 C# v6.0 (70% Complete)**
 - ✅ **Domain Layer**: Entities, enums, interfaces, exceptions
-- ✅ **Application Layer**: CQRS with MediatR (commands, queries, handlers)
+- ✅ **Application Layer**: Do NOT use MediatR since we're using Native AOT
 - ✅ **Test Infrastructure**: 9 passing domain tests
 - ⚠️ **Infrastructure Layer**: In progress (repositories, AI providers)
 - ❌ **Console App**: Needs dependency injection wiring

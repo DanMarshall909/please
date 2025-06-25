@@ -1,10 +1,8 @@
-using Xunit;
 using Please.Application.Services;
 using Please.TestUtilities;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
 using Please.Domain.Common;
-using Microsoft.Extensions.DependencyInjection;
 using Please.Console;
 using Please.Domain.Interfaces;
 using Please.Domain.Commands;

@@ -1,6 +1,4 @@
-using Xunit;
 using Please.Domain.Common;
-using Shouldly;
 
 namespace Please.Domain.UnitTests.Common;
 
@@ -9,7 +7,7 @@ public class ResultTests
     [Fact]
     public void a_success_result_indicates_success()
     {
-        var result = Result.Success();
+        var result = VoidResult.Success();
         result.IsSuccess.ShouldBeTrue();
         result.IsFailure.ShouldBeFalse();
     }
@@ -18,7 +16,7 @@ public class ResultTests
     public void a_failure_result_contains_the_error_message()
     {
         const string error = "something went wrong";
-        var result = Result.Failure(error);
+        var result = VoidResult.Failure(error);
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(error);
     }
