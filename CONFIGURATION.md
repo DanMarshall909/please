@@ -28,9 +28,15 @@ For the fastest setup experience, use our automated configuration scripts:
 
 ## 🔑 Manual API Key Configuration
 
-If you prefer manual configuration, the Please v6 C# application supports multiple AI providers. Here's how to configure them manually:
+The Please v6 C# application supports multiple AI providers with **secure configuration options**:
 
-### Method 1: Environment Variables (Recommended)
+### Method 1: Environment Variables (🔐 **RECOMMENDED & SECURE**)
+
+**Why Environment Variables?**
+- ✅ **Secure**: API keys never stored in source control
+- ✅ **Production-ready**: Industry standard for sensitive data
+- ✅ **Cross-platform**: Works on Windows, Linux, macOS
+- ✅ **Already supported**: .NET configuration automatically reads them
 
 Set environment variables for the providers you want to use:
 
@@ -79,34 +85,44 @@ rem Command Prompt - Set permanently
 setx OPENAI_API_KEY "sk-your-key-here"
 ```
 
-### Method 2: Configuration File
+### Method 2: User Secrets (🔐 **SECURE FOR DEVELOPMENT**)
 
-Edit the `src/Presentation/Please.Console/appsettings.json` file:
+For development, use .NET User Secrets to store sensitive data outside your project:
+
+```powershell
+# Navigate to the console project
+cd src/Presentation/Please.Console
+
+# Initialize user secrets
+dotnet user-secrets init
+
+# Set API keys (stored securely outside project)
+dotnet user-secrets set "OPENAI_API_KEY" "sk-your-openai-key-here"
+dotnet user-secrets set "ANTHROPIC_API_KEY" "sk-ant-your-anthropic-key-here"
+dotnet user-secrets set "GEMINI_API_KEY" "your-gemini-key-here"
+```
+
+### Method 3: Configuration File (⚠️ **NON-SENSITIVE DATA ONLY**)
+
+The `appsettings.json` file should **ONLY** contain non-sensitive configuration:
 
 ```json
 {
-  "OPENAI_API_KEY": "sk-your-openai-key-here",
-  "OPENAI_DEFAULT_MODEL": "gpt-4o-mini",
-  "OPENAI_BASE_URL": "https://api.openai.com/v1",
-  
-  "ANTHROPIC_API_KEY": "sk-ant-your-anthropic-key-here",
-  "ANTHROPIC_DEFAULT_MODEL": "claude-3-haiku-20240307",
-  "ANTHROPIC_BASE_URL": "https://api.anthropic.com/v1",
-  
-  "GEMINI_API_KEY": "your-gemini-key-here",
-  "GEMINI_DEFAULT_MODEL": "gemini-pro",
-  "GEMINI_BASE_URL": "https://generativelanguage.googleapis.com/v1beta",
-  
-  "OPENROUTER_API_KEY": "sk-or-your-openrouter-key-here",
-  "OPENROUTER_DEFAULT_MODEL": "microsoft/wizardlm-2-8x22b",
-  "OPENROUTER_BASE_URL": "https://openrouter.ai/api/v1",
-  
-  "OLLAMA_BASE_URL": "http://localhost:11434",
-  "OLLAMA_DEFAULT_MODEL": "llama2"
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning"
+    }
+  },
+  "DefaultSettings": {
+    "OPENAI_DEFAULT_MODEL": "gpt-4o-mini",
+    "OLLAMA_BASE_URL": "http://localhost:11434",
+    "ANTHROPIC_DEFAULT_MODEL": "claude-3-haiku-20240307",
+    "GEMINI_DEFAULT_MODEL": "gemini-pro"
+  }
 }
 ```
 
-**⚠️ Security Note**: Never commit your API keys to version control. Add `appsettings.json` to `.gitignore` if it contains real keys.
+**🔐 Security Best Practice**: Never store API keys in JSON files that might be committed to source control.
 
 ## 🚀 Usage Examples
 
@@ -139,11 +155,12 @@ Edit the `src/Presentation/Please.Console/appsettings.json` file:
 
 The application loads configuration in this order (highest to lowest priority):
 
-1. **Environment Variables** (highest priority)
-2. **appsettings.json** file
-3. **Default values** (lowest priority)
+1. **Environment Variables** (highest priority) 🔐
+2. **User Secrets** (development only) 🔐  
+3. **appsettings.json** file (non-sensitive data only)
+4. **Default values** (lowest priority)
 
-This means environment variables will override values in `appsettings.json`.
+**🔐 Security Note**: Environment variables and User Secrets will always override JSON file values, ensuring sensitive data stays secure.
 
 ## 🧪 Testing Your Configuration
 
@@ -194,11 +211,26 @@ warn: Please.Infrastructure.Services.ScriptGenerator[0]
 
 ## 🔐 Security Best Practices
 
+### ✅ DO:
+1. **Use environment variables** for production deployments
+2. **Use User Secrets** for development (.NET tooling)
+3. **Use Azure Key Vault** for enterprise scenarios
+4. **Restrict API key permissions** when possible
+5. **Rotate API keys** regularly
+6. **Use different keys** for development and production
+7. **Add appsettings.json to .gitignore** if it contains any sensitive data
+
+### ❌ DON'T:
 1. **Never commit API keys** to version control
-2. **Use environment variables** for production deployments
-3. **Restrict API key permissions** when possible
-4. **Rotate API keys** regularly
-5. **Use different keys** for development and production
+2. **Never store API keys** in appsettings.json files
+3. **Never share API keys** in chat/email/documentation
+4. **Never use production keys** in development
+
+### 🚨 Emergency: If API Key is Compromised
+1. **Immediately revoke** the compromised key
+2. **Generate a new key** from your provider
+3. **Update your configuration** with the new key
+4. **Review access logs** for unauthorized usage
 
 ## 📖 Getting API Keys
 
