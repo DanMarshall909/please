@@ -7,5 +7,7 @@ public enum ProviderType
 {
     OpenAi,
     Anthropic,
-    Ollama
+    Ollama,
+    OpenRouter,
+    Gemini
 }

@@ -33,4 +33,14 @@ public record ScriptRequest
         Provider = provider,
         Model = model
     };
+
+    /// <summary>
+    /// Creates a script request with optional provider and model specification
+    /// </summary>
+    public static ScriptRequest Create(string taskDescription, ProviderType? provider, string? model = null) => new()
+    {
+        TaskDescription = taskDescription,
+        Provider = provider,
+        Model = model
+    };
 }

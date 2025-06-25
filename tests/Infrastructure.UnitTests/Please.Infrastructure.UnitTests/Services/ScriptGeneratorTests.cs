@@ -1,6 +1,9 @@
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
+using Please.Domain.Interfaces;
 using Please.Infrastructure.Services;
 using Shouldly;
 using Xunit;
@@ -10,10 +13,27 @@ namespace Please.Infrastructure.UnitTests.Services;
 public class ScriptGeneratorTests
 {
     private readonly ScriptGenerator _scriptGenerator;
+    private readonly IProviderFactory _mockProviderFactory;
+    private readonly IProvider _mockProvider;
+    private readonly ILogger<ScriptGenerator> _mockLogger;
 
     public ScriptGeneratorTests()
     {
-        _scriptGenerator = new ScriptGenerator();
+        _mockProviderFactory = Substitute.For<IProviderFactory>();
+        _mockProvider = Substitute.For<IProvider>();
+        _mockLogger = Substitute.For<ILogger<ScriptGenerator>>();
+
+        // Setup mock provider to return success by default
+        _mockProvider.GenerateScriptAsync(Arg.Any<ScriptRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Result<string>.Success("Get-ChildItem"));
+        _mockProvider.GetDefaultModel().Returns("gpt-3.5-turbo");
+        _mockProvider.IsAvailableAsync(Arg.Any<CancellationToken>())
+            .Returns(Result<bool>.Success(true));
+
+        _mockProviderFactory.CreateProvider(Arg.Any<ProviderType>())
+            .Returns(_mockProvider);
+
+        _scriptGenerator = new ScriptGenerator(_mockProviderFactory, _mockLogger);
     }
 
     [Fact]
@@ -26,13 +46,16 @@ public class ScriptGeneratorTests
             "gpt-4"
         );
 
+        _mockProvider.GenerateScriptAsync(request, Arg.Any<CancellationToken>())
+            .Returns(Result<string>.Success("Get-ChildItem"));
+
         // Act
         var result = await _scriptGenerator.GenerateScriptAsync(request);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value.Script.ShouldNotBeEmpty();
+        result.Value.Script.ShouldBe("Get-ChildItem");
         result.Value.TaskDescription.ShouldBe("list files in current directory");
         result.Value.Provider.ShouldBe(ProviderType.OpenAi);
         result.Value.Model.ShouldBe("gpt-4");
@@ -70,118 +93,116 @@ public class ScriptGeneratorTests
     }
 
     [Fact]
-    public async Task GenerateScriptAsync_with_null_task_description_returns_failure()
+    public async Task GenerateScriptAsync_when_provider_fails_returns_failure()
     {
         // Arrange
         var request = ScriptRequest.Create(
-            null!,
+            "test task",
             ProviderType.OpenAi,
             "gpt-4"
         );
+
+        _mockProvider.GenerateScriptAsync(Arg.Any<ScriptRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Result<string>.Failure("API error"));
 
         // Act
         var result = await _scriptGenerator.GenerateScriptAsync(request);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
-        result.Error.ShouldBe("task description cannot be empty");
-    }
-
-    [Theory]
-    [InlineData("list files", "Get-ChildItem")]
-    [InlineData("show files in directory", "Get-ChildItem")]
-    [InlineData("get current date", "Get-Date")]
-    [InlineData("show time", "Get-Date")]
-    [InlineData("list processes", "Get-ChildItem")] // "list" matches first
-    [InlineData("show running process", "Get-Process")]
-    public async Task GenerateScriptAsync_detects_powershell_patterns_correctly(string taskDescription, string expectedScript)
-    {
-        // Arrange
-        var request = ScriptRequest.Create(taskDescription, ProviderType.OpenAi, "gpt-4");
-
-        // Act
-        var result = await _scriptGenerator.GenerateScriptAsync(request);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        result.Value!.Script.ShouldBe(expectedScript);
-        result.Value!.ScriptType.ShouldBe(ScriptType.PowerShell);
-    }
-
-    [Theory]
-    [InlineData("bash list files", "ls -la")]
-    [InlineData("linux show files", "ls -la")]
-    [InlineData("unix get date", "date")]
-    [InlineData("bash show time", "date")]
-    [InlineData("linux list processes", "ls -la")] // "list" matches first
-    [InlineData("unix show process", "ps aux")]
-    public async Task GenerateScriptAsync_detects_bash_patterns_correctly(string taskDescription, string expectedScript)
-    {
-        // Arrange
-        var request = ScriptRequest.Create(taskDescription, ProviderType.OpenAi, "gpt-4");
-
-        // Act
-        var result = await _scriptGenerator.GenerateScriptAsync(request);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        result.Value!.Script.ShouldBe(expectedScript);
-        result.Value!.ScriptType.ShouldBe(ScriptType.Bash);
+        result.Error.ShouldBe("API error");
     }
 
     [Fact]
-    public async Task GenerateScriptAsync_with_unknown_task_returns_generic_script()
+    public async Task GenerateScriptAsync_uses_fallback_model_when_no_model_specified()
     {
         // Arrange
-        var request = ScriptRequest.Create("do something unusual", ProviderType.OpenAi, "gpt-4");
+        var request = ScriptRequest.Create("test task", ProviderType.OpenAi, null);
+        _mockProvider.GetDefaultModel().Returns("gpt-3.5-turbo");
+        _mockProvider.GenerateScriptAsync(request, Arg.Any<CancellationToken>())
+            .Returns(Result<string>.Success("test script"));
 
         // Act
         var result = await _scriptGenerator.GenerateScriptAsync(request);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        result.Value!.Script.ShouldBe("# PowerShell script for: do something unusual");
+        result.Value!.Model.ShouldBe("gpt-3.5-turbo");
+    }
+
+    [Fact]
+    public async Task GenerateScriptAsync_detects_script_type_when_not_provided()
+    {
+        // Arrange
+        var request = ScriptRequest.Create("list files", ProviderType.OpenAi, "gpt-4");
+        _mockProvider.GenerateScriptAsync(Arg.Any<ScriptRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Result<string>.Success("Get-ChildItem"));
+
+        // Act
+        var result = await _scriptGenerator.GenerateScriptAsync(request);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
         result.Value!.ScriptType.ShouldBe(ScriptType.PowerShell);
     }
 
     [Theory]
-    [InlineData(ProviderType.OpenAi, true)]
-    [InlineData(ProviderType.Anthropic, true)]
-    [InlineData(ProviderType.Ollama, true)]
-    public async Task IsProviderAvailableAsync_returns_correct_availability(ProviderType provider, bool expectedAvailable)
+    [InlineData("remove-item file.txt", RiskLevel.High)]
+    [InlineData("new-item -path test", RiskLevel.Medium)]
+    [InlineData("get-childitem", RiskLevel.Low)]
+    public async Task GenerateScriptAsync_assesses_risk_level_correctly(string script, RiskLevel expectedRisk)
     {
         // Arrange
-        var request = ScriptRequest.Create("test task", provider, "test-model");
+        var request = ScriptRequest.Create("test task", ProviderType.OpenAi, "gpt-4");
+        _mockProvider.GenerateScriptAsync(Arg.Any<ScriptRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Result<string>.Success(script));
+
+        // Act
+        var result = await _scriptGenerator.GenerateScriptAsync(request);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.RiskLevel.ShouldBe(expectedRisk);
+    }
+
+    [Fact]
+    public async Task IsProviderAvailableAsync_returns_provider_availability()
+    {
+        // Arrange
+        var request = ScriptRequest.Create("test task", ProviderType.OpenAi, "gpt-4");
+        _mockProvider.IsAvailableAsync(Arg.Any<CancellationToken>())
+            .Returns(Result<bool>.Success(true));
 
         // Act
         var result = await _scriptGenerator.IsProviderAvailableAsync(request);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(expectedAvailable);
-    }
-
-    [Theory]
-    [InlineData(ProviderType.OpenAi, "gpt-3.5-turbo")]
-    [InlineData(ProviderType.Anthropic, "claude-3-haiku-20240307")]
-    [InlineData(ProviderType.Ollama, "llama2")]
-    public void GetFallbackModel_returns_correct_fallback_for_provider(ProviderType provider, string expectedModel)
-    {
-        // Arrange
-        var request = ScriptRequest.Create("test task", provider, "some-model");
-
-        // Act
-        var result = _scriptGenerator.GetFallbackModel(request);
-
-        // Assert
-        result.ShouldBe(expectedModel);
+        result.Value.ShouldBeTrue();
     }
 
     [Fact]
-    public void GetFallbackModel_with_default_provider_returns_openai_fallback()
+    public async Task IsProviderAvailableAsync_handles_provider_exception()
     {
-        // Arrange - test the default case when no provider is specified
+        // Arrange
+        var request = ScriptRequest.Create("test task", ProviderType.OpenAi, "gpt-4");
+        _mockProviderFactory.When(x => x.CreateProvider(Arg.Any<ProviderType>()))
+            .Do(_ => throw new Exception("Provider error"));
+
+        // Act
+        var result = await _scriptGenerator.IsProviderAvailableAsync(request);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void GetFallbackModel_returns_provider_default_model()
+    {
+        // Arrange
         var request = ScriptRequest.Create("test task", ProviderType.OpenAi, "some-model");
+        _mockProvider.GetDefaultModel().Returns("gpt-3.5-turbo");
 
         // Act
         var result = _scriptGenerator.GetFallbackModel(request);
@@ -191,47 +212,54 @@ public class ScriptGeneratorTests
     }
 
     [Fact]
-    public async Task GenerateScriptAsync_uses_fallback_model_when_no_model_specified()
+    public void GetFallbackModel_returns_ultimate_fallback_on_exception()
     {
         // Arrange
-        var request = ScriptRequest.Create("test task", ProviderType.Anthropic, null);
+        var request = ScriptRequest.Create("test task", ProviderType.OpenAi, "some-model");
+        _mockProviderFactory.When(x => x.CreateProvider(Arg.Any<ProviderType>()))
+            .Do(_ => throw new Exception("Provider error"));
 
         // Act
-        var result = await _scriptGenerator.GenerateScriptAsync(request);
+        var result = _scriptGenerator.GetFallbackModel(request);
 
         // Assert
-        result.IsSuccess.ShouldBeTrue();
-        result.Value!.Model.ShouldBe("claude-3-haiku-20240307");
+        result.ShouldBe("gpt-3.5-turbo");
     }
 
     [Fact]
-    public async Task GenerateScriptAsync_sets_low_risk_level_by_default()
+    public async Task GenerateScriptAsync_calls_provider_factory_with_correct_provider_type()
     {
         // Arrange
-        var request = ScriptRequest.Create("safe operation", ProviderType.OpenAi, "gpt-4");
+        var request = ScriptRequest.Create("test task", ProviderType.Anthropic, "claude-3");
 
         // Act
-        var result = await _scriptGenerator.GenerateScriptAsync(request);
+        await _scriptGenerator.GenerateScriptAsync(request);
 
         // Assert
-        result.IsSuccess.ShouldBeTrue();
-        result.Value!.RiskLevel.ShouldBe(RiskLevel.Low);
+        _mockProviderFactory.Received(1).CreateProvider(ProviderType.Anthropic);
     }
 
     [Fact]
-    public async Task GenerateScriptAsync_creates_response_with_timestamp()
+    public async Task GenerateScriptAsync_uses_default_provider_when_not_specified()
     {
         // Arrange
-        var beforeTime = DateTime.UtcNow;
-        var request = ScriptRequest.Create("test task", ProviderType.OpenAi, "gpt-4");
+        var request = ScriptRequest.Create("test task", (ProviderType?)null, "model");
+
+        // Mock Ollama as unavailable so it falls back to OpenAI
+        var ollamaProvider = Substitute.For<IProvider>();
+        ollamaProvider.IsAvailableAsync(Arg.Any<CancellationToken>())
+            .Returns(Result<bool>.Success(false));
+
+        _mockProviderFactory.CreateProvider(ProviderType.Ollama)
+            .Returns(ollamaProvider);
+        _mockProviderFactory.CreateProvider(ProviderType.OpenAi)
+            .Returns(_mockProvider);
 
         // Act
-        var result = await _scriptGenerator.GenerateScriptAsync(request);
-        var afterTime = DateTime.UtcNow;
+        await _scriptGenerator.GenerateScriptAsync(request);
 
         // Assert
-        result.IsSuccess.ShouldBeTrue();
-        result.Value!.CreatedAt.ShouldBeGreaterThanOrEqualTo(beforeTime);
-        result.Value!.CreatedAt.ShouldBeLessThanOrEqualTo(afterTime);
+        _mockProviderFactory.Received(1).CreateProvider(ProviderType.Ollama);
+        _mockProviderFactory.Received(2).CreateProvider(ProviderType.OpenAi);
     }
 }

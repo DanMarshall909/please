@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
@@ -10,6 +11,15 @@ namespace Please.Infrastructure.Services;
 /// </summary>
 public class ScriptGenerator : IScriptGenerator
 {
+    private readonly IProviderFactory _providerFactory;
+    private readonly ILogger<ScriptGenerator> _logger;
+
+    public ScriptGenerator(IProviderFactory providerFactory, ILogger<ScriptGenerator> logger)
+    {
+        _providerFactory = providerFactory;
+        _logger = logger;
+    }
+
     public async Task<Result<ScriptResponse>> GenerateScriptAsync(ScriptRequest request, CancellationToken cancellationToken = default)
     {
         if (request == null)
@@ -22,48 +32,83 @@ public class ScriptGenerator : IScriptGenerator
             return Result<ScriptResponse>.Failure("task description cannot be empty");
         }
 
-        // For now, return a mock implementation
-        // In a real implementation, this would call the AI provider
-        await Task.Delay(1, cancellationToken); // Simulate async operation
+        try
+        {
+            var providerType = request.Provider ?? await getDefaultProviderAsync(cancellationToken);
+            var provider = _providerFactory.CreateProvider(providerType);
 
-        var scriptType = detectScriptType(request.TaskDescription);
-        var script = generateMockScript(request.TaskDescription, scriptType);
+            _logger.LogInformation("Generating script using {Provider} for task: {Task}",
+                providerType, request.TaskDescription);
 
-        var response = ScriptResponse.Create(
-            script,
-            request.TaskDescription,
-            request.Provider ?? ProviderType.OpenAi,
-            request.Model ?? GetFallbackModel(request),
-            scriptType,
-            RiskLevel.Low
-        );
+            // Ensure script type is detected if not provided
+            if (request.ScriptType == null)
+            {
+                request = request with { ScriptType = detectScriptType(request.TaskDescription) };
+            }
 
-        return Result<ScriptResponse>.Success(response);
+            var scriptResult = await provider.GenerateScriptAsync(request, cancellationToken);
+
+            if (scriptResult.IsFailure)
+            {
+                _logger.LogWarning("Failed to generate script using {Provider}: {Error}",
+                    providerType, scriptResult.Error);
+                return Result<ScriptResponse>.Failure(scriptResult.Error);
+            }
+
+            var script = scriptResult.Value ?? string.Empty;
+            var model = request.Model ?? provider.GetDefaultModel();
+            var scriptType = request.ScriptType ?? detectScriptType(request.TaskDescription);
+            var riskLevel = assessRiskLevel(script, scriptType);
+
+            var response = ScriptResponse.Create(
+                script,
+                request.TaskDescription,
+                providerType,
+                model,
+                scriptType,
+                riskLevel
+            );
+
+            _logger.LogInformation("Successfully generated script using {Provider} with model {Model}",
+                providerType, model);
+
+            return Result<ScriptResponse>.Success(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error generating script");
+            return Result<ScriptResponse>.Failure($"Unexpected error: {ex.Message}");
+        }
     }
 
     public async Task<Result<bool>> IsProviderAvailableAsync(ScriptRequest request, CancellationToken cancellationToken = default)
     {
-        // Mock implementation - in reality this would check API keys, network connectivity, etc.
-        await Task.Delay(1, cancellationToken); // Simulate async operation
-
-        return request.Provider switch
+        try
         {
-            ProviderType.OpenAi => Result<bool>.Success(true),
-            ProviderType.Anthropic => Result<bool>.Success(true),
-            ProviderType.Ollama => Result<bool>.Success(true),
-            _ => Result<bool>.Success(false)
-        };
+            var providerType = request.Provider ?? ProviderType.OpenAi;
+            var provider = _providerFactory.CreateProvider(providerType);
+
+            return await provider.IsAvailableAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking provider availability for {Provider}", request.Provider);
+            return Result<bool>.Success(false);
+        }
     }
 
     public string GetFallbackModel(ScriptRequest request)
     {
-        return (request.Provider ?? ProviderType.OpenAi) switch
+        try
         {
-            ProviderType.OpenAi => "gpt-3.5-turbo",
-            ProviderType.Anthropic => "claude-3-haiku-20240307",
-            ProviderType.Ollama => "llama2",
-            _ => "gpt-3.5-turbo"
-        };
+            var providerType = request.Provider ?? ProviderType.OpenAi;
+            var provider = _providerFactory.CreateProvider(providerType);
+            return provider.GetDefaultModel();
+        }
+        catch
+        {
+            return "gpt-3.5-turbo"; // Ultimate fallback
+        }
     }
 
     private ScriptType detectScriptType(string taskDescription)
@@ -84,27 +129,83 @@ public class ScriptGenerator : IScriptGenerator
         return ScriptType.PowerShell;
     }
 
-    private string generateMockScript(string taskDescription, ScriptType scriptType)
+    private RiskLevel assessRiskLevel(string script, ScriptType scriptType)
     {
-        var lowerTask = taskDescription.ToLowerInvariant();
+        var lowerScript = script.ToLowerInvariant();
 
-        return scriptType switch
+        // High risk patterns
+        var highRiskPatterns = new[]
         {
-            ScriptType.PowerShell => lowerTask switch
-            {
-                var task when task.Contains("list") || task.Contains("files") => "Get-ChildItem",
-                var task when task.Contains("date") || task.Contains("time") => "Get-Date",
-                var task when task.Contains("process") => "Get-Process",
-                _ => "# PowerShell script for: " + taskDescription
-            },
-            ScriptType.Bash => lowerTask switch
-            {
-                var task when task.Contains("list") || task.Contains("files") => "ls -la",
-                var task when task.Contains("date") || task.Contains("time") => "date",
-                var task when task.Contains("process") => "ps aux",
-                _ => "# Bash script for: " + taskDescription
-            },
-            _ => "echo 'Script for: " + taskDescription + "'"
+            "remove-item", "rm -rf", "del /f", "format", "diskpart",
+            "net user", "reg delete", "shutdown", "restart-computer",
+            "invoke-expression", "iex", "powershell -c", "cmd /c",
+            "start-process", "& ", "wget", "curl", "download",
+            "install", "uninstall", "msiexec", "setup.exe"
         };
+
+        // Medium risk patterns
+        var mediumRiskPatterns = new[]
+        {
+            "new-item", "mkdir", "copy", "move", "rename", "chmod",
+            "chown", "export", "set-", "new-", "add-", "enable-",
+            "disable-", "stop-", "start-", "restart-"
+        };
+
+        if (highRiskPatterns.Any(pattern => lowerScript.Contains(pattern)))
+        {
+            return RiskLevel.High;
+        }
+
+        if (mediumRiskPatterns.Any(pattern => lowerScript.Contains(pattern)))
+        {
+            return RiskLevel.Medium;
+        }
+
+        return RiskLevel.Low;
+    }
+
+    private async Task<ProviderType> getDefaultProviderAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            // First preference: Ollama (local provider)
+            var ollamaProvider = _providerFactory.CreateProvider(ProviderType.Ollama);
+            var ollamaAvailable = await ollamaProvider.IsAvailableAsync(cancellationToken);
+
+            if (ollamaAvailable.IsSuccess && ollamaAvailable.Value)
+            {
+                _logger.LogInformation("Using Ollama as default provider (available locally)");
+                return ProviderType.Ollama;
+            }
+
+            // Second preference: OpenAI (most reliable cloud provider)
+            var openAiProvider = _providerFactory.CreateProvider(ProviderType.OpenAi);
+            var openAiAvailable = await openAiProvider.IsAvailableAsync(cancellationToken);
+
+            if (openAiAvailable.IsSuccess && openAiAvailable.Value)
+            {
+                _logger.LogInformation("Using OpenAI as default provider");
+                return ProviderType.OpenAi;
+            }
+
+            // Third preference: Anthropic
+            var anthropicProvider = _providerFactory.CreateProvider(ProviderType.Anthropic);
+            var anthropicAvailable = await anthropicProvider.IsAvailableAsync(cancellationToken);
+
+            if (anthropicAvailable.IsSuccess && anthropicAvailable.Value)
+            {
+                _logger.LogInformation("Using Anthropic as default provider");
+                return ProviderType.Anthropic;
+            }
+
+            // Final fallback: OpenAI (even if not available, will provide clear error)
+            _logger.LogWarning("No providers available, falling back to OpenAI");
+            return ProviderType.OpenAi;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error determining default provider, falling back to OpenAI");
+            return ProviderType.OpenAi;
+        }
     }
 }
