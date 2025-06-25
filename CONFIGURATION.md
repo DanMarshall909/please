@@ -1,8 +1,34 @@
 # Please v6 Configuration Guide
 
-## 🔑 API Key Configuration
+## 🚀 **Quick Setup (Recommended)**
 
-The Please v6 C# application supports multiple AI providers. Here's how to configure them:
+For the fastest setup experience, use our automated configuration scripts:
+
+### Windows (PowerShell)
+```powershell
+# Interactive setup with intelligent defaults
+.\scripts\setup-environment.ps1
+
+# Direct provider setup with permanent storage
+.\scripts\setup-environment.ps1 -Provider OpenAI -Permanent
+```
+
+### Linux/macOS/WSL (Bash)
+```bash
+# Interactive setup
+./scripts/setup-environment.sh
+
+# Direct provider setup with permanent storage  
+./scripts/setup-environment.sh --provider openai --permanent
+```
+
+📖 **For detailed setup script documentation, see [scripts/README.md](scripts/README.md)**
+
+---
+
+## 🔑 Manual API Key Configuration
+
+If you prefer manual configuration, the Please v6 C# application supports multiple AI providers. Here's how to configure them manually:
 
 ### Method 1: Environment Variables (Recommended)
 

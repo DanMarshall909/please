@@ -2,7 +2,7 @@
 
 ![Please Banner](https://img.shields.io/badge/Please-Dual%20Implementation-blue?style=for-the-badge&logo=robot)
 ![Go Version](https://img.shields.io/badge/Go-v5.0--stable-00ADD8?style=for-the-badge&logo=go)
-![C# Version](https://img.shields.io/badge/C%23-v6.0--dev-239120?style=for-the-badge&logo=csharp)
+![C# Version](https://img.shields.io/badge/C%23-v6.0--production-239120?style=for-the-badge&logo=csharp)
 
 **Please** maintains two parallel implementations to ensure continuous releasable software while enabling architectural evolution.
 
@@ -15,16 +15,40 @@
 - **Branch**: `release/please-v5-stable`
 - **Tag**: `v5.0-stable`
 
-### **🟢 C# Implementation (v6.0-dev)**
+### **🟢 C# Implementation (v6.0-production)**
 - **Location**: `src/` directory (Clean Architecture)
-- **Status**: 🔄 **Active Development**
-- **Purpose**: Modern architecture & tooling
+- **Status**: ✅ **Production Ready**
+- **Purpose**: Modern architecture & enterprise features
 - **Branch**: `feature/please-v6-csharp`
 - **Architecture**: Jason Taylor's Clean Architecture
 
 ## 🚀 **Quick Start**
 
-### **Use Go Version (Immediate)**
+### **🎯 Automated Setup (Recommended)**
+Use our automated setup scripts to configure AI providers:
+
+#### Windows (PowerShell)
+```powershell
+# Interactive setup with intelligent defaults
+.\scripts\setup-environment.ps1
+
+# Direct OpenAI setup with permanent storage
+.\scripts\setup-environment.ps1 -Provider OpenAI -Permanent
+```
+
+#### Linux/macOS/WSL (Bash)
+```bash
+# Interactive setup
+./scripts/setup-environment.sh
+
+# Direct provider setup with permanent storage
+./scripts/setup-environment.sh --provider openai --permanent
+```
+
+### **📖 Manual Setup**
+See [CONFIGURATION.md](CONFIGURATION.md) for manual configuration or [scripts/README.md](scripts/README.md) for detailed setup script documentation.
+
+### **🔵 Use Go Version (Immediate)**
 ```bash
 # Build and run stable Go version
 cd legacy-go
@@ -32,13 +56,15 @@ go build -o please.exe
 ./please.exe "list files in current directory"
 ```
 
-### **Develop C# Version**
+### **🟢 Use C# Version (Production Ready)**
 ```bash
 # Build and test C# version
-dotnet build
+dotnet build src/Presentation/Please.Console
 dotnet test
-cd src/Presentation/Please.Console
-dotnet run -- "list files in current directory"
+
+# Run the application
+cd src/Presentation/Please.Console/bin/Debug/net8.0/win-x64
+.\Please.Console.exe "list files in current directory"
 ```
 
 ## 📊 **Implementation Status**
@@ -53,13 +79,15 @@ dotnet run -- "list files in current directory"
 - ✅ Builds successfully
 - ⚠️ Minor localization test failures (non-blocking)
 
-### **🔄 C# v6.0 (85% Complete)**
-- ✅ **Domain Layer**: Entities, enums, interfaces, exceptions
-- ✅ **Application Layer**: Do NOT use MediatR since we're using Native AOT
-- ✅ **Infrastructure Layer**: Complete with 5 AI providers, services, repositories (26 tests passing)
-- ✅ **Test Infrastructure**: Comprehensive unit testing with 26 passing infrastructure tests
-- ⚠️ **Console App**: Needs dependency injection wiring and final integration
-- ❌ **Integration Tests**: Pending
+### **✅ C# v6.0 (Production Ready)**
+- ✅ **Domain Layer**: Complete with entities, enums, interfaces, exceptions
+- ✅ **Application Layer**: Clean architecture without MediatR for Native AOT compatibility
+- ✅ **Infrastructure Layer**: Complete with 5 AI providers (OpenAI, Anthropic, Gemini, OpenRouter, Ollama)
+- ✅ **Console Application**: Fully functional with dependency injection and CLI interface
+- ✅ **Automated Setup**: Interactive scripts for environment configuration
+- ✅ **Test Infrastructure**: Comprehensive unit testing across all layers
+- ✅ **Integration Tests**: End-to-end testing with real AI providers
+- ✅ **Documentation**: Complete setup and configuration guides
 
 ## 🏗️ **Architecture Comparison**
 
@@ -93,16 +121,17 @@ src/
 
 ## 🎯 **Development Strategy**
 
-### **Immediate Actions (Next 1-2 hours)**
-1. **Complete C# Infrastructure**: Implement repositories and AI providers
-2. **Wire Console App**: Add dependency injection and basic CLI
-3. **Integration Testing**: Verify end-to-end C# functionality
-4. **Feature Parity**: Ensure C# matches Go capabilities
+### **Current Status (Complete)**
+1. ✅ **C# Infrastructure**: Complete with all AI providers and services
+2. ✅ **Console App**: Fully wired with dependency injection and CLI
+3. ✅ **Integration Testing**: End-to-end functionality verified
+4. ✅ **Feature Parity**: C# version matches and exceeds Go capabilities
+5. ✅ **Automated Setup**: Environment configuration scripts added
 
 ### **Release Strategy**
-- **Go v5**: Immediate releases for bug fixes and minor features
-- **C# v6**: Development releases as features are completed
-- **Transition**: Gradual migration once C# reaches feature parity
+- **Go v5**: Maintenance mode for bug fixes and minor features
+- **C# v6**: Primary development focus with production releases
+- **Migration Path**: Users can choose between implementations based on needs
 
 ## 🔧 **Building Both Versions**
 
@@ -177,22 +206,29 @@ main                     # Current development state
 
 ## 📈 **Roadmap**
 
-### **Phase 1: C# Foundation (This Week)**
+### **✅ Phase 1: C# Foundation (Completed)**
 - ✅ Domain and Application layers
-- 🔄 Infrastructure implementation
-- 🔄 Console application wiring
-- 🔄 Basic integration tests
+- ✅ Infrastructure implementation with all 5 AI providers
+- ✅ Console application wiring with dependency injection
+- ✅ Comprehensive integration tests
 
-### **Phase 2: Feature Parity (Next Week)**  
-- 🔄 All Go features in C#
-- 🔄 Performance optimization
-- 🔄 Comprehensive testing
-- 🔄 Documentation
+### **✅ Phase 2: Feature Parity (Completed)**  
+- ✅ All Go features implemented in C#
+- ✅ Performance optimization with async patterns
+- ✅ Comprehensive testing across all layers
+- ✅ Complete documentation and setup automation
 
-### **Phase 3: Production Release (Following Week)**
-- 🔄 C# v6.0 production release
-- 🔄 User feedback and iteration
-- 🔄 Deprecation strategy for Go (if desired)
+### **✅ Phase 3: Production Release (Completed)**
+- ✅ C# v6.0 production release ready
+- ✅ Automated environment setup scripts
+- ✅ Cross-platform compatibility
+- 🔄 User feedback and iteration (ongoing)
+
+### **🔄 Phase 4: Future Enhancements (Ongoing)**
+- 🔄 Advanced script validation and safety features
+- 🔄 Enhanced error handling and retry mechanisms
+- 🔄 Performance monitoring and analytics
+- 🔄 Additional AI provider integrations
 
 ## 🆘 **Support**
 
@@ -204,14 +240,14 @@ main                     # Current development state
 
 ## 🌟 **Current Focus**
 
-**Active Development**: C# Infrastructure Layer completion  
-**Stable Fallback**: Go v5.0 ready for immediate use  
-**Next Milestone**: Working C# console application  
+**Production Ready**: Both Go v5.0 and C# v6.0 implementations are fully functional  
+**Primary Recommendation**: C# v6.0 for new users (better architecture and tooling)  
+**Automated Setup**: Use `scripts/setup-environment.ps1` or `scripts/setup-environment.sh` for quick configuration  
 
 *Happy scripting with Please! 🎉*
 
 ---
 
-*Updated: June 15, 2025*  
-*Status: Dual implementation strategy active*  
+*Updated: June 25, 2025*  
+*Status: Both implementations production ready*  
 *Contact: [GitHub Issues](../../issues)*
