@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Please.Application.Services;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
+using Please.Domain.Interfaces;
 
 public class TaskProcessor
 {
@@ -29,8 +30,10 @@ public class TaskProcessor
         string taskDescription = _arguments.TaskDescription;
         _logger.LogInformation("Processing task: {TaskDescription}", taskDescription);
 
-        // Demonstrate end-to-end functionality using direct services
+        // Get required services
         var scriptService = _serviceProvider.GetRequiredService<IScriptService>();
+        var userConfirmation = _serviceProvider.GetRequiredService<IUserConfirmation>();
+        var scriptExecutor = _serviceProvider.GetRequiredService<IScriptExecutor>();
 
         // Create a script request using the task description
         var request = ScriptRequest.Create(
@@ -50,6 +53,31 @@ public class TaskProcessor
                 _logger.LogInformation("Provider: {Provider}", result.Value!.Provider);
                 _logger.LogInformation("Model: {Model}", result.Value!.Model);
                 _logger.LogInformation("Risk Level: {RiskLevel}", result.Value!.RiskLevel);
+
+                // Ask user for confirmation before executing
+                var confirmationMessage = $"Do you want to execute this script?\nRisk Level: {result.Value!.RiskLevel}";
+                var userApproves = userConfirmation.AskForConfirmation(confirmationMessage, result.Value!.Script);
+
+                if (userApproves)
+                {
+                    _logger.LogInformation("User approved script execution. Executing...");
+
+                    var executionResult = await scriptExecutor.ExecuteScriptAsync(result.Value!.Script);
+
+                    if (executionResult.IsSuccess)
+                    {
+                        _logger.LogInformation("✅ Script executed successfully!");
+                        _logger.LogInformation("Output: {Output}", executionResult.Value);
+                    }
+                    else
+                    {
+                        _logger.LogError("❌ Script execution failed: {Error}", executionResult.Error);
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation("User declined script execution. Script not executed.");
+                }
             }
             else
             {

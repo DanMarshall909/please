@@ -107,6 +107,8 @@ public static class DependencyInjection
         // Register services
         services.AddSingleton<IScriptGenerator, ScriptGenerator>();
         services.AddSingleton<IContextService, ContextService>();
+        services.AddSingleton<IScriptExecutor, PowerShellScriptExecutor>();
+        services.AddSingleton<IUserConfirmation, ConsoleUserConfirmation>();
 
         return services;
     }
