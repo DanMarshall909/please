@@ -69,11 +69,13 @@ public class TaskProcessor
                         _logger.LogInformation("✅ Script executed successfully!");
                         if (!string.IsNullOrWhiteSpace(executionResult.Value))
                         {
-                            _logger.LogInformation("Output:\n{Output}", executionResult.Value);
+                            Console.WriteLine("\n=== SCRIPT OUTPUT ===");
+                            Console.WriteLine(executionResult.Value);
+                            Console.WriteLine("=== END OUTPUT ===\n");
                         }
                         else
                         {
-                            _logger.LogInformation("Script completed with no output.");
+                            Console.WriteLine("Script completed with no output.");
                         }
                     }
                     else
