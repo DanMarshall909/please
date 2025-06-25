@@ -32,7 +32,7 @@ public class PowerShellScriptExecutor : IScriptExecutor
             var processStartInfo = new ProcessStartInfo
             {
                 FileName = "powershell.exe",
-                Arguments = "-ExecutionPolicy Bypass -NoProfile -Command -",
+                Arguments = "-ExecutionPolicy Bypass -NoProfile -NonInteractive -Command -",
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -44,8 +44,42 @@ public class PowerShellScriptExecutor : IScriptExecutor
 
             process.Start();
 
-            // Send the cleaned script to PowerShell
-            await process.StandardInput.WriteAsync(cleanedScript);
+            // Wrap the script to capture Write-Host output
+            var wrappedScript = $@"
+$ErrorActionPreference = 'Continue'
+$OriginalInformationPreference = $InformationPreference
+$InformationPreference = 'Continue'
+
+# Capture all output including Write-Host
+$OutputCollection = @()
+
+# Override Write-Host to capture output
+function Write-Host {{
+    param(
+        [Parameter(ValueFromPipeline=$true)]
+        [object]$Object,
+        [ConsoleColor]$ForegroundColor,
+        [ConsoleColor]$BackgroundColor,
+        [switch]$NoNewline
+    )
+
+    if ($Object -ne $null) {{
+        $OutputCollection += $Object.ToString()
+        if (-not $NoNewline) {{
+            $OutputCollection += ""`n""
+        }}
+    }}
+}}
+
+# Execute the original script
+{cleanedScript}
+
+# Output all captured content
+$OutputCollection -join """"
+";
+
+            // Send the wrapped script to PowerShell
+            await process.StandardInput.WriteAsync(wrappedScript);
             await process.StandardInput.FlushAsync();
             process.StandardInput.Close();
 
