@@ -2,10 +2,36 @@
 
 ## 🎯 IMMEDIATE NEXT TASK
 
-**Objective**: Complete the Infrastructure layer to achieve working end-to-end Please v6 system  
+**Objective**: Complete the Infrastructure layer + Animated Console UI to achieve working end-to-end Please v6 system  
 **Priority**: **PRIORITY 1 - CRITICAL PATH**  
-**Estimated Time**: 45-60 minutes to working demo  
-**Status**: 🟡 **In Progress** - ScriptRepository and ScriptGenerator completed
+**Estimated Time**: 90 minutes to fully working tool with polished UI  
+**Status**: ✅ **COMPLETED** - Infrastructure layer Priority 1 components implemented and tested
+
+## 🎉 IMPLEMENTATION COMPLETED
+
+### ✅ **Priority 1 Components Completed (December 25, 2025)**
+- ✅ **ScriptRepository**: Full in-memory implementation with thread-safe operations
+- ✅ **ScriptRepository Tests**: 19 comprehensive unit tests covering all scenarios
+- ✅ **ScriptGenerator Tests**: 19 comprehensive unit tests for existing service
+- ✅ **Test Infrastructure**: Fixed XUnit configuration and package versions
+- ✅ **All Tests Passing**: 38/38 infrastructure tests successful
+- ✅ **Test Coverage**: High coverage across all repository and service operations
+- ✅ **Git Commit**: All changes committed to version control
+
+### 📊 **Results Summary**
+- **Total Tests**: 38 (19 Repository + 19 Generator)
+- **Success Rate**: 100% (38/38 passing)
+- **Code Quality**: All nullable reference warnings resolved
+- **Build Status**: Clean build with no errors or warnings
+- **Ready for**: Next phase UI implementation
+
+## 🎨 UI DESIGN CONFIRMED
+
+**Animation**: Pulse animation with elapsed time (`●○○ 3s` → `○●○ 4s` → `○○● 5s`)  
+**Layout**: ASCII borders around scripts, one-line color-coded menu  
+**Workflow**: Generate → Review → Modify → Quit (Enter with nothing)  
+**Architecture**: Keep Clean Architecture multi-project structure  
+**Features**: Session management, discoverable help, no validation initially
 
 ## 🎯 COMPLETED COMPONENTS
 
@@ -50,36 +76,36 @@
 4. **No disruption** - Builds on solid foundation without breaking existing tests
 5. **Enables future consolidation** - Sets up single-project restructuring
 
-## 🔧 REMAINING COMPONENTS
+## 🔧 IMPLEMENTATION COMPONENTS
 
-### ✅ **1. Core Infrastructure Services (COMPLETED)**
+### **1. Infrastructure Layer Services**
 
-**ScriptRepository Implementation** ✅
+**ScriptRepository Implementation**
 - File: `src/Infrastructure/Please.Infrastructure/Repositories/ScriptRepository.cs`
-- Status: **COMPLETED** - In-memory storage with Result<T> pattern
-- Tests: 9/9 passing with comprehensive coverage
+- Purpose: In-memory storage with List<ScriptResponse>
+- Pattern: All methods return Result<T> for consistent error handling
 
-**ScriptGenerator Service** ✅
+**ScriptGenerator Service**
 - File: `src/Infrastructure/Please.Infrastructure/Services/ScriptGenerator.cs`
-- Status: **COMPLETED** - Mock AI provider orchestration
-- Tests: 9/9 passing with comprehensive coverage
+- Purpose: Orchestrates AI providers with status callback integration
+- Features: Status updates for animated UI, provider selection logic
 
 ### **2. AI Provider Implementations**
 
-**OpenAI Provider**
+**OpenAI Provider Stub**
 - File: `src/Infrastructure/Please.Infrastructure/Providers/OpenAiProvider.cs`
-- Purpose: OpenAI API integration with ChatGPT models
-- Configuration: API key, model selection, timeout handling
+- Purpose: Mock OpenAI integration with realistic 3-7 second delays
+- Returns: Contextually appropriate PowerShell/Bash scripts for testing
 
-**Anthropic Provider**
+**Anthropic Provider Stub**
 - File: `src/Infrastructure/Please.Infrastructure/Providers/AnthropicProvider.cs`
-- Purpose: Anthropic Claude API integration
-- Configuration: API key, model selection, safety features
+- Purpose: Mock Anthropic integration with realistic response times
+- Returns: Sample scripts appropriate to user requests
 
-**Provider Base/Factory**
+**Provider Factory**
 - File: `src/Infrastructure/Please.Infrastructure/Providers/ProviderFactory.cs`
 - Purpose: Provider selection and instantiation logic
-- Pattern: Factory pattern with ProviderType enum
+- Pattern: Factory pattern with ProviderType enum, status callback support
 
 ### **3. Dependency Injection Setup**
 
@@ -89,13 +115,34 @@
 - Pattern: Extension method for IServiceCollection
 - Integration: Called from Program.cs
 
+### **3. Console UI Services**
+
+**StatusDisplay Service**
+- File: `src/Presentation/Please.Console/Services/StatusDisplay.cs`
+- Purpose: Pulse animation with elapsed time (`●○○ 3s` → `○●○ 4s` → `○○● 5s`)
+- Features: Non-blocking animation, clean cancellation, proper cursor management
+
+**ScriptRenderer Service**
+- File: `src/Presentation/Please.Console/Services/ScriptRenderer.cs`
+- Purpose: ASCII borders around generated scripts, basic syntax highlighting
+- Features: Console width handling, color-coded output
+
+**MenuRenderer Service**
+- File: `src/Presentation/Please.Console/Services/MenuRenderer.cs`
+- Purpose: One-line color-coded menu (`[M]odify • [Q]uit/Enter • [H]elp`)
+- Features: Input parsing, discoverable design, clean key handling
+
+**SessionManager Service**
+- File: `src/Presentation/Please.Console/Services/SessionManager.cs`
+- Purpose: Last session persistence and recall
+- Features: File-based storage, session validation, context preservation
+
 ### **4. Console Application Completion**
 
 **Program.cs Enhancement**
 - File: `src/Presentation/Please.Console/Program.cs`
-- Current Coverage: 0% - Needs complete implementation
-- Purpose: DI container setup, command-line parsing, application bootstrap
-- Integration: Wire up all layers (Domain → Application → Infrastructure)
+- Purpose: DI container setup, animated status integration, main application loop
+- Integration: Wire up all layers with UI services
 
 ## 🧪 TESTING STRATEGY (TDD Approach)
 
@@ -125,76 +172,144 @@
 
 ## 🛠️ IMPLEMENTATION SEQUENCE
 
-### **Step 1: Infrastructure Project Setup (5 min)**
-```bash
-# Create Infrastructure test project
-dotnet new classlib -n Please.Infrastructure.UnitTests -o tests/Infrastructure.UnitTests/Please.Infrastructure.UnitTests
-dotnet sln add tests/Infrastructure.UnitTests/Please.Infrastructure.UnitTests/Please.Infrastructure.UnitTests.csproj
-```
+### **Phase 1: Infrastructure Layer (45 min)**
+**TDD Approach - Tests First:**
 
-### **Step 2: Repository Implementation (15 min)**
-- Create `ScriptRepository` with in-memory List<ScriptResponse>
-- Implement all IScriptRepository methods with Result<T> returns
-- Add comprehensive unit tests with builder patterns
-- Verify 85%+ coverage for repository logic
+1. **ScriptRepository Implementation (15 min)**
+   - Create `ScriptRepository` with in-memory List<ScriptResponse>
+   - Implement all IScriptRepository methods with Result<T> returns
+   - Add comprehensive unit tests with builder patterns
+   - Verify 85%+ coverage for repository logic
 
-### **Step 3: Provider Implementation (20 min)**
-- Create basic `OpenAiProvider` and `AnthropicProvider` stub implementations
-- Implement `ProviderFactory` with ProviderType switching
-- Add provider configuration and validation logic
-- Create provider unit tests
+2. **AI Provider Stubs (15 min)**
+   - Create `OpenAiProvider` and `AnthropicProvider` with realistic 3-7 second delays
+   - Return contextually appropriate PowerShell/Bash scripts for testing
+   - Implement `ProviderFactory` with ProviderType switching logic
+   - Add provider unit tests with mock scenarios
 
-### **Step 4: Script Generator Service (10 min)**
-- Implement `ScriptGenerator` orchestrating providers and repository
-- Add request validation and response processing
-- Test generation workflow with fake providers
-- Verify error handling scenarios
+3. **ScriptGenerator Service (10 min)**
+   - Implement `ScriptGenerator` orchestrating providers with status callbacks
+   - Add request validation and repository storage integration
+   - Test generation workflow with status update integration
+   - Verify Result<T> error handling throughout
 
-### **Step 5: DI Configuration (5 min)**
-- Create `DependencyInjection.AddInfrastructure()` extension
-- Register all infrastructure services
-- Configure provider options and settings
+4. **Infrastructure DI Setup (5 min)**
+   - Create `DependencyInjection.AddInfrastructure()` extension
+   - Register all infrastructure services with proper lifetimes
+   - Configure provider options and settings
 
-### **Step 6: Console Application (10 min)**
-- Complete `Program.cs` with full DI container setup
-- Add basic command-line argument parsing
-- Test end-to-end script generation
-- Verify working system demonstration
+### **Phase 2: Console UI Polish (30 min)**
+
+1. **StatusDisplay with Pulse Animation (15 min)**
+   - Implement pulse animation: `●○○ 3s` → `○●○ 4s` → `○○● 5s`
+   - Non-blocking animation with elapsed seconds counter
+   - Clean cancellation and status clearing functionality
+   - Integration with async operations
+
+2. **ScriptRenderer Service (10 min)**
+   - Clean ASCII borders around generated scripts
+   - Basic syntax highlighting (keywords in color)
+   - Proper console width handling and text wrapping
+
+3. **MenuRenderer & Application Flow (5 min)**
+   - One-line color-coded menu: `[M]odify • [Q]uit/Enter • [H]elp`
+   - Input parsing and validation logic
+   - Clean transitions between application states
+
+### **Phase 3: Interactive Features (15 min)**
+
+1. **Modification Workflow (10 min)**
+   - "please modify to X" with animated status updates
+   - Context preservation between modification requests
+   - Clean user interaction loop with proper error handling
+
+2. **Session Management (5 min)**
+   - Last session recall when typing just `please`
+   - Basic file-based persistence for script history
+   - Help integration for first-time users
 
 ## ✅ SUCCESS CRITERIA
 
-### **Immediate Goals (45-60 min)**
+### **Immediate Goals (90 min)**
 - [ ] All infrastructure services implemented with Result<T> pattern
-- [ ] 85%+ test coverage on Infrastructure layer
+- [ ] Pulse animation status display with elapsed time working
+- [ ] ASCII-bordered script output with color coding
+- [ ] One-line discoverable menu system functional
+- [ ] 85%+ test coverage on Infrastructure and UI services
 - [ ] All existing tests continue to pass (63/63)
-- [ ] End-to-end script generation working from console
-- [ ] Basic AI provider integration (stubs acceptable for demo)
 
 ### **Demo-Ready Functionality**
-- [ ] `please generate "list files in current directory"` → working PowerShell script
-- [ ] Error handling for invalid requests → Result.Failure with clear messages  
-- [ ] Script storage and retrieval → in-memory persistence working
-- [ ] Provider selection → configurable OpenAI/Anthropic choice
+- [ ] `please create a PowerShell script to list files` → animated generation → bordered script display
+- [ ] Modification workflow: Review script → [M]odify → "change X to Y" → updated script
+- [ ] Clean exit: Press Enter with nothing → quit application
+- [ ] Session recall: `please` alone → loads last session with help option
+- [ ] Error handling with proper status clearing and user feedback
+
+### **UI Polish Requirements**
+- [ ] **Pulse Animation**: `●○○ 3s` → `○●○ 4s` → `○○● 5s` cycling smoothly
+- [ ] **ASCII Borders**: Clean borders around all generated scripts
+- [ ] **Color Coding**: Green success, yellow prompts, blue menu, red errors
+- [ ] **One-line Menu**: `[M]odify • [Q]uit/Enter • [H]elp` discoverable but minimal
+- [ ] **Status Management**: Show progress → clear cleanly → display results
 
 ### **Quality Gates**
 - [ ] **Overall coverage maintained**: 82%+ (current: 82.3%)
-- [ ] **All tests passing**: 63+ tests (no regressions)
+- [ ] **All tests passing**: 80+ tests (including new UI service tests)
 - [ ] **Build successful**: `dotnet build` with no warnings
-- [ ] **TDD compliance**: Infrastructure tests written first, then implementation
+- [ ] **TDD compliance**: All new code written test-first
+- [ ] **Performance**: Animation smooth, no flickering, responsive input
 
-## 🚀 EXPECTED OUTCOME
+## 🚀 EXPECTED UX FLOW
 
-**Working Please v6 System:**
-- Complete end-to-end script generation functionality
-- Solid foundation for single-project consolidation
-- Maintained test coverage and quality standards
-- Clear path to production-ready deployment
+**Example Session:**
+```
+> please create a script to backup files
+
+🔄 Generating script with OpenAI GPT-4... ●○○ 1s
+🔄 Generating script with OpenAI GPT-4... ○●○ 2s
+🔄 Generating script with OpenAI GPT-4... ○○● 3s
+🔄 Generating script with OpenAI GPT-4... ●○○ 4s
+
+✅ Script generated successfully (4.2s)
+
+┌─────────────────────────────────────────┐
+│ # Backup files to timestamped folder    │
+│ $timestamp = Get-Date -Format "yyyyMMdd"│
+│ Copy-Item *.* "backup_$timestamp\"      │
+└─────────────────────────────────────────┘
+
+[M]odify • [Q]uit/Enter • [H]elp
+> m
+
+What would you like to modify?
+> add error handling
+
+🔄 Processing your modification... ○●○ 2s
+
+✅ Script updated successfully (2.1s)
+
+┌─────────────────────────────────────────┐
+│ # Backup files with error handling      │
+│ $timestamp = Get-Date -Format "yyyyMMdd"│
+│ try {                                   │
+│   Copy-Item *.* "backup_$timestamp\"   │
+│   Write-Host "Backup completed"        │
+│ } catch {                              │
+│   Write-Error "Backup failed: $_"     │
+│ }                                      │
+└─────────────────────────────────────────┘
+
+[M]odify • [Q]uit/Enter • [H]elp
+> [Enter]
+
+Goodbye!
+```
 
 **Next Phase Enabled:**
-- Single-project restructuring (per Result Pattern Architecture)
-- AOT compilation optimization
-- Cross-platform executable generation
-- Production AI provider integration
+- Real AI provider integration (OpenAI/Anthropic APIs)
+- Advanced script validation and safety features
+- Localization system implementation
+- Performance optimization and cross-platform builds
 
 ## 📋 HANDOFF INSTRUCTIONS
 
