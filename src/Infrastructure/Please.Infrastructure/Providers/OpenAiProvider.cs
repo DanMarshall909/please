@@ -1,6 +1,5 @@
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Please.Domain.Common;
 using Please.Domain.Entities;
@@ -12,121 +11,88 @@ namespace Please.Infrastructure.Providers;
 /// <summary>
 /// OpenAI API provider implementation
 /// </summary>
-public class OpenAiProvider : IProvider
+public class OpenAiProvider : BaseHttpProvider<OpenAiConfiguration>
 {
-    private readonly HttpClient _httpClient;
-    private readonly OpenAiConfiguration _configuration;
-    private readonly ILogger<OpenAiProvider> _logger;
-
     public OpenAiProvider(HttpClient httpClient, OpenAiConfiguration configuration, ILogger<OpenAiProvider> logger)
+        : base(httpClient, configuration, logger)
     {
-        _httpClient = httpClient;
-        _configuration = configuration;
-        _logger = logger;
+    }
 
-        _httpClient.BaseAddress = new Uri(_configuration.BaseUrl);
-        _httpClient.Timeout = TimeSpan.FromSeconds(_configuration.TimeoutSeconds);
+    protected override void ConfigureHttpClient()
+    {
+        HttpClient.BaseAddress = new Uri(Configuration.BaseUrl);
+        HttpClient.Timeout = TimeSpan.FromSeconds(Configuration.TimeoutSeconds);
 
-        if (!string.IsNullOrEmpty(_configuration.ApiKey))
+        if (!string.IsNullOrEmpty(Configuration.ApiKey))
         {
-            _httpClient.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _configuration.ApiKey);
+            HttpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Configuration.ApiKey);
         }
     }
 
-    public async Task<Result<string>> GenerateScriptAsync(ScriptRequest request, CancellationToken cancellationToken = default)
+    protected override bool IsConfigurationValid()
     {
-        try
-        {
-            if (string.IsNullOrEmpty(_configuration.ApiKey) || _configuration.ApiKey == "your-api-key-here")
-            {
-                return Result<string>.Failure("OpenAI API key not configured");
-            }
-
-            var model = request.Model ?? _configuration.DefaultModel;
-            var systemPrompt = buildSystemPrompt(request);
-            var userPrompt = buildUserPrompt(request);
-
-            var requestBody = new OpenAiRequest
-            {
-                Model = model,
-                Messages = new[]
-                {
-                    new OpenAiMessage { Role = "system", Content = systemPrompt },
-                    new OpenAiMessage { Role = "user", Content = userPrompt }
-                },
-                Temperature = 0.1,
-                MaxTokens = 1000
-            };
-
-            var json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.OpenAiRequest);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            _logger.LogInformation("Sending request to OpenAI with model {Model}", model);
-
-            var response = await _httpClient.PostAsync("/chat/completions", content, cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-                _logger.LogError("OpenAI API error: {StatusCode} - {Content}", response.StatusCode, errorContent);
-                return Result<string>.Failure($"OpenAI API error: {response.StatusCode}");
-            }
-
-            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            var apiResponse = JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.OpenAiResponse);
-
-            var script = apiResponse?.Choices?.FirstOrDefault()?.Message?.Content?.Trim();
-
-            if (string.IsNullOrEmpty(script))
-            {
-                return Result<string>.Failure("Empty response from OpenAI");
-            }
-
-            _logger.LogInformation("Successfully generated script using OpenAI");
-            return Result<string>.Success(script);
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "HTTP error calling OpenAI API");
-            return Result<string>.Failure($"Network error: {ex.Message}");
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "OpenAI API request timed out");
-            return Result<string>.Failure("Request timed out");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error calling OpenAI API");
-            return Result<string>.Failure($"Unexpected error: {ex.Message}");
-        }
+        return !string.IsNullOrEmpty(Configuration.ApiKey) && Configuration.ApiKey != "your-api-key-here";
     }
 
-    public async Task<Result<bool>> IsAvailableAsync(CancellationToken cancellationToken = default)
+    protected override string GetConfigurationErrorMessage()
     {
-        try
+        return "OpenAI API key not configured";
+    }
+
+    protected override string GetProviderName()
+    {
+        return "OpenAI";
+    }
+
+    protected override string GetModel(ScriptRequest request)
+    {
+        return request.Model ?? Configuration.DefaultModel;
+    }
+
+    protected override Task<HttpRequestMessage> CreateHttpRequestAsync(ScriptRequest request, string model, CancellationToken cancellationToken)
+    {
+        var systemPrompt = BuildSystemPrompt(request);
+        var userPrompt = BuildUserPrompt(request);
+
+        var requestBody = new OpenAiRequest
         {
-            if (string.IsNullOrEmpty(_configuration.ApiKey) || _configuration.ApiKey == "your-api-key-here")
+            Model = model,
+            Messages = new[]
             {
-                return Result<bool>.Success(false);
-            }
+                new OpenAiMessage { Role = "system", Content = systemPrompt },
+                new OpenAiMessage { Role = "user", Content = userPrompt }
+            },
+            Temperature = 0.1,
+            MaxTokens = 1000
+        };
 
-            var response = await _httpClient.GetAsync("/models", cancellationToken);
-            return Result<bool>.Success(response.IsSuccessStatusCode);
-        }
-        catch
+        var json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.OpenAiRequest);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        return Task.FromResult(new HttpRequestMessage(HttpMethod.Post, "/chat/completions")
         {
-            return Result<bool>.Success(false);
-        }
+            Content = content
+        });
     }
 
-    public string GetDefaultModel()
+    protected override Task<string> ExtractScriptFromResponseAsync(string responseContent, CancellationToken cancellationToken)
     {
-        return _configuration.DefaultModel;
+        var apiResponse = JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.OpenAiResponse);
+        return Task.FromResult(apiResponse?.Choices?.FirstOrDefault()?.Message?.Content?.Trim() ?? string.Empty);
     }
 
-    public string[] GetSupportedModels()
+    protected override HttpRequestMessage CreateHealthCheckRequest()
+    {
+        return new HttpRequestMessage(HttpMethod.Get, "/models");
+    }
+
+    public override string GetDefaultModel()
+    {
+        return Configuration.DefaultModel;
+    }
+
+    public override string[] GetSupportedModels()
     {
         return new[]
         {
@@ -136,43 +102,5 @@ public class OpenAiProvider : IProvider
             "gpt-4",
             "gpt-3.5-turbo"
         };
-    }
-
-    private string buildSystemPrompt(ScriptRequest request)
-    {
-        var scriptTypeHint = request.ScriptType?.ToString().ToLower() ?? "shell script";
-        var platform = Environment.OSVersion.Platform == PlatformID.Win32NT ? "Windows" : "Unix/Linux";
-
-        return $@"You are an expert {scriptTypeHint} developer. Generate safe, efficient, and well-commented scripts.
-
-Guidelines:
-- Write for {platform} platform
-- Include error handling where appropriate
-- Add helpful comments explaining complex logic
-- Use best practices for the script type
-- Keep the script focused on the specific task
-- Return ONLY the script code, no additional text or explanations";
-    }
-
-    private string buildUserPrompt(ScriptRequest request)
-    {
-        var prompt = new StringBuilder();
-        prompt.AppendLine($"Task: {request.TaskDescription}");
-
-        if (!string.IsNullOrEmpty(request.WorkingDirectory))
-        {
-            prompt.AppendLine($"Working Directory: {request.WorkingDirectory}");
-        }
-
-        if (request.AdditionalParameters.Any())
-        {
-            prompt.AppendLine("Additional Context:");
-            foreach (var param in request.AdditionalParameters)
-            {
-                prompt.AppendLine($"- {param.Key}: {param.Value}");
-            }
-        }
-
-        return prompt.ToString();
     }
 }

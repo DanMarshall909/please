@@ -11,123 +11,91 @@ namespace Please.Infrastructure.Providers;
 /// <summary>
 /// Google Gemini API provider implementation
 /// </summary>
-public class GeminiProvider : IProvider
+public class GeminiProvider : BaseHttpProvider<GeminiConfiguration>
 {
-    private readonly HttpClient _httpClient;
-    private readonly GeminiConfiguration _configuration;
-    private readonly ILogger<GeminiProvider> _logger;
-
     public GeminiProvider(HttpClient httpClient, GeminiConfiguration configuration, ILogger<GeminiProvider> logger)
+        : base(httpClient, configuration, logger)
     {
-        _httpClient = httpClient;
-        _configuration = configuration;
-        _logger = logger;
-
-        _httpClient.BaseAddress = new Uri(_configuration.BaseUrl);
-        _httpClient.Timeout = TimeSpan.FromSeconds(_configuration.TimeoutSeconds);
     }
 
-    public async Task<Result<string>> GenerateScriptAsync(ScriptRequest request, CancellationToken cancellationToken = default)
+    protected override void ConfigureHttpClient()
     {
-        try
+        HttpClient.BaseAddress = new Uri(Configuration.BaseUrl);
+        HttpClient.Timeout = TimeSpan.FromSeconds(Configuration.TimeoutSeconds);
+    }
+
+    protected override bool IsConfigurationValid()
+    {
+        return !string.IsNullOrEmpty(Configuration.ApiKey);
+    }
+
+    protected override string GetConfigurationErrorMessage()
+    {
+        return "Gemini API key not configured";
+    }
+
+    protected override string GetProviderName()
+    {
+        return "Gemini";
+    }
+
+    protected override string GetModel(ScriptRequest request)
+    {
+        return request.Model ?? Configuration.DefaultModel;
+    }
+
+    protected override Task<HttpRequestMessage> CreateHttpRequestAsync(ScriptRequest request, string model, CancellationToken cancellationToken)
+    {
+        var prompt = BuildPrompt(request);
+
+        var requestBody = new GeminiRequest
         {
-            if (string.IsNullOrEmpty(_configuration.ApiKey))
+            Contents = new[]
             {
-                return Result<string>.Failure("Gemini API key not configured");
-            }
-
-            var model = request.Model ?? _configuration.DefaultModel;
-            var prompt = buildPrompt(request);
-
-            var requestBody = new GeminiRequest
-            {
-                Contents = new[]
+                new GeminiContentItem
                 {
-                    new GeminiContentItem
+                    Parts = new[]
                     {
-                        Parts = new[]
-                        {
-                            new GeminiPart { Text = prompt }
-                        }
+                        new GeminiPart { Text = prompt }
                     }
-                },
-                GenerationConfig = new GeminiGenerationConfig
-                {
-                    Temperature = 0.1,
-                    MaxOutputTokens = 1000
                 }
-            };
-
-            var json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.GeminiRequest);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            _logger.LogInformation("Sending request to Gemini with model {Model}", model);
-
-            var url = $"/models/{model}:generateContent?key={_configuration.ApiKey}";
-            var response = await _httpClient.PostAsync(url, content, cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
+            },
+            GenerationConfig = new GeminiGenerationConfig
             {
-                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-                _logger.LogError("Gemini API error: {StatusCode} - {Content}", response.StatusCode, errorContent);
-                return Result<string>.Failure($"Gemini API error: {response.StatusCode}");
+                Temperature = 0.1,
+                MaxOutputTokens = 1000
             }
+        };
 
-            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            var apiResponse = JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.GeminiResponse);
+        var json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.GeminiRequest);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var script = apiResponse?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text?.Trim();
-
-            if (string.IsNullOrEmpty(script))
-            {
-                return Result<string>.Failure("Empty response from Gemini");
-            }
-
-            _logger.LogInformation("Successfully generated script using Gemini");
-            return Result<string>.Success(script);
-        }
-        catch (HttpRequestException ex)
+        var url = $"/models/{model}:generateContent?key={Configuration.ApiKey}";
+        return Task.FromResult(new HttpRequestMessage(HttpMethod.Post, url)
         {
-            _logger.LogError(ex, "HTTP error calling Gemini API");
-            return Result<string>.Failure($"Network error: {ex.Message}");
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "Gemini API request timed out");
-            return Result<string>.Failure("Request timed out");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error calling Gemini API");
-            return Result<string>.Failure($"Unexpected error: {ex.Message}");
-        }
+            Content = content
+        });
     }
 
-    public async Task<Result<bool>> IsAvailableAsync(CancellationToken cancellationToken = default)
+    protected override Task<string> ExtractScriptFromResponseAsync(string responseContent, CancellationToken cancellationToken)
     {
-        try
-        {
-            if (string.IsNullOrEmpty(_configuration.ApiKey))
-            {
-                return Result<bool>.Success(false);
-            }
-
-            var url = $"/models?key={_configuration.ApiKey}";
-            var response = await _httpClient.GetAsync(url, cancellationToken);
-            return Result<bool>.Success(response.IsSuccessStatusCode);
-        }
-        catch
-        {
-            return Result<bool>.Success(false);
-        }
+        var apiResponse = JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.GeminiResponse);
+        var script = apiResponse?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text?.Trim() ?? string.Empty;
+        return Task.FromResult(script);
     }
 
-    public string GetDefaultModel()
+    protected override HttpRequestMessage CreateHealthCheckRequest()
     {
-        return _configuration.DefaultModel;
+        var url = $"/models?key={Configuration.ApiKey}";
+        return new HttpRequestMessage(HttpMethod.Get, url);
     }
 
-    public string[] GetSupportedModels()
+    public override string GetDefaultModel()
+    {
+        return Configuration.DefaultModel;
+    }
+
+    public override string[] GetSupportedModels()
     {
         return new[]
         {
@@ -136,43 +104,5 @@ public class GeminiProvider : IProvider
             "gemini-1.5-pro",
             "gemini-1.5-flash"
         };
-    }
-
-    private string buildPrompt(ScriptRequest request)
-    {
-        var scriptTypeHint = request.ScriptType?.ToString().ToLower() ?? "shell script";
-        var platform = Environment.OSVersion.Platform == PlatformID.Win32NT ? "Windows" : "Unix/Linux";
-
-        var prompt = new StringBuilder();
-        prompt.AppendLine($"You are an expert {scriptTypeHint} developer. Generate safe, efficient, and well-commented scripts.");
-        prompt.AppendLine();
-        prompt.AppendLine("Guidelines:");
-        prompt.AppendLine($"- Write for {platform} platform");
-        prompt.AppendLine("- Include error handling where appropriate");
-        prompt.AppendLine("- Add helpful comments explaining complex logic");
-        prompt.AppendLine("- Use best practices for the script type");
-        prompt.AppendLine("- Keep the script focused on the specific task");
-        prompt.AppendLine("- Return ONLY the script code, no additional text or explanations");
-        prompt.AppendLine();
-        prompt.AppendLine($"Task: {request.TaskDescription}");
-
-        if (!string.IsNullOrEmpty(request.WorkingDirectory))
-        {
-            prompt.AppendLine($"Working Directory: {request.WorkingDirectory}");
-        }
-
-        if (request.AdditionalParameters.Any())
-        {
-            prompt.AppendLine("Additional Context:");
-            foreach (var param in request.AdditionalParameters)
-            {
-                prompt.AppendLine($"- {param.Key}: {param.Value}");
-            }
-        }
-
-        prompt.AppendLine();
-        prompt.AppendLine("Script:");
-
-        return prompt.ToString();
     }
 }

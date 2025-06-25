@@ -9,133 +9,90 @@ using Please.Infrastructure.Serialization;
 namespace Please.Infrastructure.Providers;
 
 /// <summary>
-/// Anthropic API provider implementation
+/// Anthropic Claude API provider implementation
 /// </summary>
-public class AnthropicProvider : IProvider
+public class AnthropicProvider : BaseHttpProvider<AnthropicConfiguration>
 {
-    private readonly HttpClient _httpClient;
-    private readonly AnthropicConfiguration _configuration;
-    private readonly ILogger<AnthropicProvider> _logger;
-
     public AnthropicProvider(HttpClient httpClient, AnthropicConfiguration configuration, ILogger<AnthropicProvider> logger)
+        : base(httpClient, configuration, logger)
     {
-        _httpClient = httpClient;
-        _configuration = configuration;
-        _logger = logger;
+    }
 
-        _httpClient.BaseAddress = new Uri(_configuration.BaseUrl);
-        _httpClient.Timeout = TimeSpan.FromSeconds(_configuration.TimeoutSeconds);
+    protected override void ConfigureHttpClient()
+    {
+        HttpClient.BaseAddress = new Uri(Configuration.BaseUrl);
+        HttpClient.Timeout = TimeSpan.FromSeconds(Configuration.TimeoutSeconds);
 
-        if (!string.IsNullOrEmpty(_configuration.ApiKey))
+        if (!string.IsNullOrEmpty(Configuration.ApiKey))
         {
-            _httpClient.DefaultRequestHeaders.Add("x-api-key", _configuration.ApiKey);
-            _httpClient.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
+            HttpClient.DefaultRequestHeaders.Add("x-api-key", Configuration.ApiKey);
+            HttpClient.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
         }
     }
 
-    public async Task<Result<string>> GenerateScriptAsync(ScriptRequest request, CancellationToken cancellationToken = default)
+    protected override bool IsConfigurationValid()
     {
-        try
-        {
-            if (string.IsNullOrEmpty(_configuration.ApiKey))
-            {
-                return Result<string>.Failure("Anthropic API key not configured");
-            }
-
-            var model = request.Model ?? _configuration.DefaultModel;
-            var systemPrompt = buildSystemPrompt(request);
-            var userPrompt = buildUserPrompt(request);
-
-            var requestBody = new AnthropicRequest
-            {
-                Model = model,
-                MaxTokens = 1000,
-                System = systemPrompt,
-                Messages = new[]
-                {
-                    new AnthropicMessage { Role = "user", Content = userPrompt }
-                }
-            };
-
-            var json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.AnthropicRequest);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            _logger.LogInformation("Sending request to Anthropic with model {Model}", model);
-
-            var response = await _httpClient.PostAsync("/messages", content, cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-                _logger.LogError("Anthropic API error: {StatusCode} - {Content}", response.StatusCode, errorContent);
-                return Result<string>.Failure($"Anthropic API error: {response.StatusCode}");
-            }
-
-            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            var apiResponse = JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.AnthropicResponse);
-
-            var script = apiResponse?.Content?.FirstOrDefault()?.Text?.Trim();
-
-            if (string.IsNullOrEmpty(script))
-            {
-                return Result<string>.Failure("Empty response from Anthropic");
-            }
-
-            _logger.LogInformation("Successfully generated script using Anthropic");
-            return Result<string>.Success(script);
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "HTTP error calling Anthropic API");
-            return Result<string>.Failure($"Network error: {ex.Message}");
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "Anthropic API request timed out");
-            return Result<string>.Failure("Request timed out");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error calling Anthropic API");
-            return Result<string>.Failure($"Unexpected error: {ex.Message}");
-        }
+        return !string.IsNullOrEmpty(Configuration.ApiKey);
     }
 
-    public async Task<Result<bool>> IsAvailableAsync(CancellationToken cancellationToken = default)
+    protected override string GetConfigurationErrorMessage()
     {
-        try
+        return "Anthropic API key not configured";
+    }
+
+    protected override string GetProviderName()
+    {
+        return "Anthropic";
+    }
+
+    protected override string GetModel(ScriptRequest request)
+    {
+        return request.Model ?? Configuration.DefaultModel;
+    }
+
+    protected override Task<HttpRequestMessage> CreateHttpRequestAsync(ScriptRequest request, string model, CancellationToken cancellationToken)
+    {
+        var systemPrompt = BuildSystemPrompt(request);
+        var userPrompt = BuildUserPrompt(request);
+
+        var requestBody = new AnthropicRequest
         {
-            if (string.IsNullOrEmpty(_configuration.ApiKey))
+            Model = model,
+            MaxTokens = 1000,
+            System = systemPrompt,
+            Messages = new[]
             {
-                return Result<bool>.Success(false);
+                new AnthropicMessage { Role = "user", Content = userPrompt }
             }
+        };
 
-            // Anthropic doesn't have a models endpoint, but we can test with a minimal request
-            var testBody = new AnthropicRequest
-            {
-                Model = _configuration.DefaultModel,
-                MaxTokens = 1,
-                Messages = new[] { new AnthropicMessage { Role = "user", Content = "test" } }
-            };
+        var json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.AnthropicRequest);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var json = JsonSerializer.Serialize(testBody, ApiSerializationContext.Default.AnthropicRequest);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync("/messages", content, cancellationToken);
-            return Result<bool>.Success(response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.BadRequest);
-        }
-        catch
+        return Task.FromResult(new HttpRequestMessage(HttpMethod.Post, "/messages")
         {
-            return Result<bool>.Success(false);
-        }
+            Content = content
+        });
     }
 
-    public string GetDefaultModel()
+    protected override Task<string> ExtractScriptFromResponseAsync(string responseContent, CancellationToken cancellationToken)
     {
-        return _configuration.DefaultModel;
+        var apiResponse = JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.AnthropicResponse);
+        var script = apiResponse?.Content?.FirstOrDefault()?.Text?.Trim() ?? string.Empty;
+        return Task.FromResult(script);
     }
 
-    public string[] GetSupportedModels()
+    protected override HttpRequestMessage CreateHealthCheckRequest()
+    {
+        return new HttpRequestMessage(HttpMethod.Get, "/messages");
+    }
+
+    public override string GetDefaultModel()
+    {
+        return Configuration.DefaultModel;
+    }
+
+    public override string[] GetSupportedModels()
     {
         return new[]
         {
@@ -145,43 +102,5 @@ public class AnthropicProvider : IProvider
             "claude-3-sonnet-20240229",
             "claude-3-haiku-20240307"
         };
-    }
-
-    private string buildSystemPrompt(ScriptRequest request)
-    {
-        var scriptTypeHint = request.ScriptType?.ToString().ToLower() ?? "shell script";
-        var platform = Environment.OSVersion.Platform == PlatformID.Win32NT ? "Windows" : "Unix/Linux";
-
-        return $@"You are an expert {scriptTypeHint} developer. Generate safe, efficient, and well-commented scripts.
-
-Guidelines:
-- Write for {platform} platform
-- Include error handling where appropriate
-- Add helpful comments explaining complex logic
-- Use best practices for the script type
-- Keep the script focused on the specific task
-- Return ONLY the script code, no additional text or explanations";
-    }
-
-    private string buildUserPrompt(ScriptRequest request)
-    {
-        var prompt = new StringBuilder();
-        prompt.AppendLine($"Task: {request.TaskDescription}");
-
-        if (!string.IsNullOrEmpty(request.WorkingDirectory))
-        {
-            prompt.AppendLine($"Working Directory: {request.WorkingDirectory}");
-        }
-
-        if (request.AdditionalParameters.Any())
-        {
-            prompt.AppendLine("Additional Context:");
-            foreach (var param in request.AdditionalParameters)
-            {
-                prompt.AppendLine($"- {param.Key}: {param.Value}");
-            }
-        }
-
-        return prompt.ToString();
     }
 }
