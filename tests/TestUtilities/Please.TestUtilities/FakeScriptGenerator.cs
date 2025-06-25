@@ -25,4 +25,10 @@ public sealed class FakeScriptGenerator : IScriptGenerator
         CancellationToken cancellationToken = default) => Task.FromResult(ProviderAvailable);
 
     public string GetFallbackModel(ScriptRequest request) => "model";
+
+    public Task<Result<ScriptResponse>> GenerateFixedScriptAsync(string originalScript, string errorMessage, ScriptRequest request, CancellationToken cancellationToken = default)
+    {
+        LastRequest = request;
+        return Task.FromResult(NextResult);
+    }
 }

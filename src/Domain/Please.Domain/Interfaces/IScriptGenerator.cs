@@ -23,4 +23,13 @@ public interface IScriptGenerator
     /// Gets the fallback model for a specific provider if the requested model is unavailable
     /// </summary>
     string GetFallbackModel(ScriptRequest request);
+
+    /// <summary>
+    /// Generates a fixed script based on an original script and error message
+    /// </summary>
+    Task<Result<ScriptResponse>> GenerateFixedScriptAsync(
+        string originalScript,
+        string errorMessage,
+        ScriptRequest request,
+        CancellationToken cancellationToken = default);
 }

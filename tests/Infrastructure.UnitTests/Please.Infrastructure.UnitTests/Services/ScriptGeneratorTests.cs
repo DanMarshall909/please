@@ -262,4 +262,118 @@ public class ScriptGeneratorTests
         _mockProviderFactory.Received(1).CreateProvider(ProviderType.Ollama);
         _mockProviderFactory.Received(2).CreateProvider(ProviderType.OpenAi);
     }
+
+    [Fact]
+    public async Task GenerateFixedScriptAsync_when_generating_fixed_script_with_empty_original_script_then_handle_gracefully()
+    {
+        // Arrange
+        var originalScript = "";
+        var errorMessage = "no script provided";
+        var scriptType = ScriptType.Bash;
+        var model = "test-model";
+        var provider = ProviderType.Ollama;
+
+        var request = ScriptRequest.Create("fix script", provider, model) with
+        {
+            ScriptType = scriptType
+        };
+
+        _mockProvider.GenerateScriptAsync(Arg.Any<ScriptRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Result<string>.Success("#!/bin/bash\necho 'Fixed script for missing original'"));
+
+        // Act
+        var result = await _scriptGenerator.GenerateFixedScriptAsync(originalScript, errorMessage, request);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value.Script.ShouldBe("#!/bin/bash\necho 'Fixed script for missing original'");
+        result.Value.TaskDescription.ShouldBe("Fixed script - Original error: no script provided");
+        result.Value.Provider.ShouldBe(ProviderType.Ollama);
+        result.Value.Model.ShouldBe(model);
+        result.Value.ScriptType.ShouldBe(scriptType);
+
+        // Verify the provider was called with the correct fix request
+        await _mockProvider.Received(1).GenerateScriptAsync(
+            Arg.Is<ScriptRequest>(r =>
+                r.TaskDescription.Contains("Generate a script to handle this error: no script provided") &&
+                r.TaskDescription.Contains("The original script was empty or missing") &&
+                r.Provider == provider &&
+                r.Model == model &&
+                r.ScriptType == scriptType),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GenerateFixedScriptAsync_with_null_request_returns_failure()
+    {
+        // Act
+        var result = await _scriptGenerator.GenerateFixedScriptAsync("some script", "some error", null!);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.Error.ShouldBe("Script request cannot be null");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task GenerateFixedScriptAsync_with_empty_error_message_returns_failure(string errorMessage)
+    {
+        // Arrange
+        var request = ScriptRequest.Create("fix script", ProviderType.OpenAi, "gpt-4");
+
+        // Act
+        var result = await _scriptGenerator.GenerateFixedScriptAsync("some script", errorMessage, request);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.Error.ShouldBe("Error message cannot be empty");
+    }
+
+    [Fact]
+    public async Task GenerateFixedScriptAsync_with_existing_original_script_includes_it_in_request()
+    {
+        // Arrange
+        var originalScript = "Get-Process | Where-Object { $_.Name -eq 'nonexistent' }";
+        var errorMessage = "Process not found";
+        var request = ScriptRequest.Create("fix script", ProviderType.OpenAi, "gpt-4") with
+        {
+            ScriptType = ScriptType.PowerShell
+        };
+
+        _mockProvider.GenerateScriptAsync(Arg.Any<ScriptRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Result<string>.Success("Get-Process | Where-Object { $_.ProcessName -eq 'notepad' }"));
+
+        // Act
+        var result = await _scriptGenerator.GenerateFixedScriptAsync(originalScript, errorMessage, request);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+
+        // Verify the provider was called with the original script included
+        await _mockProvider.Received(1).GenerateScriptAsync(
+            Arg.Is<ScriptRequest>(r =>
+                r.TaskDescription.Contains("Fix this script that has an error") &&
+                r.TaskDescription.Contains(originalScript) &&
+                r.TaskDescription.Contains(errorMessage)),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GenerateFixedScriptAsync_when_provider_fails_returns_failure()
+    {
+        // Arrange
+        var request = ScriptRequest.Create("fix script", ProviderType.OpenAi, "gpt-4");
+
+        _mockProvider.GenerateScriptAsync(Arg.Any<ScriptRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Result<string>.Failure("API error during fix"));
+
+        // Act
+        var result = await _scriptGenerator.GenerateFixedScriptAsync("some script", "some error", request);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.Error.ShouldBe("API error during fix");
+    }
 }

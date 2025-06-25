@@ -63,6 +63,11 @@ public static class DependencyInjection
         public Task<Domain.Common.Result<Domain.Entities.ScriptResponse>> GenerateScriptAsync(
             Domain.Entities.ScriptRequest request, CancellationToken cancellationToken = default)
             => Task.FromResult(Domain.Common.Result<Domain.Entities.ScriptResponse>.Failure("Not implemented"));
+
+        public Task<Domain.Common.Result<Domain.Entities.ScriptResponse>> GenerateFixedScriptAsync(
+            string originalScript, string errorMessage, Domain.Entities.ScriptRequest request,
+            CancellationToken cancellationToken = default)
+            => Task.FromResult(Domain.Common.Result<Domain.Entities.ScriptResponse>.Failure("Not implemented"));
     }
 
     private class UnusedScriptRepository : IScriptRepository

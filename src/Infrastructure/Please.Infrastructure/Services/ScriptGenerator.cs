@@ -111,6 +111,85 @@ public class ScriptGenerator : IScriptGenerator
         }
     }
 
+    public async Task<Result<ScriptResponse>> GenerateFixedScriptAsync(
+        string originalScript,
+        string errorMessage,
+        ScriptRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request == null)
+        {
+            return Result<ScriptResponse>.Failure("Script request cannot be null");
+        }
+
+        if (string.IsNullOrWhiteSpace(errorMessage))
+        {
+            return Result<ScriptResponse>.Failure("Error message cannot be empty");
+        }
+
+        try
+        {
+            var providerType = request.Provider ?? await getDefaultProviderAsync(cancellationToken);
+            var provider = _providerFactory.CreateProvider(providerType);
+
+            _logger.LogInformation("Generating fixed script using {Provider} for error: {Error}",
+                providerType, errorMessage);
+
+            // Create a new request for fixing the script
+            var fixRequest = createFixScriptRequest(originalScript, errorMessage, request);
+
+            var scriptResult = await provider.GenerateScriptAsync(fixRequest, cancellationToken);
+
+            if (scriptResult.IsFailure)
+            {
+                _logger.LogWarning("Failed to generate fixed script using {Provider}: {Error}",
+                    providerType, scriptResult.Error);
+                return Result<ScriptResponse>.Failure(scriptResult.Error);
+            }
+
+            var script = scriptResult.Value ?? string.Empty;
+            var model = request.Model ?? provider.GetDefaultModel();
+            var scriptType = request.ScriptType ?? detectScriptType(request.TaskDescription ?? "fix script");
+            var riskLevel = assessRiskLevel(script, scriptType);
+
+            var response = ScriptResponse.Create(
+                script,
+                $"Fixed script - Original error: {errorMessage}",
+                providerType,
+                model,
+                scriptType,
+                riskLevel
+            );
+
+            _logger.LogInformation("Successfully generated fixed script using {Provider} with model {Model}",
+                providerType, model);
+
+            return Result<ScriptResponse>.Success(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error generating fixed script");
+            return Result<ScriptResponse>.Failure($"Unexpected error: {ex.Message}");
+        }
+    }
+
+    private ScriptRequest createFixScriptRequest(string originalScript, string errorMessage, ScriptRequest baseRequest)
+    {
+        var fixDescription = string.IsNullOrWhiteSpace(originalScript)
+            ? $"Generate a script to handle this error: {errorMessage}. The original script was empty or missing."
+            : $"Fix this script that has an error.\n\nOriginal Script:\n{originalScript}\n\nError Message:\n{errorMessage}\n\nPlease provide a corrected version.";
+
+        var fixRequest = ScriptRequest.Create(fixDescription, baseRequest.Provider, baseRequest.Model);
+
+        return fixRequest with
+        {
+            ScriptType = baseRequest.ScriptType,
+            WorkingDirectory = baseRequest.WorkingDirectory,
+            ForceExecution = baseRequest.ForceExecution,
+            AdditionalParameters = baseRequest.AdditionalParameters
+        };
+    }
+
     private ScriptType detectScriptType(string taskDescription)
     {
         var lowerTask = taskDescription.ToLowerInvariant();
