@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text;
 using Microsoft.Extensions.Logging;
 using Please.Domain.Common;
 using Please.Domain.Interfaces;

@@ -4,20 +4,15 @@ using Please.Infrastructure.Services;
 
 namespace Please.Infrastructure.UnitTests.Services;
 
-[TestFixture]
 public class PowerShellScriptExecutorTests
 {
-    private PowerShellScriptExecutor _scriptExecutor;
-    private ILogger<PowerShellScriptExecutor> _logger;
-
-    [SetUp]
-    public void SetUp()
+    private PowerShellScriptExecutor createScriptExecutor()
     {
-        _logger = Substitute.For<ILogger<PowerShellScriptExecutor>>();
-        _scriptExecutor = new PowerShellScriptExecutor(_logger);
+        var logger = Substitute.For<ILogger<PowerShellScriptExecutor>>();
+        return new PowerShellScriptExecutor(logger);
     }
 
-    [Test]
+    [Fact]
     public async Task Test_write_host_output_is_captured_successfully()
     {
         // Given: A script with Write-Host commands
@@ -25,17 +20,19 @@ public class PowerShellScriptExecutorTests
             Write-Host "Hello World!"
             Write-Host "Line 2"
             """;
+        var scriptExecutor = createScriptExecutor();
 
         // When: We execute the script
-        var result = await _scriptExecutor.ExecuteScriptAsync(script);
+        var result = await scriptExecutor.ExecuteScriptAsync(script);
 
         // Then: Should capture the Write-Host output
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.Value, Contains.Substring("Hello World!"));
-        Assert.That(result.Value, Contains.Substring("Line 2"));
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value.ShouldContain("Hello World!");
+        result.Value.ShouldContain("Line 2");
     }
 
-    [Test]
+    [Fact]
     public async Task Test_mixed_output_types_are_captured()
     {
         // Given: A script with Write-Host and regular output
@@ -45,17 +42,19 @@ public class PowerShellScriptExecutorTests
             $name = "PowerShell"
             Write-Host "Hello $name!"
             """;
+        var scriptExecutor = createScriptExecutor();
 
         // When: We execute the script
-        var result = await _scriptExecutor.ExecuteScriptAsync(script);
+        var result = await scriptExecutor.ExecuteScriptAsync(script);
 
         // Then: Should capture both types of output
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.Value, Contains.Substring("From Write-Host"));
-        Assert.That(result.Value, Contains.Substring("Hello PowerShell!"));
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value.ShouldContain("From Write-Host");
+        result.Value.ShouldContain("Hello PowerShell!");
     }
 
-    [Test]
+    [Fact]
     public async Task Test_color_script_example_works()
     {
         // Given: The specific color script from the user's example
@@ -68,51 +67,55 @@ public class PowerShellScriptExecutorTests
                 Write-Host "Hi in $color!"
             }
             """;
+        var scriptExecutor = createScriptExecutor();
 
         // When: We execute the script
-        var result = await _scriptExecutor.ExecuteScriptAsync(script);
+        var result = await scriptExecutor.ExecuteScriptAsync(script);
 
         // Then: Should capture all the Write-Host output
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.Value, Contains.Substring("Hi in Red!"));
-        Assert.That(result.Value, Contains.Substring("Hi in Blue!"));
-        Assert.That(result.Value, Contains.Substring("Hi in White!"));
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value.ShouldContain("Hi in Red!");
+        result.Value.ShouldContain("Hi in Blue!");
+        result.Value.ShouldContain("Hi in White!");
 
         // Verify we get all 10 color messages
         var lines = result.Value.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         var colorLines = lines.Where(line => line.Contains("Hi in") && line.Contains("!")).ToList();
-        Assert.That(colorLines.Count, Is.EqualTo(10));
+        colorLines.Count.ShouldBe(10);
     }
 
-    [Test]
+    [Fact]
     public async Task Test_empty_script_returns_empty_output()
     {
         // Given: An empty script
         var script = "";
+        var scriptExecutor = createScriptExecutor();
 
         // When: We execute the script
-        var result = await _scriptExecutor.ExecuteScriptAsync(script);
+        var result = await scriptExecutor.ExecuteScriptAsync(script);
 
         // Then: Should succeed with empty output
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(string.IsNullOrWhiteSpace(result.Value), Is.True);
+        result.IsSuccess.ShouldBeTrue();
+        string.IsNullOrWhiteSpace(result.Value).ShouldBeTrue();
     }
 
-    [Test]
+    [Fact]
     public async Task Test_script_with_error_returns_failure()
     {
         // Given: A script that will cause an error
         var script = "Get-NonExistentCommand";
+        var scriptExecutor = createScriptExecutor();
 
         // When: We execute the script
-        var result = await _scriptExecutor.ExecuteScriptAsync(script);
+        var result = await scriptExecutor.ExecuteScriptAsync(script);
 
         // Then: Should return failure
-        Assert.That(result.IsSuccess, Is.False);
-        Assert.That(result.ErrorMessage, Is.Not.Null.And.Not.Empty);
+        result.IsSuccess.ShouldBeFalse();
+        result.Error.ShouldNotBeNullOrEmpty();
     }
 
-    [Test]
+    [Fact]
     public async Task Test_markdown_code_fences_are_cleaned()
     {
         // Given: A script with markdown code fences
@@ -121,12 +124,14 @@ public class PowerShellScriptExecutorTests
             Write-Host "Hello from PowerShell!"
             ```
             """;
+        var scriptExecutor = createScriptExecutor();
 
         // When: We execute the script
-        var result = await _scriptExecutor.ExecuteScriptAsync(script);
+        var result = await scriptExecutor.ExecuteScriptAsync(script);
 
         // Then: Should execute successfully and capture output
-        Assert.That(result.IsSuccess, Is.True);
-        Assert.That(result.Value, Contains.Substring("Hello from PowerShell!"));
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value.ShouldContain("Hello from PowerShell!");
     }
 }
