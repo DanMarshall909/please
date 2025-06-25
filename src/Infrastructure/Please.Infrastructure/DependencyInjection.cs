@@ -1,5 +1,7 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Please.Domain.Interfaces;
+using Please.Infrastructure.Providers;
 using Please.Infrastructure.Repositories;
 using Please.Infrastructure.Services;
 
@@ -17,16 +19,75 @@ public static class DependencyInjection
     /// <returns>The service collection for method chaining</returns>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
+        // Register HTTP clients for AI providers
+        services.AddHttpClient();
+
+        // Register provider configuration
+        services.AddSingleton<ProviderConfiguration>(provider =>
+        {
+            var configuration = provider.GetService<IConfiguration>();
+            return new ProviderConfiguration
+            {
+                OpenAi = new OpenAiConfiguration
+                {
+                    ApiKey = configuration?["OPENAI_API_KEY"] ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? "",
+                    BaseUrl = configuration?["OPENAI_BASE_URL"] ?? Environment.GetEnvironmentVariable("OPENAI_BASE_URL") ?? "https://api.openai.com/v1",
+                    DefaultModel = configuration?["OPENAI_DEFAULT_MODEL"] ?? Environment.GetEnvironmentVariable("OPENAI_DEFAULT_MODEL") ?? "gpt-3.5-turbo"
+                },
+                Anthropic = new AnthropicConfiguration
+                {
+                    ApiKey = configuration?["ANTHROPIC_API_KEY"] ?? Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY") ?? "",
+                    BaseUrl = configuration?["ANTHROPIC_BASE_URL"] ?? Environment.GetEnvironmentVariable("ANTHROPIC_BASE_URL") ?? "https://api.anthropic.com/v1",
+                    DefaultModel = configuration?["ANTHROPIC_DEFAULT_MODEL"] ?? Environment.GetEnvironmentVariable("ANTHROPIC_DEFAULT_MODEL") ?? "claude-3-haiku-20240307"
+                },
+                Ollama = new OllamaConfiguration
+                {
+                    BaseUrl = configuration?["OLLAMA_BASE_URL"] ?? Environment.GetEnvironmentVariable("OLLAMA_BASE_URL") ?? "http://localhost:11434",
+                    DefaultModel = configuration?["OLLAMA_DEFAULT_MODEL"] ?? Environment.GetEnvironmentVariable("OLLAMA_DEFAULT_MODEL") ?? "llama2"
+                },
+                OpenRouter = new OpenRouterConfiguration
+                {
+                    ApiKey = configuration?["OPENROUTER_API_KEY"] ?? Environment.GetEnvironmentVariable("OPENROUTER_API_KEY") ?? "",
+                    BaseUrl = configuration?["OPENROUTER_BASE_URL"] ?? Environment.GetEnvironmentVariable("OPENROUTER_BASE_URL") ?? "https://openrouter.ai/api/v1",
+                    DefaultModel = configuration?["OPENROUTER_DEFAULT_MODEL"] ?? Environment.GetEnvironmentVariable("OPENROUTER_DEFAULT_MODEL") ?? "microsoft/wizardlm-2-8x22b"
+                },
+                Gemini = new GeminiConfiguration
+                {
+                    ApiKey = configuration?["GEMINI_API_KEY"] ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? "",
+                    BaseUrl = configuration?["GEMINI_BASE_URL"] ?? Environment.GetEnvironmentVariable("GEMINI_BASE_URL") ?? "https://generativelanguage.googleapis.com/v1beta",
+                    DefaultModel = configuration?["GEMINI_DEFAULT_MODEL"] ?? Environment.GetEnvironmentVariable("GEMINI_DEFAULT_MODEL") ?? "gemini-pro"
+                }
+            };
+        });
+
+        // Register individual configuration classes that providers expect
+        services.AddSingleton<OpenAiConfiguration>(provider =>
+            provider.GetRequiredService<ProviderConfiguration>().OpenAi);
+        services.AddSingleton<AnthropicConfiguration>(provider =>
+            provider.GetRequiredService<ProviderConfiguration>().Anthropic);
+        services.AddSingleton<OllamaConfiguration>(provider =>
+            provider.GetRequiredService<ProviderConfiguration>().Ollama);
+        services.AddSingleton<OpenRouterConfiguration>(provider =>
+            provider.GetRequiredService<ProviderConfiguration>().OpenRouter);
+        services.AddSingleton<GeminiConfiguration>(provider =>
+            provider.GetRequiredService<ProviderConfiguration>().Gemini);
+
+        // Register AI provider factory
+        services.AddSingleton<IProviderFactory, ProviderFactory>();
+
+        // Register individual AI providers
+        services.AddTransient<OpenAiProvider>();
+        services.AddTransient<AnthropicProvider>();
+        services.AddTransient<OllamaProvider>();
+        services.AddTransient<OpenRouterProvider>();
+        services.AddTransient<GeminiProvider>();
+
         // Register repositories
         services.AddSingleton<IScriptRepository, ScriptRepository>();
 
         // Register services
         services.AddSingleton<IScriptGenerator, ScriptGenerator>();
         services.AddSingleton<IContextService, ContextService>();
-
-        // TODO: Add AI provider implementations when needed
-        // services.AddSingleton<IOpenAiProvider, OpenAiProvider>();
-        // services.AddSingleton<IAnthropicProvider, AnthropicProvider>();
 
         return services;
     }
