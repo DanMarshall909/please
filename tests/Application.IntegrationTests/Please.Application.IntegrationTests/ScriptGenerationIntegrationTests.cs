@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using Please.Application.Commands.GenerateScript;
-using Please.Console;
+using Please.Application.Services;
 using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
@@ -13,71 +12,77 @@ namespace Please.Application.IntegrationTests;
 
 public class ScriptGenerationIntegrationTests
 {
-    private ServiceProvider _serviceProvider;
-    private GenerateScriptCommandHandler _handler;
+    private readonly ServiceProvider _serviceProvider;
+    private readonly IScriptService _scriptService;
 
     public ScriptGenerationIntegrationTests()
     {
-        _serviceProvider = PleaseHost.CreateServiceProvider(services =>
-        {
-            services.AddTestDoubles();
+        var services = new ServiceCollection();
 
-            // Register real implementations - this tests actual behavior
-            services.AddTransient<IScriptValidationService, TestScriptValidationService>();
-            services.AddTransient<IScriptGenerator, TestScriptGenerator>();
-            var testRepo = new TestScriptRepository();
-            services.AddSingleton<IScriptRepository>(testRepo);
-            services.AddSingleton(testRepo);
-            services.AddTransient<GenerateScriptCommandHandler>();
+        // Add test doubles
+        services.AddTestDoubles();
 
-            services.AddSingleton<IContextService>(sp => sp.GetRequiredService<FakeContextService>());
-        });
-        _handler = _serviceProvider.GetRequiredService<GenerateScriptCommandHandler>();
+        // Register real implementations - this tests actual behavior
+        services.AddTransient<IScriptValidationService, TestScriptValidationService>();
+        services.AddTransient<IScriptGenerator, TestScriptGenerator>();
+        var testRepo = new TestScriptRepository();
+        services.AddSingleton<IScriptRepository>(testRepo);
+        services.AddSingleton(testRepo);
+        services.AddTransient<IScriptService, ScriptService>();
+
+        services.AddSingleton<IContextService>(sp => sp.GetRequiredService<FakeContextService>());
+
+        _serviceProvider = services.BuildServiceProvider();
+        _scriptService = _serviceProvider.GetRequiredService<IScriptService>();
     }
 
     [Fact]
     public async Task dangerous_script_commands_require_user_confirmation()
     {
         // Arrange
-        var command = GenerateScriptCommand.Create("Execute dangerous command");
+        var request = ScriptRequest.Create("Execute dangerous command");
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await _scriptService.GenerateScriptAsync(request);
 
         // Assert - This tests the real validation integration
-        Assert.True(result.RequiresConfirmation);
-        Assert.True(result.IsDangerous);
-        Assert.Equal(RiskLevel.Critical, result.RiskLevel);
-        Assert.NotEmpty(result.Warnings);
+        Assert.True(result.IsSuccess);
+        Assert.True(result.Value!.RequiresConfirmation);
+        Assert.True(result.Value!.IsDangerous);
+        Assert.Equal(RiskLevel.Critical, result.Value!.RiskLevel);
+        Assert.NotEmpty(result.Value!.Warnings);
     }
 
     [Fact]
     public async Task safe_commands_do_not_require_confirmation()
     {
         // Arrange
-        var command = GenerateScriptCommand.Create("List files in current directory");
+        var request = ScriptRequest.Create("List files in current directory");
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await _scriptService.GenerateScriptAsync(request);
 
         // Assert - This tests the real validation integration
-        Assert.False(result.RequiresConfirmation);
-        Assert.False(result.IsDangerous);
-        Assert.Equal(RiskLevel.Low, result.RiskLevel);
-        Assert.Empty(result.Warnings);
+        Assert.True(result.IsSuccess);
+        Assert.False(result.Value!.RequiresConfirmation);
+        Assert.False(result.Value!.IsDangerous);
+        Assert.Equal(RiskLevel.Low, result.Value!.RiskLevel);
+        Assert.Empty(result.Value!.Warnings);
     }
 
     [Fact]
     public async Task generated_scripts_are_saved_to_repository()
     {
         // Arrange
-        var command = GenerateScriptCommand.Create("Create backup script");
+        var request = ScriptRequest.Create("Create backup script");
         var repository = _serviceProvider.GetRequiredService<TestScriptRepository>();
         Assert.NotNull(repository);
+
         // Act
-        await _handler.Handle(command, CancellationToken.None);
+        var result = await _scriptService.GenerateScriptAsync(request);
 
         // Assert - This tests the real workflow integration
+        Assert.True(result.IsSuccess);
         Assert.Single(repository.SavedScripts);
         Assert.Equal("Create backup script", repository.SavedScripts[0].TaskDescription);
     }
@@ -86,15 +91,16 @@ public class ScriptGenerationIntegrationTests
     public async Task script_validation_adds_warnings_and_safety_notes()
     {
         // Arrange
-        var command = GenerateScriptCommand.Create("Delete temporary files");
+        var request = ScriptRequest.Create("Delete temporary files");
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await _scriptService.GenerateScriptAsync(request);
 
         // Assert - This tests that validation actually runs and enhances the response
-        Assert.NotEmpty(result.Warnings);
-        Assert.NotEmpty(result.SafetyNotes);
-        Assert.True(result.RiskLevel > RiskLevel.Low);
+        Assert.True(result.IsSuccess);
+        Assert.NotEmpty(result.Value!.Warnings);
+        Assert.NotEmpty(result.Value!.SafetyNotes);
+        Assert.True(result.Value!.RiskLevel > RiskLevel.Low);
     }
 }
 
