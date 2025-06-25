@@ -14,39 +14,28 @@ public class ScriptRepository : IScriptRepository
 
     public Task<VoidResult> SaveScriptAsync(ScriptResponse response, CancellationToken cancellationToken = default)
     {
-        try
+        if (response == null)
         {
-            ArgumentNullException.ThrowIfNull(response);
-
-            lock (_lock)
-            {
-                _scripts.Add(response);
-            }
-
-            return VoidResult.SuccessfulTask;
+            return Task.FromResult(VoidResult.Failure("Script response cannot be null"));
         }
-        catch (Exception ex)
+
+        lock (_lock)
         {
-            return Task.FromResult(VoidResult.Failure($"Failed to save script: {ex.Message}"));
+            _scripts.Add(response);
         }
+
+        return Task.FromResult(VoidResult.Success);
     }
 
     public Task<Result<ScriptResponse?>> GetLastScriptAsync(CancellationToken cancellationToken = default)
     {
-        try
+        lock (_lock)
         {
-            lock (_lock)
-            {
-                var lastScript = _scripts
-                    .OrderByDescending(s => s.GeneratedAt)
-                    .FirstOrDefault();
+            var lastScript = _scripts
+                .OrderByDescending(s => s.CreatedAt)
+                .FirstOrDefault();
 
-                return Task.FromResult(Result<ScriptResponse?>.Success(lastScript));
-            }
-        }
-        catch (Exception ex)
-        {
-            return Task.FromResult(Result<ScriptResponse?>.Failure($"Failed to retrieve last script: {ex.Message}"));
+            return Task.FromResult(Result<ScriptResponse?>.Success(lastScript));
         }
     }
 
@@ -55,68 +44,46 @@ public class ScriptRepository : IScriptRepository
         DateTime? since = null,
         CancellationToken cancellationToken = default)
     {
-        try
+        lock (_lock)
         {
-            lock (_lock)
+            var query = _scripts.AsEnumerable();
+
+            // Filter by date if specified
+            if (since.HasValue)
             {
-                var query = _scripts.AsEnumerable();
-
-                // Filter by date if specified
-                if (since.HasValue)
-                {
-                    query = query.Where(s => s.GeneratedAt >= since.Value);
-                }
-
-                // Order by most recent first
-                query = query.OrderByDescending(s => s.GeneratedAt);
-
-                // Apply count limit if specified
-                if (count.HasValue && count.Value > 0)
-                {
-                    query = query.Take(count.Value);
-                }
-
-                var results = query.ToList();
-                return Task.FromResult(Result<IEnumerable<ScriptResponse>>.Success(results));
+                query = query.Where(s => s.CreatedAt >= since.Value);
             }
-        }
-        catch (Exception ex)
-        {
-            return Task.FromResult(
-                Result<IEnumerable<ScriptResponse>>.Failure($"Failed to retrieve script history: {ex.Message}"));
+
+            // Order by most recent first
+            query = query.OrderByDescending(s => s.CreatedAt);
+
+            // Apply count limit if specified
+            if (count.HasValue && count.Value > 0)
+            {
+                query = query.Take(count.Value);
+            }
+
+            var results = query.ToList();
+            return Task.FromResult(Result<IEnumerable<ScriptResponse>>.Success(results));
         }
     }
 
     public Task<VoidResult> ClearHistoryAsync(CancellationToken cancellationToken = default)
     {
-        try
+        lock (_lock)
         {
-            lock (_lock)
-            {
-                _scripts.Clear();
-            }
+            _scripts.Clear();
+        }
 
-            return VoidResult.SuccessfulTask;
-        }
-        catch (Exception ex)
-        {
-            return Task.FromResult(VoidResult.Failure($"Failed to clear history: {ex.Message}"));
-        }
+        return Task.FromResult(VoidResult.Success);
     }
 
     public Task<Result<bool>> HasHistoryAsync(CancellationToken cancellationToken = default)
     {
-        try
+        lock (_lock)
         {
-            lock (_lock)
-            {
-                var hasHistory = _scripts.Count > 0;
-                return Task.FromResult(Result<bool>.Success(hasHistory));
-            }
-        }
-        catch (Exception ex)
-        {
-            return Task.FromResult(Result<bool>.Failure($"Failed to check history: {ex.Message}"));
+            var hasHistory = _scripts.Count > 0;
+            return Task.FromResult(Result<bool>.Success(hasHistory));
         }
     }
 }

@@ -1,3 +1,4 @@
+using Please.Domain.Entities;
 using Please.Domain.Enums;
 using Please.Infrastructure.Repositories;
 using Please.TestUtilities.Builders;
@@ -6,32 +7,68 @@ namespace Please.Infrastructure.UnitTests.Repositories;
 
 public class ScriptRepositoryTests
 {
-    private readonly ScriptRepository _repository = new();
-
     [Fact]
-    public async Task SaveScriptAsync_with_valid_script_response_should_save_successfully()
+    public async Task SaveScriptAsync_with_valid_script_returns_success()
     {
         // Arrange
-        var scriptResponse = new ScriptResponseBuilder()
+        var repository = new ScriptRepository();
+        var script = ScriptResponseBuilder.Create()
             .WithScript("Get-ChildItem")
-            .WithTask("list files")
-            .WithProvider(ProviderType.OpenAi)
-            .WithModel("gpt-4")
-            .WithScriptType(ScriptType.PowerShell)
             .Build();
 
         // Act
-        var result = await _repository.SaveScriptAsync(scriptResponse);
+        var result = await repository.SaveScriptAsync(script);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
     }
 
     [Fact]
-    public async Task GetLastScriptAsync_when_no_scripts_exist_should_return_null()
+    public async Task SaveScriptAsync_with_null_script_returns_failure()
     {
+        // Arrange
+        var repository = new ScriptRepository();
+
         // Act
-        var result = await _repository.GetLastScriptAsync();
+        var result = await repository.SaveScriptAsync(null!);
+
+        // Assert
+        result.IsFailure.ShouldBeTrue();
+        result.Error.Message.ShouldBe("Script response cannot be null");
+    }
+
+    [Fact]
+    public async Task GetLastScriptAsync_with_existing_scripts_returns_most_recent()
+    {
+        // Arrange
+        var repository = new ScriptRepository();
+        var script1 = ScriptResponseBuilder.Create()
+            .WithScript("Get-Process")
+            .Build();
+        var script2 = ScriptResponseBuilder.Create()
+            .WithScript("Get-Service")
+            .Build();
+
+        await repository.SaveScriptAsync(script1);
+        await Task.Delay(10); // Ensure different timestamps
+        await repository.SaveScriptAsync(script2);
+
+        // Act
+        var result = await repository.GetLastScriptAsync();
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Script.ShouldBe("Get-Service");
+    }
+
+    [Fact]
+    public async Task GetLastScriptAsync_with_no_scripts_returns_null()
+    {
+        // Arrange
+        var repository = new ScriptRepository();
+
+        // Act
+        var result = await repository.GetLastScriptAsync();
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -39,88 +76,46 @@ public class ScriptRepositoryTests
     }
 
     [Fact]
-    public async Task GetLastScriptAsync_when_scripts_exist_should_return_most_recent()
+    public async Task GetScriptHistoryAsync_returns_scripts_in_reverse_chronological_order()
     {
         // Arrange
-        var firstScript = new ScriptResponseBuilder()
-            .WithScript("Get-Date")
-            .WithTask("get current date")
+        var repository = new ScriptRepository();
+        var script1 = ScriptResponseBuilder.Create()
+            .WithScript("Script1")
+            .Build();
+        var script2 = ScriptResponseBuilder.Create()
+            .WithScript("Script2")
             .Build();
 
-        var secondScript = new ScriptResponseBuilder()
-            .WithScript("Get-ChildItem")
-            .WithTask("list files")
-            .Build();
-
-        await _repository.SaveScriptAsync(firstScript);
+        await repository.SaveScriptAsync(script1);
         await Task.Delay(10); // Ensure different timestamps
-        await _repository.SaveScriptAsync(secondScript);
+        await repository.SaveScriptAsync(script2);
 
         // Act
-        var result = await _repository.GetLastScriptAsync();
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldNotBeNull();
-        result.Value!.Script.ShouldBe("Get-ChildItem");
-        result.Value.TaskDescription.ShouldBe("list files");
-    }
-
-    [Fact]
-    public async Task GetScriptHistoryAsync_when_no_scripts_exist_should_return_empty_collection()
-    {
-        // Act
-        var result = await _repository.GetScriptHistoryAsync();
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBeEmpty();
-    }
-
-    [Fact]
-    public async Task GetScriptHistoryAsync_when_scripts_exist_should_return_all_scripts_ordered_by_date()
-    {
-        // Arrange
-        var firstScript = new ScriptResponseBuilder()
-            .WithScript("Get-Date")
-            .WithTask("get current date")
-            .Build();
-
-        var secondScript = new ScriptResponseBuilder()
-            .WithScript("Get-ChildItem")
-            .WithTask("list files")
-            .Build();
-
-        await _repository.SaveScriptAsync(firstScript);
-        await Task.Delay(10);
-        await _repository.SaveScriptAsync(secondScript);
-
-        // Act
-        var result = await _repository.GetScriptHistoryAsync();
+        var result = await repository.GetScriptHistoryAsync();
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value!.Count().ShouldBe(2);
-        result.Value!.First().Script.ShouldBe("Get-ChildItem"); // Most recent first
-        result.Value!.Last().Script.ShouldBe("Get-Date");
+        result.Value!.First().Script.ShouldBe("Script2"); // Most recent first
+        result.Value!.Last().Script.ShouldBe("Script1");
     }
 
     [Fact]
-    public async Task GetScriptHistoryAsync_with_count_limit_should_return_limited_results()
+    public async Task GetScriptHistoryAsync_with_count_limit_returns_correct_number()
     {
         // Arrange
+        var repository = new ScriptRepository();
         for (int i = 0; i < 5; i++)
         {
-            var script = new ScriptResponseBuilder()
-                .WithScript($"Script {i}")
-                .WithTask($"task {i}")
+            var script = ScriptResponseBuilder.Create()
+                .WithScript($"Script{i}")
                 .Build();
-            await _repository.SaveScriptAsync(script);
-            await Task.Delay(10);
+            await repository.SaveScriptAsync(script);
         }
 
         // Act
-        var result = await _repository.GetScriptHistoryAsync(count: 3);
+        var result = await repository.GetScriptHistoryAsync(count: 3);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -128,30 +123,41 @@ public class ScriptRepositoryTests
     }
 
     [Fact]
-    public async Task ClearHistoryAsync_should_remove_all_scripts()
+    public async Task GetScriptHistoryAsync_with_since_filter_returns_scripts_after_date()
     {
         // Arrange
-        var script = new ScriptResponseBuilder()
-            .WithScript("Get-ChildItem")
-            .WithTask("list files")
+        var repository = new ScriptRepository();
+        var cutoffDate = DateTime.UtcNow.AddMinutes(-1);
+
+        var oldScript = ScriptResponseBuilder.Create()
+            .WithScript("OldScript")
+            .WithCreatedAt(DateTime.UtcNow.AddMinutes(-2))
             .Build();
-        await _repository.SaveScriptAsync(script);
+        var newScript = ScriptResponseBuilder.Create()
+            .WithScript("NewScript")
+            .WithCreatedAt(DateTime.UtcNow)
+            .Build();
+
+        await repository.SaveScriptAsync(oldScript);
+        await repository.SaveScriptAsync(newScript);
 
         // Act
-        var result = await _repository.ClearHistoryAsync();
+        var result = await repository.GetScriptHistoryAsync(since: cutoffDate);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-
-        var historyResult = await _repository.GetScriptHistoryAsync();
-        historyResult.Value.ShouldBeEmpty();
+        result.Value!.Count().ShouldBe(1);
+        result.Value!.First().Script.ShouldBe("NewScript");
     }
 
     [Fact]
-    public async Task HasHistoryAsync_when_no_scripts_exist_should_return_false()
+    public async Task HasHistoryAsync_with_no_scripts_returns_false()
     {
+        // Arrange
+        var repository = new ScriptRepository();
+
         // Act
-        var result = await _repository.HasHistoryAsync();
+        var result = await repository.HasHistoryAsync();
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -159,20 +165,40 @@ public class ScriptRepositoryTests
     }
 
     [Fact]
-    public async Task HasHistoryAsync_when_scripts_exist_should_return_true()
+    public async Task HasHistoryAsync_with_scripts_returns_true()
     {
         // Arrange
-        var script = new ScriptResponseBuilder()
-            .WithScript("Get-ChildItem")
-            .WithTask("list files")
+        var repository = new ScriptRepository();
+        var script = ScriptResponseBuilder.Create()
+            .WithScript("Get-Process")
             .Build();
-        await _repository.SaveScriptAsync(script);
+        await repository.SaveScriptAsync(script);
 
         // Act
-        var result = await _repository.HasHistoryAsync();
+        var result = await repository.HasHistoryAsync();
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task ClearHistoryAsync_removes_all_scripts()
+    {
+        // Arrange
+        var repository = new ScriptRepository();
+        var script1 = ScriptResponseBuilder.Create().WithScript("Script1").Build();
+        var script2 = ScriptResponseBuilder.Create().WithScript("Script2").Build();
+        await repository.SaveScriptAsync(script1);
+        await repository.SaveScriptAsync(script2);
+
+        // Act
+        var clearResult = await repository.ClearHistoryAsync();
+        var hasHistoryResult = await repository.HasHistoryAsync();
+
+        // Assert
+        clearResult.IsSuccess.ShouldBeTrue();
+        hasHistoryResult.IsSuccess.ShouldBeTrue();
+        hasHistoryResult.Value.ShouldBeFalse();
     }
 }
