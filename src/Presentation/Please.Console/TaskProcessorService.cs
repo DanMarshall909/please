@@ -67,7 +67,14 @@ public class TaskProcessor
                     if (executionResult.IsSuccess)
                     {
                         _logger.LogInformation("✅ Script executed successfully!");
-                        _logger.LogInformation("Output: {Output}", executionResult.Value);
+                        if (!string.IsNullOrWhiteSpace(executionResult.Value))
+                        {
+                            _logger.LogInformation("Output:\n{Output}", executionResult.Value);
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Script completed with no output.");
+                        }
                     }
                     else
                     {

@@ -69,7 +69,8 @@ public class PowerShellScriptExecutor : IScriptExecutor
             if (process.ExitCode == 0)
             {
                 _logger.LogInformation("Script executed successfully with exit code {ExitCode}", process.ExitCode);
-                return Result<string>.Success(string.IsNullOrEmpty(output) ? "Script completed successfully" : output);
+                // Return actual output even if empty - don't add fallback message here
+                return Result<string>.Success(output);
             }
             else
             {
