@@ -38,7 +38,7 @@ public class OpenAiProvider : IProvider
     {
         try
         {
-            if (string.IsNullOrEmpty(_configuration.ApiKey))
+            if (string.IsNullOrEmpty(_configuration.ApiKey) || _configuration.ApiKey == "your-api-key-here")
             {
                 return Result<string>.Failure("OpenAI API key not configured");
             }
@@ -107,7 +107,7 @@ public class OpenAiProvider : IProvider
     {
         try
         {
-            if (string.IsNullOrEmpty(_configuration.ApiKey))
+            if (string.IsNullOrEmpty(_configuration.ApiKey) || _configuration.ApiKey == "your-api-key-here")
             {
                 return Result<bool>.Success(false);
             }

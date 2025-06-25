@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Interfaces;
+using Please.Infrastructure.Serialization;
 
 namespace Please.Infrastructure.Providers;
 
@@ -33,19 +34,19 @@ public class OllamaProvider : IProvider
             var model = request.Model ?? _configuration.DefaultModel;
             var prompt = buildPrompt(request);
 
-            var requestBody = new
+            var requestBody = new OllamaRequest
             {
-                model = model,
-                prompt = prompt,
-                stream = false,
-                options = new
+                Model = model,
+                Prompt = prompt,
+                Stream = false,
+                Options = new OllamaRequestOptions
                 {
-                    temperature = 0.1,
-                    num_predict = 1000
+                    Temperature = 0.1,
+                    NumPredict = 1000
                 }
             };
 
-            var json = JsonSerializer.Serialize(requestBody);
+            var json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.OllamaRequest);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             _logger.LogInformation("Sending request to Ollama with model {Model}", model);
@@ -60,7 +61,7 @@ public class OllamaProvider : IProvider
             }
 
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            var apiResponse = JsonSerializer.Deserialize<OllamaResponse>(responseContent);
+            var apiResponse = JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.OllamaResponse);
 
             var script = apiResponse?.Response?.Trim();
 
@@ -161,13 +162,4 @@ public class OllamaProvider : IProvider
 
         return prompt.ToString();
     }
-}
-
-/// <summary>
-/// Ollama API response structure
-/// </summary>
-internal class OllamaResponse
-{
-    public string? Response { get; set; }
-    public bool? Done { get; set; }
 }

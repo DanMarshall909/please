@@ -59,7 +59,7 @@ public class AnthropicConfiguration
 public class OllamaConfiguration
 {
     public string BaseUrl { get; set; } = "http://localhost:11434";
-    public string DefaultModel { get; set; } = "llama2";
+    public string DefaultModel { get; set; } = "llama3:latest";
     public int TimeoutSeconds { get; set; } = 60;
 }
 
