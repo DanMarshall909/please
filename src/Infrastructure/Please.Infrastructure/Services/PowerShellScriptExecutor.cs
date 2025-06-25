@@ -26,6 +26,8 @@ public class PowerShellScriptExecutor : IScriptExecutor
 
             // Clean the script by removing markdown code fences
             var cleanedScript = CleanScript(script);
+            _logger.LogInformation("Original script: {OriginalScript}", script);
+            _logger.LogInformation("Cleaned script: {CleanedScript}", cleanedScript);
 
             var processStartInfo = new ProcessStartInfo
             {
