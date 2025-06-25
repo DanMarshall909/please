@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Please.Domain.Common;
 using Please.Domain.Entities;
@@ -45,19 +46,25 @@ public class OpenAiProvider : IProvider
             var systemPrompt = buildSystemPrompt(request);
             var userPrompt = buildUserPrompt(request);
 
-            var requestBody = new
+            var requestBody = new OpenAiRequest
             {
-                model = model,
-                messages = new[]
+                Model = model,
+                Messages = new[]
                 {
-                    new { role = "system", content = systemPrompt },
-                    new { role = "user", content = userPrompt }
+                    new OpenAiMessage { Role = "system", Content = systemPrompt },
+                    new OpenAiMessage { Role = "user", Content = userPrompt }
                 },
-                temperature = 0.1,
-                max_tokens = 1000
+                Temperature = 0.1,
+                MaxTokens = 1000
             };
 
-            var json = JsonSerializer.Serialize(requestBody);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+
+            var json = JsonSerializer.Serialize(requestBody, options);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             _logger.LogInformation("Sending request to OpenAI with model {Model}", model);
@@ -72,7 +79,7 @@ public class OpenAiProvider : IProvider
             }
 
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            var apiResponse = JsonSerializer.Deserialize<OpenAiResponse>(responseContent);
+            var apiResponse = JsonSerializer.Deserialize<OpenAiResponse>(responseContent, options);
 
             var script = apiResponse?.Choices?.FirstOrDefault()?.Message?.Content?.Trim();
 
@@ -176,6 +183,18 @@ Guidelines:
 }
 
 /// <summary>
+/// OpenAI API request structure
+/// </summary>
+internal class OpenAiRequest
+{
+    public string Model { get; set; } = string.Empty;
+    public OpenAiMessage[] Messages { get; set; } = Array.Empty<OpenAiMessage>();
+    public double Temperature { get; set; }
+    [JsonPropertyName("max_tokens")]
+    public int MaxTokens { get; set; }
+}
+
+/// <summary>
 /// OpenAI API response structure
 /// </summary>
 internal class OpenAiResponse
@@ -190,5 +209,6 @@ internal class OpenAiChoice
 
 internal class OpenAiMessage
 {
+    public string Role { get; set; } = string.Empty;
     public string? Content { get; set; }
 }

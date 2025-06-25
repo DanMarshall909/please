@@ -207,6 +207,29 @@ internal class TestScriptGenerator : IScriptGenerator
         Task.FromResult(Result<bool>.Success(true));
 
     public string GetFallbackModel(ScriptRequest request) => "gpt-3.5-turbo";
+
+    public Task<Result<ScriptResponse>> GenerateFixedScriptAsync(string originalScript, string errorMessage, ScriptRequest request, CancellationToken cancellationToken = default)
+    {
+        // For integration tests, generate a fixed version of the script
+        var fixedScript = originalScript.Contains("dangerous")
+            ? "echo 'Fixed dangerous script'"
+            : $"# Fixed script based on error: {errorMessage}\n{originalScript}";
+
+        var scriptType = request.ScriptType ?? ScriptType.Bash;
+
+        var response = ScriptResponse.Create(
+            fixedScript,
+            request.TaskDescription,
+            request.Provider ?? ProviderType.OpenAi,
+            request.Model ?? "gpt-4",
+            scriptType
+        );
+
+        // Apply validation enhancement
+        var enhancedResponse = _validationService.EnhanceWithValidation(response);
+
+        return Task.FromResult(Result<ScriptResponse>.Success(enhancedResponse));
+    }
 }
 
 internal class TestScriptRepository : IScriptRepository
