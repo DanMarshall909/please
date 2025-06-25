@@ -102,7 +102,7 @@ src/Infrastructure/Please.Infrastructure/
 ```csharp
 // Update Program.cs with:
 - Microsoft.Extensions.DependencyInjection setup
-- MediatR registration
+- Direct service registration
 - Command-line argument parsing
 - Basic error handling
 ```

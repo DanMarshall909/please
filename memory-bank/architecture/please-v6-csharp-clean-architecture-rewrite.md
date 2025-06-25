@@ -51,13 +51,11 @@ please-csharp/
 │   │   ├── Enums/                # ScriptType, ProviderType, RiskLevel
 │   │   ├── Exceptions/           # Domain exceptions
 │   │   └── Interfaces/           # Repository/service abstractions
-│   ├── Application/              # MediatR + minimal dependencies only
+│   ├── Application/              # Direct services + minimal dependencies only
 │   │   ├── Common/
-│   │   │   ├── Behaviours/       # Validation, logging pipeline behaviors
 │   │   │   ├── Interfaces/       # Application service interfaces
-│   │   │   └── Models/           # DTOs and command/query models
-│   │   ├── Commands/             # CQRS Commands (GenerateScript, SaveScript, etc.)
-│   │   ├── Queries/              # CQRS Queries (GetLastScript, GetHistory, etc.)
+│   │   │   └── Models/           # DTOs and request/response models
+│   │   ├── Services/             # Direct service implementations (ScriptService, etc.)
 │   │   └── DependencyInjection.cs
 │   ├── Infrastructure/           # ALL third-party dependencies
 │   │   ├── Providers/            # AI provider implementations (OpenAI, Anthropic, Ollama)
@@ -88,7 +86,7 @@ please-csharp/
 - ❌ No HttpClient, no file I/O, no JSON, no logging
 
 ### **Application Layer**
-- ✅ **Only MediatR** for CQRS pattern
+- ✅ **Direct Services** with Result<T> pattern
 - ✅ **Only Microsoft.Extensions.DependencyInjection.Abstractions**
 - ❌ No HttpClient, no file I/O, no JSON serialization
 - ❌ No Entity Framework (perfect for CLI requirements)
@@ -102,54 +100,54 @@ please-csharp/
 
 ### **Presentation Layer**
 - ✅ CLI-specific concerns only
-- ✅ MediatR for command/query dispatch
+- ✅ Direct service calls with Result<T> pattern
 - ✅ User interface and menu logic
 
 ---
 
-## 🔄 **CQRS Command/Query Design**
+## 🔄 **Direct Service Design**
 
-### **Commands (State Changes)**
+### **Service Operations (State Changes)**
 Based on Go implementation analysis:
 
 ```csharp
 // Generate new script
-GenerateScriptCommand -> GenerateScriptCommandHandler
+IScriptService.GenerateScriptAsync(ScriptRequest request)
 - Input: TaskDescription, Provider?, Model?, ScriptType?
-- Output: ScriptResponse
+- Output: Result<ScriptResponse>
 - Business Logic: Provider selection, model selection, script generation
 
 // Save script to history
-SaveScriptCommand -> SaveScriptCommandHandler
+IScriptRepository.SaveScriptAsync(ScriptResponse response)
 - Input: ScriptResponse
-- Output: Success indicator
+- Output: Result<Unit>
 - Business Logic: History management, file persistence
 
 // Execute script with safety checks
-ExecuteScriptCommand -> ExecuteScriptCommandHandler
+IScriptExecutor.ExecuteScriptAsync(ScriptResponse response, bool forceExecution)
 - Input: ScriptResponse, ForceExecution?
-- Output: ExecutionResult
+- Output: Result<ExecutionResult>
 - Business Logic: Risk assessment, user confirmation, execution
 ```
 
-### **Queries (Data Retrieval)**
+### **Service Queries (Data Retrieval)**
 ```csharp
 // Get last generated script
-GetLastScriptQuery -> GetLastScriptQueryHandler
+IScriptRepository.GetLastScriptAsync()
 - Input: None
-- Output: ScriptResponse?
+- Output: Result<ScriptResponse?>
 - Business Logic: File-based retrieval
 
 // Get script history
-GetScriptHistoryQuery -> GetScriptHistoryQueryHandler
+IScriptRepository.GetScriptHistoryAsync(int count, DateRange? dateRange)
 - Input: Count?, DateRange?
-- Output: IEnumerable<ScriptResponse>
+- Output: Result<IEnumerable<ScriptResponse>>
 - Business Logic: History filtering and sorting
 
 // Get configuration
-GetConfigurationQuery -> GetConfigurationQueryHandler
+IConfigurationService.GetConfigurationAsync()
 - Input: None
-- Output: Configuration
+- Output: Result<Configuration>
 - Business Logic: Configuration loading with defaults
 ```
 
@@ -165,31 +163,31 @@ Your existing Go tests provide perfect specifications:
 [Test]
 public async Task WhenValidTask_ShouldGenerateScript()
 {
-    var command = new GenerateScriptCommand("list files in current directory");
-    var response = await _mediator.Send(command);
+    var request = ScriptRequest.Create("list files in current directory");
+    var result = await _scriptService.GenerateScriptAsync(request.Value!);
     
-    Assert.That(response.Script, Is.Not.Empty);
-    Assert.That(response.TaskDescription, Is.EqualTo("list files in current directory"));
+    Assert.That(result.IsSuccess, Is.True);
+    Assert.That(result.Value!.Script, Is.Not.Empty);
+    Assert.That(result.Value!.TaskDescription, Is.EqualTo("list files in current directory"));
 }
 ```
 
 **From `core_logic_test.go`** → **C# Unit Tests**:
 ```csharp
 [Test]
-public async Task WhenUnsupportedProvider_ShouldThrowException()
+public async Task WhenUnsupportedProvider_ShouldReturnFailure()
 {
-    var command = new GenerateScriptCommand("test") { Provider = "invalid-provider" };
+    var request = ScriptRequest.Create("test", provider: "invalid-provider");
+    var result = await _scriptService.GenerateScriptAsync(request.Value!);
     
-    var ex = await Assert.ThrowsAsync<UnsupportedProviderException>(() =>
-        _mediator.Send(command));
-        
-    Assert.That(ex.Message, Does.Contain("unsupported provider: invalid-provider"));
+    Assert.That(result.IsFailure, Is.True);
+    Assert.That(result.Error, Does.Contain("unsupported provider: invalid-provider"));
 }
 ```
 
 ### **Test Categories**
 1. **Domain Unit Tests**: Pure logic, no mocking
-2. **Application Unit Tests**: Command/query handlers with mocked infrastructure
+2. **Application Unit Tests**: Service methods with mocked infrastructure
 3. **Integration Tests**: End-to-end workflows with real infrastructure
 4. **Acceptance Tests**: CLI behavior validation (from Go test specifications)
 
@@ -199,7 +197,7 @@ public async Task WhenUnsupportedProvider_ShouldThrowException()
 
 ### **Core Framework**
 - **.NET 8** (Latest LTS)
-- **MediatR** (CQRS pattern)
+- **Direct Services** with Result<T> pattern
 - **Microsoft.Extensions.*** (Configuration, DI, Logging)
 
 ### **Infrastructure Dependencies**
@@ -227,13 +225,13 @@ public async Task WhenUnsupportedProvider_ShouldThrowException()
 - ✅ Move Go code to `legacy/` folder
 - ✅ Create Clean Architecture solution structure
 - ✅ Domain entities and interfaces (zero dependencies)
-- ✅ Basic CQRS command/query structure
+- ✅ Basic service interface structure
 
 ### **Phase 2: Core Logic (Day 2)**
-- Application layer with MediatR handlers
-- Command/query implementations
+- Application layer with direct service implementations
+- Service method implementations with Result<T> pattern
 - Business logic translation from Go
-- Pipeline behaviors (validation, logging)
+- Service behaviors (validation, logging)
 
 ### **Phase 3: Infrastructure (Day 3-4)**
 - AI provider implementations

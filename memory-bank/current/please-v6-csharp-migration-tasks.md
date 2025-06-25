@@ -8,7 +8,7 @@ This document outlines the tasks needed to convert the Go implementation in the 
 
 - ✅ **Clean Architecture foundation established**
 - ✅ **Domain entities and enums implemented**
-- ✅ **Application layer with CQRS/MediatR complete**
+- ✅ **Application layer with direct services complete**
 - ✅ **Test project structure established**
 - ✅ **Enterprise-grade test infrastructure complete**
 - ✅ **Modern test patterns implemented (builders, parameterized tests)**
