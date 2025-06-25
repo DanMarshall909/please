@@ -37,34 +37,21 @@ public class PowerShellScriptExecutor : IScriptExecutor
 
             using var process = new Process { StartInfo = processStartInfo };
 
-            var outputBuilder = new StringBuilder();
-            var errorBuilder = new StringBuilder();
-
-            process.OutputDataReceived += (sender, args) =>
-            {
-                if (args.Data != null)
-                    outputBuilder.AppendLine(args.Data);
-            };
-
-            process.ErrorDataReceived += (sender, args) =>
-            {
-                if (args.Data != null)
-                    errorBuilder.AppendLine(args.Data);
-            };
-
             process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
 
             // Send the script to PowerShell
             await process.StandardInput.WriteAsync(script);
             await process.StandardInput.FlushAsync();
             process.StandardInput.Close();
 
+            // Read output and error streams directly
+            var outputTask = process.StandardOutput.ReadToEndAsync();
+            var errorTask = process.StandardError.ReadToEndAsync();
+
             await process.WaitForExitAsync();
 
-            var output = outputBuilder.ToString().Trim();
-            var error = errorBuilder.ToString().Trim();
+            var output = (await outputTask).Trim();
+            var error = (await errorTask).Trim();
 
             if (process.ExitCode == 0)
             {
