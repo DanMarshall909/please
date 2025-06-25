@@ -68,7 +68,7 @@ public static class DependencyInjection
     private class UnusedScriptRepository : IScriptRepository
     {
         public Task<VoidResult> ClearHistoryAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(VoidResult.Success());
+            => VoidResult.SuccessfulTask;
 
         public Task<Domain.Common.Result<Domain.Entities.ScriptResponse?>> GetLastScriptAsync(
             CancellationToken cancellationToken = default)
@@ -85,7 +85,7 @@ public static class DependencyInjection
 
         public Task<VoidResult> SaveScriptAsync(Domain.Entities.ScriptResponse response,
             CancellationToken cancellationToken = default)
-            => Task.FromResult(VoidResult.Success());
+            => VoidResult.SuccessfulTask;
     }
 
     private class UnusedContextService : IContextService
@@ -96,6 +96,6 @@ public static class DependencyInjection
 
         public Task<VoidResult> StorePatternAsync(Domain.Commands.CommandExecution execution,
             CancellationToken cancellationToken = default)
-            => Task.FromResult(VoidResult.Success());
+            => VoidResult.SuccessfulTask;
     }
 }

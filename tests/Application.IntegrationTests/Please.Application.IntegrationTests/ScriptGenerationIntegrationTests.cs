@@ -216,7 +216,7 @@ internal class TestScriptRepository : IScriptRepository
     public Task<VoidResult> SaveScriptAsync(ScriptResponse script, CancellationToken cancellationToken = default)
     {
         SavedScripts.Add(script);
-        return Task.FromResult(VoidResult.Success());
+        return VoidResult.SuccessfulTask;
     }
 
     public Task<Result<ScriptResponse?>> GetLastScriptAsync(CancellationToken cancellationToken = default)
@@ -241,7 +241,7 @@ internal class TestScriptRepository : IScriptRepository
     public Task<VoidResult> ClearHistoryAsync(CancellationToken cancellationToken = default)
     {
         SavedScripts.Clear();
-        return Task.FromResult(VoidResult.Success());
+        return VoidResult.SuccessfulTask;
     }
 
     public Task<Result<bool>> HasHistoryAsync(CancellationToken cancellationToken = default) =>

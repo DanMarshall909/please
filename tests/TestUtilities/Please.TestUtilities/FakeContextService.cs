@@ -17,6 +17,6 @@ public sealed class FakeContextService : IContextService
     public Task<VoidResult> StorePatternAsync(CommandExecution execution, CancellationToken cancellationToken = default)
     {
         StoredExecutions.Add(execution);
-        return Task.FromResult(VoidResult.Success());
+        return VoidResult.SuccessfulTask;
     }
 }

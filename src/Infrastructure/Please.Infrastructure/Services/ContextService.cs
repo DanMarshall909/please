@@ -16,10 +16,8 @@ public class ContextService : IContextService
         return Task.FromResult(Result<CommandContext>.Success(context));
     }
 
-    public Task<VoidResult> StorePatternAsync(CommandExecution execution, CancellationToken cancellationToken = default)
-    {
+    public Task<VoidResult> StorePatternAsync(CommandExecution execution, CancellationToken cancellationToken = default) =>
         // Simple implementation - in real scenario this would store to database
         // For now, just return success
-        return Task.FromResult(VoidResult.Success());
-    }
+        VoidResult.SuccessfulTask;
 }

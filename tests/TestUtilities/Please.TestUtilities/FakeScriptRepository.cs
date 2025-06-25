@@ -9,7 +9,7 @@ public sealed class FakeScriptRepository : IScriptRepository
     private readonly List<ScriptResponse> _scripts = [];
 
     public IReadOnlyList<ScriptResponse> Scripts => _scripts;
-    public VoidResult NextSaveResult { get; set; } = VoidResult.Success();
+    public VoidResult NextSaveResult { get; set; } = VoidResult.Success;
 
     public Task<VoidResult> SaveScriptAsync(ScriptResponse response, CancellationToken cancellationToken = default)
     {
@@ -38,7 +38,7 @@ public sealed class FakeScriptRepository : IScriptRepository
     public Task<VoidResult> ClearHistoryAsync(CancellationToken cancellationToken = default)
     {
         _scripts.Clear();
-        return Task.FromResult(VoidResult.Success());
+        return VoidResult.SuccessfulTask;
     }
 
     public Task<Result<bool>> HasHistoryAsync(CancellationToken cancellationToken = default) =>

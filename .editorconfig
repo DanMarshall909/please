@@ -10,6 +10,9 @@ trim_trailing_whitespace = true
 
 [*.{cs,vb}]
 indent_size = 4
+
+resharper_expression_braces = none
+
 # Private and local methods use camelCase (PascalCase with the first letter lowercase)
 dotnet_naming_rule.private_methods_camel_case.severity = warning
 dotnet_naming_rule.private_methods_camel_case.symbols = private_methods

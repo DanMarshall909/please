@@ -1,4 +1,5 @@
 using Please.Domain.Entities;
+using Please.Domain.ValueObjects;
 
 namespace Please.Domain.UnitTests.Common;
 
@@ -7,7 +8,7 @@ public class StronglyTypedIdTests
     [Fact]
     public void a_strongly_typed_id_converts_to_the_underlying_value()
     {
-        var id = ScriptId.From("00000000-0000-0000-0000-000000000001");
+        ScriptId  id = new("00000000-0000-0000-0000-000000000001");
         Guid value = id;
         value.ShouldBe(Guid.Parse("00000000-0000-0000-0000-000000000001"));
         id.ToString().ShouldBe("00000000-0000-0000-0000-000000000001");

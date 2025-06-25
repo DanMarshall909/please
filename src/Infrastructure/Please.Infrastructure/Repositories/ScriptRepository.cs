@@ -23,7 +23,7 @@ public class ScriptRepository : IScriptRepository
                 _scripts.Add(response);
             }
 
-            return Task.FromResult(VoidResult.Success());
+            return VoidResult.SuccessfulTask;
         }
         catch (Exception ex)
         {
@@ -96,7 +96,7 @@ public class ScriptRepository : IScriptRepository
                 _scripts.Clear();
             }
 
-            return Task.FromResult(VoidResult.Success());
+            return VoidResult.SuccessfulTask;
         }
         catch (Exception ex)
         {

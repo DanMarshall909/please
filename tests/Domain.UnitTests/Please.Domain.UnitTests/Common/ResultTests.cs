@@ -7,7 +7,7 @@ public class ResultTests
     [Fact]
     public void a_success_result_indicates_success()
     {
-        var result = VoidResult.Success();
+        var result = VoidResult.Success;
         result.IsSuccess.ShouldBeTrue();
         result.IsFailure.ShouldBeFalse();
     }
@@ -18,7 +18,7 @@ public class ResultTests
         const string error = "something went wrong";
         var result = VoidResult.Failure(error);
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(error);
+        result.Error.Message.ShouldBe(error);
     }
 
     [Fact]
