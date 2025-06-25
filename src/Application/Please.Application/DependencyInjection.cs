@@ -56,18 +56,18 @@ public static class DependencyInjection
     {
         public string GetFallbackModel(Domain.Entities.ScriptRequest request) => string.Empty;
 
-        public Task<Domain.Common.Result<bool>> IsProviderAvailableAsync(Domain.Entities.ScriptRequest request,
+        public Task<Result<bool>> IsProviderAvailableAsync(Domain.Entities.ScriptRequest request,
             CancellationToken cancellationToken = default)
-            => Task.FromResult(Domain.Common.Result<bool>.Success(false));
+            => Task.FromResult(Result<bool>.Success(false));
 
-        public Task<Domain.Common.Result<Domain.Entities.ScriptResponse>> GenerateScriptAsync(
+        public Task<Result<Domain.Entities.ScriptResponse>> GenerateScriptAsync(
             Domain.Entities.ScriptRequest request, CancellationToken cancellationToken = default)
-            => Task.FromResult(Domain.Common.Result<Domain.Entities.ScriptResponse>.Failure("Not implemented"));
+            => Task.FromResult(Result<Domain.Entities.ScriptResponse>.Failure("Not implemented"));
 
-        public Task<Domain.Common.Result<Domain.Entities.ScriptResponse>> GenerateFixedScriptAsync(
+        public Task<Result<Domain.Entities.ScriptResponse>> GenerateFixedScriptAsync(
             string originalScript, string errorMessage, Domain.Entities.ScriptRequest request,
             CancellationToken cancellationToken = default)
-            => Task.FromResult(Domain.Common.Result<Domain.Entities.ScriptResponse>.Failure("Not implemented"));
+            => Task.FromResult(Result<Domain.Entities.ScriptResponse>.Failure("Not implemented"));
     }
 
     private class UnusedScriptRepository : IScriptRepository
@@ -75,18 +75,18 @@ public static class DependencyInjection
         public Task<VoidResult> ClearHistoryAsync(CancellationToken cancellationToken = default)
             => VoidResult.SuccessfulTask;
 
-        public Task<Domain.Common.Result<Domain.Entities.ScriptResponse?>> GetLastScriptAsync(
+        public Task<Result<Domain.Entities.ScriptResponse?>> GetLastScriptAsync(
             CancellationToken cancellationToken = default)
-            => Task.FromResult(Domain.Common.Result<Domain.Entities.ScriptResponse?>.Success(null));
+            => Task.FromResult(Result<Domain.Entities.ScriptResponse?>.Success(null));
 
-        public Task<Domain.Common.Result<IEnumerable<Domain.Entities.ScriptResponse>>> GetScriptHistoryAsync(
+        public Task<Result<IEnumerable<Domain.Entities.ScriptResponse>>> GetScriptHistoryAsync(
             int? count = null, DateTime? since = null, CancellationToken cancellationToken = default)
             => Task.FromResult(
-                Domain.Common.Result<IEnumerable<Domain.Entities.ScriptResponse>>.Success(
+                Result<IEnumerable<Domain.Entities.ScriptResponse>>.Success(
                     Array.Empty<Domain.Entities.ScriptResponse>()));
 
-        public Task<Domain.Common.Result<bool>> HasHistoryAsync(CancellationToken cancellationToken = default)
-            => Task.FromResult(Domain.Common.Result<bool>.Success(false));
+        public Task<Result<bool>> HasHistoryAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(Result<bool>.Success(false));
 
         public Task<VoidResult> SaveScriptAsync(Domain.Entities.ScriptResponse response,
             CancellationToken cancellationToken = default)
@@ -95,9 +95,9 @@ public static class DependencyInjection
 
     private class UnusedContextService : IContextService
     {
-        public Task<Domain.Common.Result<Domain.Commands.CommandContext>> GetContextAsync(
+        public Task<Result<Domain.Commands.CommandContext>> GetContextAsync(
             Domain.Commands.CommandIntent intent, CancellationToken cancellationToken = default)
-            => Task.FromResult(Domain.Common.Result<Domain.Commands.CommandContext>.Failure("Not implemented"));
+            => Task.FromResult(Result<Domain.Commands.CommandContext>.Failure("Not implemented"));
 
         public Task<VoidResult> StorePatternAsync(Domain.Commands.CommandExecution execution,
             CancellationToken cancellationToken = default)

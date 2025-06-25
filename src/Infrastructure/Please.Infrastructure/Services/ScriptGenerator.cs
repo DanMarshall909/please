@@ -20,17 +20,13 @@ public class ScriptGenerator : IScriptGenerator
         _logger = logger;
     }
 
-    public async Task<Result<ScriptResponse>> GenerateScriptAsync(ScriptRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<ScriptResponse>> GenerateScriptAsync(ScriptRequest request,
+        CancellationToken cancellationToken = default)
     {
-        if (request == null)
-        {
-            return Result<ScriptResponse>.Failure("Script request cannot be null");
-        }
+        if (request == null) return Result<ScriptResponse>.Failure("Script request cannot be null");
 
         if (string.IsNullOrWhiteSpace(request.TaskDescription))
-        {
             return Result<ScriptResponse>.Failure("task description cannot be empty");
-        }
 
         try
         {
@@ -42,9 +38,7 @@ public class ScriptGenerator : IScriptGenerator
 
             // Ensure script type is detected if not provided
             if (request.ScriptType == null)
-            {
                 request = request with { ScriptType = detectScriptType(request.TaskDescription) };
-            }
 
             var scriptResult = await provider.GenerateScriptAsync(request, cancellationToken);
 
@@ -55,8 +49,8 @@ public class ScriptGenerator : IScriptGenerator
                 return Result<ScriptResponse>.Failure(scriptResult.Error);
             }
 
-            var script = scriptResult.Value ?? string.Empty;
-            var model = request.Model ?? provider.GetDefaultModel();
+            string script = scriptResult.Value ?? string.Empty;
+            string model = request.Model ?? provider.GetDefaultModel();
             var scriptType = request.ScriptType ?? detectScriptType(request.TaskDescription);
             var riskLevel = assessRiskLevel(script, scriptType);
 
@@ -81,7 +75,8 @@ public class ScriptGenerator : IScriptGenerator
         }
     }
 
-    public async Task<Result<bool>> IsProviderAvailableAsync(ScriptRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<bool>> IsProviderAvailableAsync(ScriptRequest request,
+        CancellationToken cancellationToken = default)
     {
         try
         {
@@ -117,15 +112,10 @@ public class ScriptGenerator : IScriptGenerator
         ScriptRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request == null)
-        {
-            return Result<ScriptResponse>.Failure("Script request cannot be null");
-        }
+        if (request == null) return Result<ScriptResponse>.Failure("Script request cannot be null");
 
         if (string.IsNullOrWhiteSpace(errorMessage))
-        {
             return Result<ScriptResponse>.Failure("Error message cannot be empty");
-        }
 
         try
         {
@@ -147,8 +137,8 @@ public class ScriptGenerator : IScriptGenerator
                 return Result<ScriptResponse>.Failure(scriptResult.Error);
             }
 
-            var script = scriptResult.Value ?? string.Empty;
-            var model = request.Model ?? provider.GetDefaultModel();
+            string script = scriptResult.Value ?? string.Empty;
+            string model = request.Model ?? provider.GetDefaultModel();
             var scriptType = request.ScriptType ?? detectScriptType(request.TaskDescription ?? "fix script");
             var riskLevel = assessRiskLevel(script, scriptType);
 
@@ -175,7 +165,7 @@ public class ScriptGenerator : IScriptGenerator
 
     private ScriptRequest createFixScriptRequest(string originalScript, string errorMessage, ScriptRequest baseRequest)
     {
-        var fixDescription = string.IsNullOrWhiteSpace(originalScript)
+        string fixDescription = string.IsNullOrWhiteSpace(originalScript)
             ? $"Generate a script to handle this error: {errorMessage}. The original script was empty or missing."
             : $"Fix this script that has an error.\n\nOriginal Script:\n{originalScript}\n\nError Message:\n{errorMessage}\n\nPlease provide a corrected version.";
 
@@ -192,17 +182,13 @@ public class ScriptGenerator : IScriptGenerator
 
     private ScriptType detectScriptType(string taskDescription)
     {
-        var lowerTask = taskDescription.ToLowerInvariant();
+        string lowerTask = taskDescription.ToLowerInvariant();
 
         if (lowerTask.Contains("powershell") || lowerTask.Contains("get-") || lowerTask.Contains("set-"))
-        {
             return ScriptType.PowerShell;
-        }
 
         if (lowerTask.Contains("bash") || lowerTask.Contains("linux") || lowerTask.Contains("unix"))
-        {
             return ScriptType.Bash;
-        }
 
         // Default to PowerShell on Windows
         return ScriptType.PowerShell;
@@ -210,7 +196,7 @@ public class ScriptGenerator : IScriptGenerator
 
     private RiskLevel assessRiskLevel(string script, ScriptType scriptType)
     {
-        var lowerScript = script.ToLowerInvariant();
+        string lowerScript = script.ToLowerInvariant();
 
         // High risk patterns
         var highRiskPatterns = new[]
@@ -230,15 +216,9 @@ public class ScriptGenerator : IScriptGenerator
             "disable-", "stop-", "start-", "restart-"
         };
 
-        if (highRiskPatterns.Any(pattern => lowerScript.Contains(pattern)))
-        {
-            return RiskLevel.High;
-        }
+        if (highRiskPatterns.Any(pattern => lowerScript.Contains(pattern))) return RiskLevel.High;
 
-        if (mediumRiskPatterns.Any(pattern => lowerScript.Contains(pattern)))
-        {
-            return RiskLevel.Medium;
-        }
+        if (mediumRiskPatterns.Any(pattern => lowerScript.Contains(pattern))) return RiskLevel.Medium;
 
         return RiskLevel.Low;
     }

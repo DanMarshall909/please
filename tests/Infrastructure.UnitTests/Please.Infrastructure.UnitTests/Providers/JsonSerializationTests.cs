@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Please.Domain.Entities;
-using Please.Infrastructure.Providers;
 using Please.Infrastructure.Serialization;
 using static Please.Infrastructure.Serialization.ApiSerializationContext;
 
@@ -19,7 +18,7 @@ public class JsonSerializationTests
         {
             TaskDescription = "list all files",
             WorkingDirectory = "/test/directory",
-            ScriptType = Please.Domain.Enums.ScriptType.PowerShell,
+            ScriptType = Domain.Enums.ScriptType.PowerShell,
             Model = "gpt-4o"
         };
 
@@ -39,7 +38,7 @@ public class JsonSerializationTests
             };
 
             // This should work with source generation
-            var json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.OpenAiRequest);
+            string json = JsonSerializer.Serialize(requestBody, Default.OpenAiRequest);
         });
 
         // Then: Should not throw any serialization exceptions
@@ -51,22 +50,22 @@ public class JsonSerializationTests
     {
         // Given: A sample OpenAI API response JSON
         var responseJson = """
-        {
-            "choices": [
-                {
-                    "message": {
-                        "role": "assistant",
-                        "content": "Get-ChildItem -Path . -Recurse"
-                    }
-                }
-            ]
-        }
-        """;
+                           {
+                               "choices": [
+                                   {
+                                       "message": {
+                                           "role": "assistant",
+                                           "content": "Get-ChildItem -Path . -Recurse"
+                                       }
+                                   }
+                               ]
+                           }
+                           """;
 
         // When: We try to deserialize using the ApiSerializationContext
         var exception = Record.Exception(() =>
         {
-            var response = JsonSerializer.Deserialize(responseJson, ApiSerializationContext.Default.OpenAiResponse);
+            var response = JsonSerializer.Deserialize(responseJson, Default.OpenAiResponse);
 
             // Verify the content was parsed correctly
             Assert.NotNull(response);
@@ -97,7 +96,7 @@ public class JsonSerializationTests
         // When: We try to serialize using the ApiSerializationContext
         var exception = Record.Exception(() =>
         {
-            var json = JsonSerializer.Serialize(request, ApiSerializationContext.Default.AnthropicRequest);
+            string json = JsonSerializer.Serialize(request, Default.AnthropicRequest);
 
             // Verify the JSON contains expected properties
             Assert.NotNull(json);

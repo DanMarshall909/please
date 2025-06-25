@@ -1,9 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Please.Domain.Common;
 using Please.Domain.Entities;
-using Please.Domain.Interfaces;
 using Please.Infrastructure.Serialization;
 
 namespace Please.Infrastructure.Providers;
@@ -20,33 +18,24 @@ public class GeminiProvider : BaseHttpProvider<GeminiConfiguration>
 
     protected override void ConfigureHttpClient()
     {
-        HttpClient.BaseAddress = new Uri(Configuration.BaseUrl);
+        // Ensure BaseUrl ends with '/' for proper URI combination
+        string baseUrl = Configuration.BaseUrl.TrimEnd('/') + "/";
+        HttpClient.BaseAddress = new Uri(baseUrl);
         HttpClient.Timeout = TimeSpan.FromSeconds(Configuration.TimeoutSeconds);
     }
 
-    protected override bool IsConfigurationValid()
-    {
-        return !string.IsNullOrEmpty(Configuration.ApiKey);
-    }
+    protected override bool IsConfigurationValid() => !string.IsNullOrEmpty(Configuration.ApiKey);
 
-    protected override string GetConfigurationErrorMessage()
-    {
-        return "Gemini API key not configured";
-    }
+    protected override string GetConfigurationErrorMessage() => "Gemini API key not configured";
 
-    protected override string GetProviderName()
-    {
-        return "Gemini";
-    }
+    protected override string GetProviderName() => "Gemini";
 
-    protected override string GetModel(ScriptRequest request)
-    {
-        return request.Model ?? Configuration.DefaultModel;
-    }
+    protected override string GetModel(ScriptRequest request) => request.Model ?? Configuration.DefaultModel;
 
-    protected override Task<HttpRequestMessage> CreateHttpRequestAsync(ScriptRequest request, string model, CancellationToken cancellationToken)
+    protected override Task<HttpRequestMessage> CreateHttpRequestAsync(ScriptRequest request, string model,
+        CancellationToken cancellationToken)
     {
-        var prompt = BuildPrompt(request);
+        string prompt = BuildPrompt(request);
 
         var requestBody = new GeminiRequest
         {
@@ -67,33 +56,32 @@ public class GeminiProvider : BaseHttpProvider<GeminiConfiguration>
             }
         };
 
-        var json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.GeminiRequest);
+        string json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.GeminiRequest);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var url = $"/models/{model}:generateContent?key={Configuration.ApiKey}";
+        var url = $"models/{model}:generateContent?key={Configuration.ApiKey}";
         return Task.FromResult(new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = content
         });
     }
 
-    protected override Task<string> ExtractScriptFromResponseAsync(string responseContent, CancellationToken cancellationToken)
+    protected override Task<string> ExtractScriptFromResponseAsync(string responseContent,
+        CancellationToken cancellationToken)
     {
         var apiResponse = JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.GeminiResponse);
-        var script = apiResponse?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text?.Trim() ?? string.Empty;
+        string script = apiResponse?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text?.Trim() ??
+                        string.Empty;
         return Task.FromResult(script);
     }
 
     protected override HttpRequestMessage CreateHealthCheckRequest()
     {
-        var url = $"/models?key={Configuration.ApiKey}";
+        var url = $"models?key={Configuration.ApiKey}";
         return new HttpRequestMessage(HttpMethod.Get, url);
     }
 
-    public override string GetDefaultModel()
-    {
-        return Configuration.DefaultModel;
-    }
+    public override string GetDefaultModel() => Configuration.DefaultModel;
 
     public override string[] GetSupportedModels()
     {

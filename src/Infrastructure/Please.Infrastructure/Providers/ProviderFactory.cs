@@ -58,8 +58,5 @@ public class ProviderFactory : IProviderFactory
         };
     }
 
-    public string[] GetSupportedProviders()
-    {
-        return Enum.GetNames<ProviderType>();
-    }
+    public string[] GetSupportedProviders() => Enum.GetNames<ProviderType>();
 }

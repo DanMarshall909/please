@@ -8,7 +8,7 @@ public class StronglyTypedIdTests
     [Fact]
     public void a_strongly_typed_id_converts_to_the_underlying_value()
     {
-        ScriptId  id = new("00000000-0000-0000-0000-000000000001");
+        ScriptId id = new("00000000-0000-0000-0000-000000000001");
         Guid value = id;
         value.ShouldBe(Guid.Parse("00000000-0000-0000-0000-000000000001"));
         id.ToString().ShouldBe("00000000-0000-0000-0000-000000000001");

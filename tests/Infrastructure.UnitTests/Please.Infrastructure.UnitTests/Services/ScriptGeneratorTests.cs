@@ -5,8 +5,6 @@ using Please.Domain.Entities;
 using Please.Domain.Enums;
 using Please.Domain.Interfaces;
 using Please.Infrastructure.Services;
-using Shouldly;
-using Xunit;
 
 namespace Please.Infrastructure.UnitTests.Services;
 
@@ -205,7 +203,7 @@ public class ScriptGeneratorTests
         _mockProvider.GetDefaultModel().Returns("gpt-3.5-turbo");
 
         // Act
-        var result = _scriptGenerator.GetFallbackModel(request);
+        string result = _scriptGenerator.GetFallbackModel(request);
 
         // Assert
         result.ShouldBe("gpt-3.5-turbo");
@@ -220,7 +218,7 @@ public class ScriptGeneratorTests
             .Do(_ => throw new Exception("Provider error"));
 
         // Act
-        var result = _scriptGenerator.GetFallbackModel(request);
+        string result = _scriptGenerator.GetFallbackModel(request);
 
         // Assert
         result.ShouldBe("gpt-3.5-turbo");
@@ -264,7 +262,8 @@ public class ScriptGeneratorTests
     }
 
     [Fact]
-    public async Task GenerateFixedScriptAsync_when_generating_fixed_script_with_empty_original_script_then_handle_gracefully()
+    public async Task
+        GenerateFixedScriptAsync_when_generating_fixed_script_with_empty_original_script_then_handle_gracefully()
     {
         // Arrange
         var originalScript = "";

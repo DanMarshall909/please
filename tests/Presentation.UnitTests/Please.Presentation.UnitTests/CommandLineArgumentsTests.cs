@@ -36,7 +36,7 @@ public class CommandLineArgumentsTests
     public void Parse_with_empty_arguments_returns_empty_task_description()
     {
         // Arrange
-        var args = Array.Empty<string>();
+        string[] args = Array.Empty<string>();
 
         // Act
         var arguments = CommandLineArguments.Parse(args);

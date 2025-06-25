@@ -90,7 +90,7 @@ public class ProgramTests
     public void Program_host_creation_succeeds_with_empty_args()
     {
         // Arrange
-        var args = Array.Empty<string>();
+        string[] args = Array.Empty<string>();
         var arguments = CommandLineArguments.Parse(args);
 
         // Act & Assert - Should not throw

@@ -1,9 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Please.Domain.Common;
 using Please.Domain.Entities;
-using Please.Domain.Interfaces;
 using Please.Infrastructure.Serialization;
 
 namespace Please.Infrastructure.Providers;
@@ -13,14 +11,17 @@ namespace Please.Infrastructure.Providers;
 /// </summary>
 public class AnthropicProvider : BaseHttpProvider<AnthropicConfiguration>
 {
-    public AnthropicProvider(HttpClient httpClient, AnthropicConfiguration configuration, ILogger<AnthropicProvider> logger)
+    public AnthropicProvider(HttpClient httpClient, AnthropicConfiguration configuration,
+        ILogger<AnthropicProvider> logger)
         : base(httpClient, configuration, logger)
     {
     }
 
     protected override void ConfigureHttpClient()
     {
-        HttpClient.BaseAddress = new Uri(Configuration.BaseUrl);
+        // Ensure BaseUrl ends with '/' for proper URI combination
+        string baseUrl = Configuration.BaseUrl.TrimEnd('/') + "/";
+        HttpClient.BaseAddress = new Uri(baseUrl);
         HttpClient.Timeout = TimeSpan.FromSeconds(Configuration.TimeoutSeconds);
 
         if (!string.IsNullOrEmpty(Configuration.ApiKey))
@@ -30,30 +31,19 @@ public class AnthropicProvider : BaseHttpProvider<AnthropicConfiguration>
         }
     }
 
-    protected override bool IsConfigurationValid()
-    {
-        return !string.IsNullOrEmpty(Configuration.ApiKey);
-    }
+    protected override bool IsConfigurationValid() => !string.IsNullOrEmpty(Configuration.ApiKey);
 
-    protected override string GetConfigurationErrorMessage()
-    {
-        return "Anthropic API key not configured";
-    }
+    protected override string GetConfigurationErrorMessage() => "Anthropic API key not configured";
 
-    protected override string GetProviderName()
-    {
-        return "Anthropic";
-    }
+    protected override string GetProviderName() => "Anthropic";
 
-    protected override string GetModel(ScriptRequest request)
-    {
-        return request.Model ?? Configuration.DefaultModel;
-    }
+    protected override string GetModel(ScriptRequest request) => request.Model ?? Configuration.DefaultModel;
 
-    protected override Task<HttpRequestMessage> CreateHttpRequestAsync(ScriptRequest request, string model, CancellationToken cancellationToken)
+    protected override Task<HttpRequestMessage> CreateHttpRequestAsync(ScriptRequest request, string model,
+        CancellationToken cancellationToken)
     {
-        var systemPrompt = BuildSystemPrompt(request);
-        var userPrompt = BuildUserPrompt(request);
+        string systemPrompt = BuildSystemPrompt(request);
+        string userPrompt = BuildUserPrompt(request);
 
         var requestBody = new AnthropicRequest
         {
@@ -66,31 +56,27 @@ public class AnthropicProvider : BaseHttpProvider<AnthropicConfiguration>
             }
         };
 
-        var json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.AnthropicRequest);
+        string json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.AnthropicRequest);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        return Task.FromResult(new HttpRequestMessage(HttpMethod.Post, "/messages")
+        return Task.FromResult(new HttpRequestMessage(HttpMethod.Post, "messages")
         {
             Content = content
         });
     }
 
-    protected override Task<string> ExtractScriptFromResponseAsync(string responseContent, CancellationToken cancellationToken)
+    protected override Task<string> ExtractScriptFromResponseAsync(string responseContent,
+        CancellationToken cancellationToken)
     {
-        var apiResponse = JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.AnthropicResponse);
-        var script = apiResponse?.Content?.FirstOrDefault()?.Text?.Trim() ?? string.Empty;
+        var apiResponse =
+            JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.AnthropicResponse);
+        string script = apiResponse?.Content?.FirstOrDefault()?.Text?.Trim() ?? string.Empty;
         return Task.FromResult(script);
     }
 
-    protected override HttpRequestMessage CreateHealthCheckRequest()
-    {
-        return new HttpRequestMessage(HttpMethod.Get, "/messages");
-    }
+    protected override HttpRequestMessage CreateHealthCheckRequest() => new(HttpMethod.Get, "messages");
 
-    public override string GetDefaultModel()
-    {
-        return Configuration.DefaultModel;
-    }
+    public override string GetDefaultModel() => Configuration.DefaultModel;
 
     public override string[] GetSupportedModels()
     {

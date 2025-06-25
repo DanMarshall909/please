@@ -23,5 +23,5 @@ public record struct ScriptId
         Value = this.Value;
     }
 
-    public override readonly string ToString() => Value.ToString();
+    public readonly override string ToString() => Value.ToString();
 }

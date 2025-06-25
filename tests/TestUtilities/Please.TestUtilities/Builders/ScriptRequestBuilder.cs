@@ -65,35 +65,19 @@ public class ScriptRequestBuilder
         ScriptRequest request;
 
         if (_provider.HasValue)
-        {
             request = ScriptRequest.Create(_taskDescription, _provider.Value, _model);
-        }
         else
-        {
             request = ScriptRequest.Create(_taskDescription);
-        }
 
         // Set additional properties
-        if (_scriptType.HasValue)
-        {
-            request = request with { ScriptType = _scriptType.Value };
-        }
+        if (_scriptType.HasValue) request = request with { ScriptType = _scriptType.Value };
 
-        if (_forceExecution)
-        {
-            request = request with { ForceExecution = _forceExecution };
-        }
+        if (_forceExecution) request = request with { ForceExecution = _forceExecution };
 
-        if (_workingDirectory != null)
-        {
-            request = request with { WorkingDirectory = _workingDirectory };
-        }
+        if (_workingDirectory != null) request = request with { WorkingDirectory = _workingDirectory };
 
         // Add additional parameters
-        foreach (var kvp in _additionalParameters)
-        {
-            request.AdditionalParameters[kvp.Key] = kvp.Value;
-        }
+        foreach (var kvp in _additionalParameters) request.AdditionalParameters[kvp.Key] = kvp.Value;
 
         return request;
     }

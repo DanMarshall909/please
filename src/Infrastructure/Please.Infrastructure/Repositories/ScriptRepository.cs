@@ -14,10 +14,7 @@ public class ScriptRepository : IScriptRepository
 
     public Task<VoidResult> SaveScriptAsync(ScriptResponse response, CancellationToken cancellationToken = default)
     {
-        if (response == null)
-        {
-            return Task.FromResult(VoidResult.Failure("Script response cannot be null"));
-        }
+        if (response == null) return Task.FromResult(VoidResult.Failure("Script response cannot be null"));
 
         lock (_lock)
         {
@@ -49,19 +46,13 @@ public class ScriptRepository : IScriptRepository
             var query = _scripts.AsEnumerable();
 
             // Filter by date if specified
-            if (since.HasValue)
-            {
-                query = query.Where(s => s.CreatedAt >= since.Value);
-            }
+            if (since.HasValue) query = query.Where(s => s.CreatedAt >= since.Value);
 
             // Order by most recent first
             query = query.OrderByDescending(s => s.CreatedAt);
 
             // Apply count limit if specified
-            if (count.HasValue && count.Value > 0)
-            {
-                query = query.Take(count.Value);
-            }
+            if (count.HasValue && count.Value > 0) query = query.Take(count.Value);
 
             var results = query.ToList();
             return Task.FromResult(Result<IEnumerable<ScriptResponse>>.Success(results));
@@ -82,7 +73,7 @@ public class ScriptRepository : IScriptRepository
     {
         lock (_lock)
         {
-            var hasHistory = _scripts.Count > 0;
+            bool hasHistory = _scripts.Count > 0;
             return Task.FromResult(Result<bool>.Success(hasHistory));
         }
     }

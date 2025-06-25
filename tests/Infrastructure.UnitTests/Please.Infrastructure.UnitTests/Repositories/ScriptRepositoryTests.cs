@@ -1,5 +1,3 @@
-using Please.Domain.Entities;
-using Please.Domain.Enums;
 using Please.Infrastructure.Repositories;
 using Please.TestUtilities.Builders;
 
@@ -106,7 +104,7 @@ public class ScriptRepositoryTests
     {
         // Arrange
         var repository = new ScriptRepository();
-        for (int i = 0; i < 5; i++)
+        for (var i = 0; i < 5; i++)
         {
             var script = ScriptResponseBuilder.Create()
                 .WithScript($"Script{i}")
@@ -115,7 +113,7 @@ public class ScriptRepositoryTests
         }
 
         // Act
-        var result = await repository.GetScriptHistoryAsync(count: 3);
+        var result = await repository.GetScriptHistoryAsync(3);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();

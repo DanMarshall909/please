@@ -1,9 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Please.Domain.Common;
 using Please.Domain.Entities;
-using Please.Domain.Interfaces;
 using Please.Infrastructure.Serialization;
 
 namespace Please.Infrastructure.Providers;
@@ -20,40 +18,30 @@ public class OpenAiProvider : BaseHttpProvider<OpenAiConfiguration>
 
     protected override void ConfigureHttpClient()
     {
-        HttpClient.BaseAddress = new Uri(Configuration.BaseUrl);
+        // Ensure BaseUrl ends with '/' for proper URI combination
+        string baseUrl = Configuration.BaseUrl.TrimEnd('/') + "/";
+        HttpClient.BaseAddress = new Uri(baseUrl);
         HttpClient.Timeout = TimeSpan.FromSeconds(Configuration.TimeoutSeconds);
 
         if (!string.IsNullOrEmpty(Configuration.ApiKey))
-        {
             HttpClient.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Configuration.ApiKey);
-        }
     }
 
-    protected override bool IsConfigurationValid()
-    {
-        return !string.IsNullOrEmpty(Configuration.ApiKey) && Configuration.ApiKey != "your-api-key-here";
-    }
+    protected override bool IsConfigurationValid() =>
+        !string.IsNullOrEmpty(Configuration.ApiKey) && Configuration.ApiKey != "your-api-key-here";
 
-    protected override string GetConfigurationErrorMessage()
-    {
-        return "OpenAI API key not configured";
-    }
+    protected override string GetConfigurationErrorMessage() => "OpenAI API key not configured";
 
-    protected override string GetProviderName()
-    {
-        return "OpenAI";
-    }
+    protected override string GetProviderName() => "OpenAI";
 
-    protected override string GetModel(ScriptRequest request)
-    {
-        return request.Model ?? Configuration.DefaultModel;
-    }
+    protected override string GetModel(ScriptRequest request) => request.Model ?? Configuration.DefaultModel;
 
-    protected override Task<HttpRequestMessage> CreateHttpRequestAsync(ScriptRequest request, string model, CancellationToken cancellationToken)
+    protected override Task<HttpRequestMessage> CreateHttpRequestAsync(ScriptRequest request, string model,
+        CancellationToken cancellationToken)
     {
-        var systemPrompt = BuildSystemPrompt(request);
-        var userPrompt = BuildUserPrompt(request);
+        string systemPrompt = BuildSystemPrompt(request);
+        string userPrompt = BuildUserPrompt(request);
 
         var requestBody = new OpenAiRequest
         {
@@ -67,30 +55,25 @@ public class OpenAiProvider : BaseHttpProvider<OpenAiConfiguration>
             MaxTokens = 1000
         };
 
-        var json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.OpenAiRequest);
+        string json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.OpenAiRequest);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        return Task.FromResult(new HttpRequestMessage(HttpMethod.Post, "/chat/completions")
+        return Task.FromResult(new HttpRequestMessage(HttpMethod.Post, "chat/completions")
         {
             Content = content
         });
     }
 
-    protected override Task<string> ExtractScriptFromResponseAsync(string responseContent, CancellationToken cancellationToken)
+    protected override Task<string> ExtractScriptFromResponseAsync(string responseContent,
+        CancellationToken cancellationToken)
     {
         var apiResponse = JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.OpenAiResponse);
         return Task.FromResult(apiResponse?.Choices?.FirstOrDefault()?.Message?.Content?.Trim() ?? string.Empty);
     }
 
-    protected override HttpRequestMessage CreateHealthCheckRequest()
-    {
-        return new HttpRequestMessage(HttpMethod.Get, "/models");
-    }
+    protected override HttpRequestMessage CreateHealthCheckRequest() => new(HttpMethod.Get, "models");
 
-    public override string GetDefaultModel()
-    {
-        return Configuration.DefaultModel;
-    }
+    public override string GetDefaultModel() => Configuration.DefaultModel;
 
     public override string[] GetSupportedModels()
     {

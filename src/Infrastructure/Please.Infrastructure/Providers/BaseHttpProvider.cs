@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Please.Domain.Common;
 using Please.Domain.Entities;
@@ -25,16 +24,14 @@ public abstract class BaseHttpProvider<TConfig> : IProvider
         ConfigureHttpClient();
     }
 
-    public async Task<Result<string>> GenerateScriptAsync(ScriptRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<string>> GenerateScriptAsync(ScriptRequest request,
+        CancellationToken cancellationToken = default)
     {
         try
         {
-            if (!IsConfigurationValid())
-            {
-                return Result<string>.Failure(GetConfigurationErrorMessage());
-            }
+            if (!IsConfigurationValid()) return Result<string>.Failure(GetConfigurationErrorMessage());
 
-            var model = GetModel(request);
+            string model = GetModel(request);
             Logger.LogInformation("Sending request to {ProviderName} with model {Model}", GetProviderName(), model);
 
             var httpRequest = await CreateHttpRequestAsync(request, model, cancellationToken);
@@ -42,18 +39,16 @@ public abstract class BaseHttpProvider<TConfig> : IProvider
 
             if (!response.IsSuccessStatusCode)
             {
-                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-                Logger.LogError("{ProviderName} API error: {StatusCode} - {Content}", GetProviderName(), response.StatusCode, errorContent);
+                string errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                Logger.LogError("{ProviderName} API error: {StatusCode} - {Content}", GetProviderName(),
+                    response.StatusCode, errorContent);
                 return Result<string>.Failure($"{GetProviderName()} API error: {response.StatusCode}");
             }
 
-            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            var script = await ExtractScriptFromResponseAsync(responseContent, cancellationToken);
+            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            string script = await ExtractScriptFromResponseAsync(responseContent, cancellationToken);
 
-            if (string.IsNullOrEmpty(script))
-            {
-                return Result<string>.Failure($"Empty response from {GetProviderName()}");
-            }
+            if (string.IsNullOrEmpty(script)) return Result<string>.Failure($"Empty response from {GetProviderName()}");
 
             Logger.LogInformation("Successfully generated script using {ProviderName}", GetProviderName());
             return Result<string>.Success(script);
@@ -79,10 +74,7 @@ public abstract class BaseHttpProvider<TConfig> : IProvider
     {
         try
         {
-            if (!IsConfigurationValid())
-            {
-                return Result<bool>.Success(false);
-            }
+            if (!IsConfigurationValid()) return Result<bool>.Success(false);
 
             var healthCheckRequest = CreateHealthCheckRequest();
             var response = await HttpClient.SendAsync(healthCheckRequest, cancellationToken);
@@ -98,20 +90,28 @@ public abstract class BaseHttpProvider<TConfig> : IProvider
     public abstract string[] GetSupportedModels();
 
     // Protected methods that subclasses can override or implement
-    protected virtual void ConfigureHttpClient() { }
+    protected virtual void ConfigureHttpClient()
+    {
+    }
+
     protected abstract bool IsConfigurationValid();
     protected abstract string GetConfigurationErrorMessage();
     protected abstract string GetProviderName();
     protected abstract string GetModel(ScriptRequest request);
-    protected abstract Task<HttpRequestMessage> CreateHttpRequestAsync(ScriptRequest request, string model, CancellationToken cancellationToken);
-    protected abstract Task<string> ExtractScriptFromResponseAsync(string responseContent, CancellationToken cancellationToken);
+
+    protected abstract Task<HttpRequestMessage> CreateHttpRequestAsync(ScriptRequest request, string model,
+        CancellationToken cancellationToken);
+
+    protected abstract Task<string> ExtractScriptFromResponseAsync(string responseContent,
+        CancellationToken cancellationToken);
+
     protected abstract HttpRequestMessage CreateHealthCheckRequest();
 
     // Utility methods for prompt building
     protected virtual string BuildSystemPrompt(ScriptRequest request)
     {
-        var scriptTypeHint = request.ScriptType?.ToString().ToLower() ?? "shell script";
-        var platform = Environment.OSVersion.Platform == PlatformID.Win32NT ? "Windows" : "Unix/Linux";
+        string scriptTypeHint = request.ScriptType?.ToString().ToLower() ?? "shell script";
+        string platform = Environment.OSVersion.Platform == PlatformID.Win32NT ? "Windows" : "Unix/Linux";
 
         return $@"You are an expert {scriptTypeHint} developer. Generate safe, efficient, and well-commented scripts.
 
@@ -130,17 +130,12 @@ Guidelines:
         prompt.AppendLine($"Task: {request.TaskDescription}");
 
         if (!string.IsNullOrEmpty(request.WorkingDirectory))
-        {
             prompt.AppendLine($"Working Directory: {request.WorkingDirectory}");
-        }
 
         if (request.AdditionalParameters.Any())
         {
             prompt.AppendLine("Additional Context:");
-            foreach (var param in request.AdditionalParameters)
-            {
-                prompt.AppendLine($"- {param.Key}: {param.Value}");
-            }
+            foreach (var param in request.AdditionalParameters) prompt.AppendLine($"- {param.Key}: {param.Value}");
         }
 
         return prompt.ToString();
@@ -148,11 +143,12 @@ Guidelines:
 
     protected virtual string BuildPrompt(ScriptRequest request)
     {
-        var scriptTypeHint = request.ScriptType?.ToString().ToLower() ?? "shell script";
-        var platform = Environment.OSVersion.Platform == PlatformID.Win32NT ? "Windows" : "Unix/Linux";
+        string scriptTypeHint = request.ScriptType?.ToString().ToLower() ?? "shell script";
+        string platform = Environment.OSVersion.Platform == PlatformID.Win32NT ? "Windows" : "Unix/Linux";
 
         var prompt = new StringBuilder();
-        prompt.AppendLine($"You are an expert {scriptTypeHint} developer. Generate safe, efficient, and well-commented scripts.");
+        prompt.AppendLine(
+            $"You are an expert {scriptTypeHint} developer. Generate safe, efficient, and well-commented scripts.");
         prompt.AppendLine();
         prompt.AppendLine("Guidelines:");
         prompt.AppendLine($"- Write for {platform} platform");
@@ -165,17 +161,12 @@ Guidelines:
         prompt.AppendLine($"Task: {request.TaskDescription}");
 
         if (!string.IsNullOrEmpty(request.WorkingDirectory))
-        {
             prompt.AppendLine($"Working Directory: {request.WorkingDirectory}");
-        }
 
         if (request.AdditionalParameters.Any())
         {
             prompt.AppendLine("Additional Context:");
-            foreach (var param in request.AdditionalParameters)
-            {
-                prompt.AppendLine($"- {param.Key}: {param.Value}");
-            }
+            foreach (var param in request.AdditionalParameters) prompt.AppendLine($"- {param.Key}: {param.Value}");
         }
 
         prompt.AppendLine();

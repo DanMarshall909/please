@@ -24,7 +24,7 @@ public class ScriptGenerationIntegrationTests
         // Register real implementations - this tests actual behavior
         services.AddTransient<IScriptValidationService, TestScriptValidationService>();
         services.AddTransient<IScriptGenerator, TestScriptGenerator>();
-        var testRepo = new TestScriptRepository();
+        TestScriptRepository testRepo = new ();
         services.AddSingleton<IScriptRepository>(testRepo);
         services.AddSingleton(testRepo);
         services.AddTransient<IScriptService, ScriptService>();
@@ -208,10 +208,11 @@ internal class TestScriptGenerator : IScriptGenerator
 
     public string GetFallbackModel(ScriptRequest request) => "gpt-3.5-turbo";
 
-    public Task<Result<ScriptResponse>> GenerateFixedScriptAsync(string originalScript, string errorMessage, ScriptRequest request, CancellationToken cancellationToken = default)
+    public Task<Result<ScriptResponse>> GenerateFixedScriptAsync(string originalScript, string errorMessage,
+        ScriptRequest request, CancellationToken cancellationToken = default)
     {
         // For integration tests, generate a fixed version of the script
-        var fixedScript = originalScript.Contains("dangerous")
+        string fixedScript = originalScript.Contains("dangerous")
             ? "echo 'Fixed dangerous script'"
             : $"# Fixed script based on error: {errorMessage}\n{originalScript}";
 

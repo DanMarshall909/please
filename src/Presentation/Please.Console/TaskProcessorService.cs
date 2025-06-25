@@ -10,7 +10,8 @@ public class TaskProcessor
     private readonly ILogger<TaskProcessor> _logger;
     private readonly CommandLineArguments _arguments;
 
-    public TaskProcessor(IServiceProvider serviceProvider, ILogger<TaskProcessor> logger, CommandLineArguments arguments)
+    public TaskProcessor(IServiceProvider serviceProvider, ILogger<TaskProcessor> logger,
+        CommandLineArguments arguments)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
@@ -25,7 +26,7 @@ public class TaskProcessor
             return;
         }
 
-        var taskDescription = _arguments.TaskDescription;
+        string taskDescription = _arguments.TaskDescription;
         _logger.LogInformation("Processing task: {TaskDescription}", taskDescription);
 
         // Demonstrate end-to-end functionality using direct services

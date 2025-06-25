@@ -77,18 +77,13 @@ public class ScriptResponseBuilder
     public ScriptResponse Build()
     {
         var response = _createdAt.HasValue
-            ? ScriptResponse.Create(_script, _taskDescription, _provider, _model, _scriptType, _riskLevel, _createdAt.Value)
+            ? ScriptResponse.Create(_script, _taskDescription, _provider, _model, _scriptType, _riskLevel,
+                _createdAt.Value)
             : ScriptResponse.Create(_script, _taskDescription, _provider, _model, _scriptType, _riskLevel);
 
-        foreach (var warning in _warnings)
-        {
-            response = response.WithWarning(warning);
-        }
+        foreach (var warning in _warnings) response = response.WithWarning(warning);
 
-        foreach (var safetyNote in _safetyNotes)
-        {
-            response = response.WithSafetyNote(safetyNote);
-        }
+        foreach (var safetyNote in _safetyNotes) response = response.WithSafetyNote(safetyNote);
 
         return response;
     }

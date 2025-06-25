@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Please.Infrastructure.Serialization;
@@ -44,8 +43,7 @@ public class OpenAiRequest
     public string Model { get; set; } = string.Empty;
     public OpenAiMessage[] Messages { get; set; } = Array.Empty<OpenAiMessage>();
     public double Temperature { get; set; }
-    [JsonPropertyName("max_tokens")]
-    public int MaxTokens { get; set; }
+    [JsonPropertyName("max_tokens")] public int MaxTokens { get; set; }
 }
 
 public class OpenAiResponse
@@ -68,8 +66,7 @@ public class OpenAiMessage
 public class AnthropicRequest
 {
     public string Model { get; set; } = string.Empty;
-    [JsonPropertyName("max_tokens")]
-    public int MaxTokens { get; set; }
+    [JsonPropertyName("max_tokens")] public int MaxTokens { get; set; }
     public string System { get; set; } = string.Empty;
     public AnthropicMessage[] Messages { get; set; } = Array.Empty<AnthropicMessage>();
 }
@@ -109,16 +106,14 @@ public class OllamaResponse
 public class OllamaRequestOptions
 {
     public double Temperature { get; set; }
-    [JsonPropertyName("num_predict")]
-    public int NumPredict { get; set; }
+    [JsonPropertyName("num_predict")] public int NumPredict { get; set; }
 }
 
 // Gemini Models
 public class GeminiRequest
 {
     public GeminiContentItem[] Contents { get; set; } = Array.Empty<GeminiContentItem>();
-    [JsonPropertyName("generationConfig")]
-    public GeminiGenerationConfig? GenerationConfig { get; set; }
+    [JsonPropertyName("generationConfig")] public GeminiGenerationConfig? GenerationConfig { get; set; }
 }
 
 public class GeminiResponse
@@ -149,8 +144,7 @@ public class GeminiContentItem
 public class GeminiGenerationConfig
 {
     public double Temperature { get; set; }
-    [JsonPropertyName("maxOutputTokens")]
-    public int MaxOutputTokens { get; set; }
+    [JsonPropertyName("maxOutputTokens")] public int MaxOutputTokens { get; set; }
 }
 
 // OpenRouter Models
@@ -159,8 +153,7 @@ public class OpenRouterRequest
     public string Model { get; set; } = string.Empty;
     public OpenRouterMessage[] Messages { get; set; } = Array.Empty<OpenRouterMessage>();
     public double Temperature { get; set; }
-    [JsonPropertyName("max_tokens")]
-    public int MaxTokens { get; set; }
+    [JsonPropertyName("max_tokens")] public int MaxTokens { get; set; }
 }
 
 public class OpenRouterResponse

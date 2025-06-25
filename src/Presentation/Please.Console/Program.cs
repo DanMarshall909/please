@@ -9,8 +9,8 @@ var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
         services.AddApplication(); // Register application services
-        services.AddInfrastructure();         // Register infrastructure services
-        services.AddSingleton(arguments);     // Register parsed command-line arguments
+        services.AddInfrastructure(); // Register infrastructure services
+        services.AddSingleton(arguments); // Register parsed command-line arguments
         services.AddTransient<TaskProcessor>(); // Register the TaskProcessor
     })
     .Build();

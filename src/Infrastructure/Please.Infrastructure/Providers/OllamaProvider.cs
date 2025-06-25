@@ -27,12 +27,13 @@ public class OllamaProvider : IProvider
         _httpClient.Timeout = TimeSpan.FromSeconds(_configuration.TimeoutSeconds);
     }
 
-    public async Task<Result<string>> GenerateScriptAsync(ScriptRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<string>> GenerateScriptAsync(ScriptRequest request,
+        CancellationToken cancellationToken = default)
     {
         try
         {
-            var model = request.Model ?? _configuration.DefaultModel;
-            var prompt = buildPrompt(request);
+            string model = request.Model ?? _configuration.DefaultModel;
+            string prompt = buildPrompt(request);
 
             var requestBody = new OllamaRequest
             {
@@ -46,7 +47,7 @@ public class OllamaProvider : IProvider
                 }
             };
 
-            var json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.OllamaRequest);
+            string json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.OllamaRequest);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             _logger.LogInformation("Sending request to Ollama with model {Model}", model);
@@ -55,20 +56,18 @@ public class OllamaProvider : IProvider
 
             if (!response.IsSuccessStatusCode)
             {
-                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                string errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
                 _logger.LogError("Ollama API error: {StatusCode} - {Content}", response.StatusCode, errorContent);
                 return Result<string>.Failure($"Ollama API error: {response.StatusCode}");
             }
 
-            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            var apiResponse = JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.OllamaResponse);
+            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            var apiResponse =
+                JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.OllamaResponse);
 
-            var script = apiResponse?.Response?.Trim();
+            string? script = apiResponse?.Response?.Trim();
 
-            if (string.IsNullOrEmpty(script))
-            {
-                return Result<string>.Failure("Empty response from Ollama");
-            }
+            if (string.IsNullOrEmpty(script)) return Result<string>.Failure("Empty response from Ollama");
 
             _logger.LogInformation("Successfully generated script using Ollama");
             return Result<string>.Success(script);
@@ -103,10 +102,7 @@ public class OllamaProvider : IProvider
         }
     }
 
-    public string GetDefaultModel()
-    {
-        return _configuration.DefaultModel;
-    }
+    public string GetDefaultModel() => _configuration.DefaultModel;
 
     public string[] GetSupportedModels()
     {
@@ -127,11 +123,12 @@ public class OllamaProvider : IProvider
 
     private string buildPrompt(ScriptRequest request)
     {
-        var scriptTypeHint = request.ScriptType?.ToString().ToLower() ?? "shell script";
-        var platform = Environment.OSVersion.Platform == PlatformID.Win32NT ? "Windows" : "Unix/Linux";
+        string scriptTypeHint = request.ScriptType?.ToString().ToLower() ?? "shell script";
+        string platform = Environment.OSVersion.Platform == PlatformID.Win32NT ? "Windows" : "Unix/Linux";
 
         var prompt = new StringBuilder();
-        prompt.AppendLine($"You are an expert {scriptTypeHint} developer. Generate safe, efficient, and well-commented scripts.");
+        prompt.AppendLine(
+            $"You are an expert {scriptTypeHint} developer. Generate safe, efficient, and well-commented scripts.");
         prompt.AppendLine();
         prompt.AppendLine("Guidelines:");
         prompt.AppendLine($"- Write for {platform} platform");
@@ -144,17 +141,12 @@ public class OllamaProvider : IProvider
         prompt.AppendLine($"Task: {request.TaskDescription}");
 
         if (!string.IsNullOrEmpty(request.WorkingDirectory))
-        {
             prompt.AppendLine($"Working Directory: {request.WorkingDirectory}");
-        }
 
         if (request.AdditionalParameters.Any())
         {
             prompt.AppendLine("Additional Context:");
-            foreach (var param in request.AdditionalParameters)
-            {
-                prompt.AppendLine($"- {param.Key}: {param.Value}");
-            }
+            foreach (var param in request.AdditionalParameters) prompt.AppendLine($"- {param.Key}: {param.Value}");
         }
 
         prompt.AppendLine();

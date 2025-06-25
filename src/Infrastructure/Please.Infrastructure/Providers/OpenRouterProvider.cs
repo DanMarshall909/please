@@ -1,9 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Please.Domain.Common;
 using Please.Domain.Entities;
-using Please.Domain.Interfaces;
 using Please.Infrastructure.Serialization;
 
 namespace Please.Infrastructure.Providers;
@@ -13,14 +11,17 @@ namespace Please.Infrastructure.Providers;
 /// </summary>
 public class OpenRouterProvider : BaseHttpProvider<OpenRouterConfiguration>
 {
-    public OpenRouterProvider(HttpClient httpClient, OpenRouterConfiguration configuration, ILogger<OpenRouterProvider> logger)
+    public OpenRouterProvider(HttpClient httpClient, OpenRouterConfiguration configuration,
+        ILogger<OpenRouterProvider> logger)
         : base(httpClient, configuration, logger)
     {
     }
 
     protected override void ConfigureHttpClient()
     {
-        HttpClient.BaseAddress = new Uri(Configuration.BaseUrl);
+        // Ensure BaseUrl ends with '/' for proper URI combination
+        string baseUrl = Configuration.BaseUrl.TrimEnd('/') + "/";
+        HttpClient.BaseAddress = new Uri(baseUrl);
         HttpClient.Timeout = TimeSpan.FromSeconds(Configuration.TimeoutSeconds);
 
         if (!string.IsNullOrEmpty(Configuration.ApiKey))
@@ -32,30 +33,19 @@ public class OpenRouterProvider : BaseHttpProvider<OpenRouterConfiguration>
         }
     }
 
-    protected override bool IsConfigurationValid()
-    {
-        return !string.IsNullOrEmpty(Configuration.ApiKey);
-    }
+    protected override bool IsConfigurationValid() => !string.IsNullOrEmpty(Configuration.ApiKey);
 
-    protected override string GetConfigurationErrorMessage()
-    {
-        return "OpenRouter API key not configured";
-    }
+    protected override string GetConfigurationErrorMessage() => "OpenRouter API key not configured";
 
-    protected override string GetProviderName()
-    {
-        return "OpenRouter";
-    }
+    protected override string GetProviderName() => "OpenRouter";
 
-    protected override string GetModel(ScriptRequest request)
-    {
-        return request.Model ?? Configuration.DefaultModel;
-    }
+    protected override string GetModel(ScriptRequest request) => request.Model ?? Configuration.DefaultModel;
 
-    protected override Task<HttpRequestMessage> CreateHttpRequestAsync(ScriptRequest request, string model, CancellationToken cancellationToken)
+    protected override Task<HttpRequestMessage> CreateHttpRequestAsync(ScriptRequest request, string model,
+        CancellationToken cancellationToken)
     {
-        var systemPrompt = BuildSystemPrompt(request);
-        var userPrompt = BuildUserPrompt(request);
+        string systemPrompt = BuildSystemPrompt(request);
+        string userPrompt = BuildUserPrompt(request);
 
         var requestBody = new OpenRouterRequest
         {
@@ -69,30 +59,26 @@ public class OpenRouterProvider : BaseHttpProvider<OpenRouterConfiguration>
             MaxTokens = 1000
         };
 
-        var json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.OpenRouterRequest);
+        string json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.OpenRouterRequest);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        return Task.FromResult(new HttpRequestMessage(HttpMethod.Post, "/chat/completions")
+        return Task.FromResult(new HttpRequestMessage(HttpMethod.Post, "chat/completions")
         {
             Content = content
         });
     }
 
-    protected override Task<string> ExtractScriptFromResponseAsync(string responseContent, CancellationToken cancellationToken)
+    protected override Task<string> ExtractScriptFromResponseAsync(string responseContent,
+        CancellationToken cancellationToken)
     {
-        var apiResponse = JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.OpenRouterResponse);
+        var apiResponse =
+            JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.OpenRouterResponse);
         return Task.FromResult(apiResponse?.Choices?.FirstOrDefault()?.Message?.Content?.Trim() ?? string.Empty);
     }
 
-    protected override HttpRequestMessage CreateHealthCheckRequest()
-    {
-        return new HttpRequestMessage(HttpMethod.Get, "/models");
-    }
+    protected override HttpRequestMessage CreateHealthCheckRequest() => new(HttpMethod.Get, "models");
 
-    public override string GetDefaultModel()
-    {
-        return Configuration.DefaultModel;
-    }
+    public override string GetDefaultModel() => Configuration.DefaultModel;
 
     public override string[] GetSupportedModels()
     {

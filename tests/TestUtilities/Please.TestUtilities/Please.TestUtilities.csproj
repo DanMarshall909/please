@@ -1,25 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <AssemblyName>Please.TestUtilities</AssemblyName>
-        <Description>Testing doubles for Please</Description>
-        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-        <IsPackable>false</IsPackable>
-        <IsTestProject>false</IsTestProject>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Please.TestUtilities</AssemblyName>
+    <Description>Testing doubles for Please</Description>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>false</IsTestProject>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="../../../src/Domain/Please.Domain/Please.Domain.csproj"/>
-        <ProjectReference Include="../../../src/Application/Please.Application/Please.Application.csproj"/>
-        <ProjectReference Include="../../../src/Presentation/Please.Console/Please.Console.csproj"/>
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../src/Domain/Please.Domain/Please.Domain.csproj"/>
+    <ProjectReference Include="../../../src/Application/Please.Application/Please.Application.csproj"/>
+    <ProjectReference Include="../../../src/Presentation/Please.Console/Please.Console.csproj"/>
+  </ItemGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0"/>
-        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0"/>
-        <PackageReference Include="Shouldly" Version="4.3.0"/>
-        <PackageReference Include="xunit" Version="2.9.2"/>
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0"/>
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0"/>
+    <PackageReference Include="Shouldly" Version="4.3.0"/>
+    <PackageReference Include="xunit" Version="2.9.2"/>
+  </ItemGroup>
 </Project>
