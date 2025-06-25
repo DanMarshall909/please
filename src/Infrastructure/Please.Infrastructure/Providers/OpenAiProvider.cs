@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Interfaces;
+using Please.Infrastructure.Serialization;
 
 namespace Please.Infrastructure.Providers;
 
@@ -58,13 +59,7 @@ public class OpenAiProvider : IProvider
                 MaxTokens = 1000
             };
 
-            var options = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            };
-
-            var json = JsonSerializer.Serialize(requestBody, options);
+            var json = JsonSerializer.Serialize(requestBody, ApiSerializationContext.Default.OpenAiRequest);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             _logger.LogInformation("Sending request to OpenAI with model {Model}", model);
@@ -79,7 +74,7 @@ public class OpenAiProvider : IProvider
             }
 
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            var apiResponse = JsonSerializer.Deserialize<OpenAiResponse>(responseContent, options);
+            var apiResponse = JsonSerializer.Deserialize(responseContent, ApiSerializationContext.Default.OpenAiResponse);
 
             var script = apiResponse?.Choices?.FirstOrDefault()?.Message?.Content?.Trim();
 
@@ -180,35 +175,4 @@ Guidelines:
 
         return prompt.ToString();
     }
-}
-
-/// <summary>
-/// OpenAI API request structure
-/// </summary>
-internal class OpenAiRequest
-{
-    public string Model { get; set; } = string.Empty;
-    public OpenAiMessage[] Messages { get; set; } = Array.Empty<OpenAiMessage>();
-    public double Temperature { get; set; }
-    [JsonPropertyName("max_tokens")]
-    public int MaxTokens { get; set; }
-}
-
-/// <summary>
-/// OpenAI API response structure
-/// </summary>
-internal class OpenAiResponse
-{
-    public OpenAiChoice[]? Choices { get; set; }
-}
-
-internal class OpenAiChoice
-{
-    public OpenAiMessage? Message { get; set; }
-}
-
-internal class OpenAiMessage
-{
-    public string Role { get; set; } = string.Empty;
-    public string? Content { get; set; }
 }
