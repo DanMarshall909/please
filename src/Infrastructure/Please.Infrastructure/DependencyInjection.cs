@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Please.Domain.Interfaces;
+using Please.Domain.Services;
 using Please.Infrastructure.Providers;
 using Please.Infrastructure.Repositories;
 using Please.Infrastructure.Services;
@@ -93,6 +94,7 @@ public static class DependencyInjection
 
         // Register services
         services.AddSingleton<IScriptGenerator, ScriptGenerator>();
+        services.AddSingleton<IScriptValidationService, ScriptValidationService>();
         services.AddSingleton<IContextService, ContextService>();
         services.AddSingleton<IScriptExecutor, PowerShellScriptExecutor>();
         services.AddSingleton<IUserConfirmation, ConsoleUserConfirmation>();

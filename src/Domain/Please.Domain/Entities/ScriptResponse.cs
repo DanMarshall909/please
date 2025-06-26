@@ -75,6 +75,22 @@ public partial record ScriptResponse
     {
         RiskLevel = riskLevel
     };
+
+    /// <summary>
+    /// Sets the warnings collection
+    /// </summary>
+    public ScriptResponse WithWarnings(IEnumerable<string> warnings) => this with
+    {
+        Warnings = warnings.Select(w => new Warning(w)).ToList()
+    };
+
+    /// <summary>
+    /// Sets the safety notes collection
+    /// </summary>
+    public ScriptResponse WithSafetyNotes(IEnumerable<string> safetyNotes) => this with
+    {
+        SafetyNotes = safetyNotes.Select(n => new SafetyNote(n)).ToList()
+    };
 }
 
 public interface IMessage
