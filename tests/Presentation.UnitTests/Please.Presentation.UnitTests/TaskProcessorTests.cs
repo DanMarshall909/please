@@ -6,7 +6,6 @@ using Please.Domain.Common;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
 using Please.Domain.Interfaces;
-using Please.TestUtilities.Builders;
 
 namespace Please.Presentation.UnitTests
 {
@@ -16,133 +15,133 @@ namespace Please.Presentation.UnitTests
         private readonly ILogger<TaskProcessor> _logger;
         private readonly IScriptService _scriptService;
         private readonly IScriptExecutor _scriptExecutor;
-        private readonly IUserConfirmation _userConfirmation;
+        private readonly IConsoleUIService _consoleUI;
 
         public TaskProcessorTests()
         {
             _scriptService = Substitute.For<IScriptService>();
             _scriptExecutor = Substitute.For<IScriptExecutor>();
-            _userConfirmation = Substitute.For<IUserConfirmation>();
+            _consoleUI = Substitute.For<IConsoleUIService>();
             _logger = Substitute.For<ILogger<TaskProcessor>>();
 
             var services = new ServiceCollection();
             services.AddSingleton(_scriptService);
             services.AddSingleton(_scriptExecutor);
-            services.AddSingleton(_userConfirmation);
             _serviceProvider = services.BuildServiceProvider();
         }
 
+        private static ScriptResponse CreateScriptResponse(string script = "echo 'Hello World'")
+        {
+            return ScriptResponse.Create(
+                script,
+                "test task description",
+                ProviderType.OpenAi,
+                "gpt-3.5-turbo",
+                ScriptType.PowerShell,
+                RiskLevel.Low);
+        }
+
         [Fact]
-        public async Task ProcessTaskAsync_WhenUserConfirmsExecution_ExecutesScript()
+        public async Task ProcessTaskAsync_WhenUserSelectsExecuteScript_ExecutesScript()
         {
             // Arrange
             var arguments = CommandLineArguments.Parse(new[] { "create a test file" });
-            var scriptResponse = ScriptResponseBuilder.Create()
-                .WithScript("echo 'Hello World'")
-                .WithProvider(ProviderType.OpenAi)
-                .WithModel("gpt-3.5-turbo")
-                .Build();
+            var scriptResponse = CreateScriptResponse("echo 'Hello World'");
 
             _scriptService.GenerateScriptAsync(Arg.Any<ScriptRequest>())
                 .Returns(Result<ScriptResponse>.Success(scriptResponse));
 
-            _userConfirmation.AskForConfirmation(Arg.Any<string>(), Arg.Any<string>())
-                .Returns(true);
+            // Mock progress display to return the script service result
+            _consoleUI.DisplayProgressAsync(Arg.Any<string>(), Arg.Any<Func<Task<Result<ScriptResponse>>>>())
+                .Returns(callInfo => callInfo.Arg<Func<Task<Result<ScriptResponse>>>>()());
+
+            // Mock interactive menu to return "Execute script now" (index 0)
+            _consoleUI.DisplayInteractiveMenu(Arg.Any<string[]>())
+                .Returns(0);
+
+            // Mock execution progress display
+            _consoleUI.DisplayProgressAsync(Arg.Any<string>(), Arg.Any<Func<Task>>())
+                .Returns(callInfo => callInfo.Arg<Func<Task>>()());
 
             _scriptExecutor.ExecuteScriptAsync(Arg.Any<string>())
                 .Returns(Result<string>.Success("Script executed successfully"));
 
-            var taskProcessor = new TaskProcessor(_serviceProvider, _logger, arguments);
+            var taskProcessor = new TaskProcessor(_serviceProvider, _logger, arguments, _consoleUI);
 
             // Act
             await taskProcessor.ProcessTaskAsync();
 
             // Assert
             await _scriptExecutor.Received(1).ExecuteScriptAsync("echo 'Hello World'");
+            _consoleUI.Received(1).DisplayBanner("6.0.0", "AI-Powered PowerShell Script Generator");
+            _consoleUI.Received(1).DisplayScript("echo 'Hello World'", Arg.Any<string>());
         }
 
         [Fact]
-        public async Task ProcessTaskAsync_WhenUserDeclinesExecution_DoesNotExecuteScript()
+        public async Task ProcessTaskAsync_WhenUserSelectsCancel_DoesNotExecuteScript()
         {
             // Arrange
             var arguments = CommandLineArguments.Parse(new[] { "create a test file" });
-            var scriptResponse = ScriptResponseBuilder.Create()
-                .WithScript("echo 'Hello World'")
-                .WithProvider(ProviderType.OpenAi)
-                .WithModel("gpt-3.5-turbo")
-                .Build();
+            var scriptResponse = CreateScriptResponse("echo 'Hello World'");
 
             _scriptService.GenerateScriptAsync(Arg.Any<ScriptRequest>())
                 .Returns(Result<ScriptResponse>.Success(scriptResponse));
 
-            _userConfirmation.AskForConfirmation(Arg.Any<string>(), Arg.Any<string>())
-                .Returns(false);
+            // Mock progress display to return the script service result
+            _consoleUI.DisplayProgressAsync(Arg.Any<string>(), Arg.Any<Func<Task<Result<ScriptResponse>>>>())
+                .Returns(callInfo => callInfo.Arg<Func<Task<Result<ScriptResponse>>>>()());
 
-            var taskProcessor = new TaskProcessor(_serviceProvider, _logger, arguments);
+            // Mock interactive menu to return "Cancel" (index 3)
+            _consoleUI.DisplayInteractiveMenu(Arg.Any<string[]>())
+                .Returns(3);
+
+            var taskProcessor = new TaskProcessor(_serviceProvider, _logger, arguments, _consoleUI);
 
             // Act
             await taskProcessor.ProcessTaskAsync();
 
             // Assert
             await _scriptExecutor.DidNotReceive().ExecuteScriptAsync(Arg.Any<string>());
+            _consoleUI.Received(1).DisplayScript("Operation cancelled by user", "Information");
         }
 
         [Fact]
-        public async Task ProcessTaskAsync_WhenScriptExecutionFails_DoesNotThrow()
+        public async Task ProcessTaskAsync_WhenScriptGenerationFails_ShowsError()
         {
             // Arrange
             var arguments = CommandLineArguments.Parse(new[] { "create a test file" });
-            var scriptResponse = ScriptResponseBuilder.Create()
-                .WithScript("invalid command")
-                .WithProvider(ProviderType.OpenAi)
-                .WithModel("gpt-3.5-turbo")
-                .Build();
 
             _scriptService.GenerateScriptAsync(Arg.Any<ScriptRequest>())
-                .Returns(Result<ScriptResponse>.Success(scriptResponse));
+                .Returns(Result<ScriptResponse>.Failure("API connection failed"));
 
-            _userConfirmation.AskForConfirmation(Arg.Any<string>(), Arg.Any<string>())
-                .Returns(true);
+            // Mock progress display to return the script service result
+            _consoleUI.DisplayProgressAsync(Arg.Any<string>(), Arg.Any<Func<Task<Result<ScriptResponse>>>>())
+                .Returns(callInfo => callInfo.Arg<Func<Task<Result<ScriptResponse>>>>()());
 
-            _scriptExecutor.ExecuteScriptAsync(Arg.Any<string>())
-                .Returns(Result<string>.Failure("Command not found"));
+            var taskProcessor = new TaskProcessor(_serviceProvider, _logger, arguments, _consoleUI);
 
-            var taskProcessor = new TaskProcessor(_serviceProvider, _logger, arguments);
-
-            // Act & Assert - should not throw
+            // Act
             await taskProcessor.ProcessTaskAsync();
 
-            // Verify script execution was attempted
-            await _scriptExecutor.Received(1).ExecuteScriptAsync("invalid command");
+            // Assert
+            _consoleUI.Received(1).DisplayRiskWarning("HIGH", Arg.Is<string[]>(arr =>
+                arr.Contains("Script generation failed") && arr.Contains("Error: API connection failed")));
         }
 
         [Fact]
-        public async Task ProcessTaskAsync_WhenScriptExecutionSucceeds_CompletesSuccessfully()
+        public async Task ProcessTaskAsync_WhenNoArgumentsProvided_ShowsWarning()
         {
             // Arrange
-            var arguments = CommandLineArguments.Parse(new[] { "create a test file" });
-            var scriptResponse = ScriptResponseBuilder.Create()
-                .WithScript("echo 'Hello World'")
-                .WithProvider(ProviderType.OpenAi)
-                .WithModel("gpt-3.5-turbo")
-                .Build();
+            var arguments = CommandLineArguments.Parse(new string[0]);
+            var taskProcessor = new TaskProcessor(_serviceProvider, _logger, arguments, _consoleUI);
 
-            _scriptService.GenerateScriptAsync(Arg.Any<ScriptRequest>())
-                .Returns(Result<ScriptResponse>.Success(scriptResponse));
-
-            _userConfirmation.AskForConfirmation(Arg.Any<string>(), Arg.Any<string>())
-                .Returns(true);
-
-            _scriptExecutor.ExecuteScriptAsync(Arg.Any<string>())
-                .Returns(Result<string>.Success("Hello World"));
-
-            var taskProcessor = new TaskProcessor(_serviceProvider, _logger, arguments);
-
-            // Act & Assert - should not throw
+            // Act
             await taskProcessor.ProcessTaskAsync();
 
-            // Verify script execution was attempted
-            await _scriptExecutor.Received(1).ExecuteScriptAsync("echo 'Hello World'");
+            // Assert
+            _consoleUI.Received(1).DisplayBanner("6.0.0", "AI-Powered PowerShell Script Generator");
+            _consoleUI.Received(1).DisplayRiskWarning("HIGH", Arg.Is<string[]>(arr =>
+                arr.Contains("No task description provided")));
         }
     }
 }
