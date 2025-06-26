@@ -1,3 +1,6 @@
+using Please.Domain.Entities;
+using Please.Domain.Enums;
+
 namespace Please.Domain.Interfaces;
 
 /// <summary>
@@ -48,4 +51,38 @@ public interface IConsoleUIService
     /// <param name="version">Application version</param>
     /// <param name="description">Application description</param>
     void DisplayBanner(string version, string description);
+
+    /// <summary>
+    /// Display script with enhanced syntax highlighting
+    /// </summary>
+    /// <param name="script">Script content</param>
+    /// <param name="title">Script title</param>
+    /// <param name="scriptType">Type of script for syntax highlighting</param>
+    void DisplayScriptWithSyntaxHighlighting(string script, string title, ScriptType scriptType);
+
+    /// <summary>
+    /// Display complete script response with all metadata
+    /// </summary>
+    /// <param name="response">Script response to display</param>
+    void DisplayScriptResponse(ScriptResponse response);
+
+    /// <summary>
+    /// Display safety notes in a formatted panel
+    /// </summary>
+    /// <param name="safetyNotes">List of safety notes</param>
+    void DisplaySafetyNotes(IEnumerable<string> safetyNotes);
+
+    /// <summary>
+    /// Display enhanced progress with multiple steps
+    /// </summary>
+    /// <param name="title">Progress title</param>
+    /// <param name="steps">Array of step descriptions</param>
+    /// <param name="stepAction">Action to execute for each step</param>
+    Task DisplayEnhancedProgressAsync(string title, string[] steps, Func<string, int, Task> stepAction);
+
+    /// <summary>
+    /// Display script preview with metadata
+    /// </summary>
+    /// <param name="response">Script response to preview</param>
+    void DisplayScriptPreview(ScriptResponse response);
 }
