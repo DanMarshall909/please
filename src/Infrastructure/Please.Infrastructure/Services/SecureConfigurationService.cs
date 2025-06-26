@@ -1,44 +1,46 @@
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Please.Domain.Enums;
 using Please.Domain.Interfaces;
-using Please.Domain.ValueObjects;
-#if WINDOWS
-using System.Security.Cryptography;
-#endif
 
 namespace Please.Infrastructure.Services;
 
 /// <summary>
-/// Secure configuration service that manages API keys with encryption and validation.
+/// Secure configuration service using .NET Data Protection API for cross-platform encryption.
 /// Priority chain: Environment Variables → Encrypted Storage → User Secrets → Interactive Prompt
 /// </summary>
-public class SecureConfigurationService : ISecureConfigurationService
+public class SecureConfigurationService : ISecureConfigurationService, IDisposable
 {
     private readonly ILogger<SecureConfigurationService> _logger;
+    private readonly IDataProtector _dataProtector;
+    private readonly IConfiguration _configuration;
     private readonly ISecureInputService _secureInputService;
-    private readonly Dictionary<ProviderType, SecureString> _memoryCache;
-    private readonly string _configDirectory;
-    private readonly string _encryptedConfigPath;
+    private readonly string _storageDirectory;
+    private readonly Dictionary<ProviderType, string> _memoryCache;
+    private readonly SemaphoreSlim _fileLock;
+    private bool _disposed;
 
     public SecureConfigurationService(
         ILogger<SecureConfigurationService> logger,
-        ISecureInputService secureInputService)
+        IDataProtectionProvider dataProtectionProvider,
+        IConfiguration configuration,
+        ISecureInputService secureInputService,
+        string? storageDirectory = null)
     {
         _logger = logger;
+        _dataProtector = dataProtectionProvider.CreateProtector("Please.ApiKeys");
+        _configuration = configuration;
         _secureInputService = secureInputService;
-        _memoryCache = new Dictionary<ProviderType, SecureString>();
 
-        // Store encrypted config in user's AppData directory
-        _configDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Please");
-        _encryptedConfigPath = Path.Combine(_configDirectory, "config.encrypted");
+        _storageDirectory = storageDirectory ?? Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            ".please", "keys");
 
-        ensureConfigDirectoryExists();
+        _memoryCache = new Dictionary<ProviderType, string>();
+        _fileLock = new SemaphoreSlim(1, 1);
+
+        ensureStorageDirectoryExists();
     }
 
     public async Task<string?> GetApiKeyAsync(ProviderType provider)
@@ -51,16 +53,15 @@ public class SecureConfigurationService : ISecureConfigurationService
             if (_memoryCache.TryGetValue(provider, out var cachedKey))
             {
                 _logger.LogDebug("Found API key in memory cache for {Provider}", provider);
-                return cachedKey.ToUnsecureString();
+                return cachedKey;
             }
 
-            // Step 2: Check environment variables
+            // Step 2: Check environment variables (highest priority)
             var envKey = getEnvironmentVariableKey(provider);
             if (!string.IsNullOrEmpty(envKey))
             {
                 _logger.LogDebug("Found API key in environment variables for {Provider}", provider);
-                var secureKey = SecureString.Create(envKey);
-                _memoryCache[provider] = secureKey;
+                _memoryCache[provider] = envKey;
                 return envKey;
             }
 
@@ -69,19 +70,17 @@ public class SecureConfigurationService : ISecureConfigurationService
             if (!string.IsNullOrEmpty(storedKey))
             {
                 _logger.LogDebug("Found API key in encrypted storage for {Provider}", provider);
-                var secureKey = SecureString.Create(storedKey);
-                _memoryCache[provider] = secureKey;
+                _memoryCache[provider] = storedKey;
                 return storedKey;
             }
 
-            // Step 4: Check user secrets (development environment)
-            var userSecretKey = getUserSecretKey(provider);
-            if (!string.IsNullOrEmpty(userSecretKey))
+            // Step 4: Check configuration (User Secrets, appsettings.json)
+            var configKey = getConfigurationKey(provider);
+            if (!string.IsNullOrEmpty(configKey))
             {
-                _logger.LogDebug("Found API key in user secrets for {Provider}", provider);
-                var secureKey = SecureString.Create(userSecretKey);
-                _memoryCache[provider] = secureKey;
-                return userSecretKey;
+                _logger.LogDebug("Found API key in configuration for {Provider}", provider);
+                _memoryCache[provider] = configKey;
+                return configKey;
             }
 
             // Step 5: Interactive prompt as last resort
@@ -91,8 +90,7 @@ public class SecureConfigurationService : ISecureConfigurationService
             {
                 // Store the key for future use
                 await StoreApiKeyAsync(provider, promptedKey);
-                var secureKey = SecureString.Create(promptedKey);
-                _memoryCache[provider] = secureKey;
+                _memoryCache[provider] = promptedKey;
                 return promptedKey;
             }
 
@@ -108,36 +106,34 @@ public class SecureConfigurationService : ISecureConfigurationService
 
     public async Task StoreApiKeyAsync(ProviderType provider, string apiKey)
     {
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            throw new ArgumentException("API key cannot be null or empty", nameof(apiKey));
+        }
+
         try
         {
             _logger.LogDebug("Storing API key for provider: {Provider}", provider);
 
-            // Validate the API key first
-            if (string.IsNullOrWhiteSpace(apiKey))
+            await _fileLock.WaitAsync();
+            try
             {
-                throw new ArgumentException("API key cannot be null or empty", nameof(apiKey));
-            }
+                var filePath = getKeyFilePath(provider);
+                var keyBytes = System.Text.Encoding.UTF8.GetBytes(apiKey);
+                var encryptedBytes = _dataProtector.Protect(keyBytes);
+                var encryptedBase64 = Convert.ToBase64String(encryptedBytes);
 
-            if (!_secureInputService.ValidateSecureInput(apiKey))
+                await File.WriteAllTextAsync(filePath, encryptedBase64);
+
+                // Update memory cache
+                _memoryCache[provider] = apiKey;
+
+                _logger.LogInformation("API key stored successfully for {Provider}", provider);
+            }
+            finally
             {
-                throw new ArgumentException("API key contains invalid characters", nameof(apiKey));
+                _fileLock.Release();
             }
-
-            // Load existing config or create new
-            var config = await loadEncryptedConfigAsync() ?? new Dictionary<string, string>();
-
-            // Encrypt and store the API key
-            var encryptedKey = encryptString(apiKey);
-            config[provider.ToString()] = encryptedKey;
-
-            // Save the updated config
-            await saveEncryptedConfigAsync(config);
-
-            // Update memory cache
-            var secureKey = SecureString.Create(apiKey);
-            _memoryCache[provider] = secureKey;
-
-            _logger.LogInformation("API key stored successfully for {Provider}", provider);
         }
         catch (Exception ex)
         {
@@ -156,17 +152,8 @@ public class SecureConfigurationService : ISecureConfigurationService
                 return false;
             }
 
-            // Basic format validation
-            if (apiKey.Length < 20 || apiKey.Length > 200)
-            {
-                _logger.LogWarning("API key for {Provider} has invalid length: {Length}", provider, apiKey.Length);
-                return false;
-            }
-
-            // For now, we'll just do basic validation
-            // In a full implementation, you'd make a minimal API call to validate
-            _logger.LogDebug("API key for {Provider} passed basic validation", provider);
-            return true;
+            // Basic format validation - in production, you'd make actual API calls
+            return apiKey.Length >= 20 && apiKey.Length <= 200;
         }
         catch (Exception ex)
         {
@@ -194,20 +181,8 @@ public class SecureConfigurationService : ISecureConfigurationService
         try
         {
             _logger.LogDebug("Clearing sensitive data from memory");
-
-            // Dispose all cached secure strings
-            foreach (var kvp in _memoryCache)
-            {
-                kvp.Value?.Dispose();
-            }
-
             _memoryCache.Clear();
-
-            // Force garbage collection to clear any remaining sensitive data
             GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-
             _logger.LogDebug("Sensitive data cleared from memory");
         }
         catch (Exception ex)
@@ -222,12 +197,9 @@ public class SecureConfigurationService : ISecureConfigurationService
         return Environment.GetEnvironmentVariable(envVarName) ?? string.Empty;
     }
 
-    private string getUserSecretKey(ProviderType provider)
+    private string getConfigurationKey(ProviderType provider)
     {
-        // In a real implementation, this would read from user secrets
-        // For now, we'll just check a simple pattern
-        var secretName = $"Please:{provider}:ApiKey";
-        return Environment.GetEnvironmentVariable(secretName) ?? string.Empty;
+        return _configuration[$"Providers:{provider}:ApiKey"] ?? string.Empty;
     }
 
     private async Task<string> promptForApiKeyAsync(ProviderType provider)
@@ -240,12 +212,24 @@ public class SecureConfigurationService : ISecureConfigurationService
     {
         try
         {
-            var config = await loadEncryptedConfigAsync();
-            if (config?.TryGetValue(provider.ToString(), out var encryptedKey) == true)
+            var filePath = getKeyFilePath(provider);
+            if (!File.Exists(filePath))
             {
-                return decryptString(encryptedKey);
+                return null;
             }
-            return null;
+
+            await _fileLock.WaitAsync();
+            try
+            {
+                var encryptedBase64 = await File.ReadAllTextAsync(filePath);
+                var encryptedBytes = Convert.FromBase64String(encryptedBase64);
+                var decryptedBytes = _dataProtector.Unprotect(encryptedBytes);
+                return System.Text.Encoding.UTF8.GetString(decryptedBytes);
+            }
+            finally
+            {
+                _fileLock.Release();
+            }
         }
         catch (Exception ex)
         {
@@ -254,118 +238,35 @@ public class SecureConfigurationService : ISecureConfigurationService
         }
     }
 
-    private async Task<Dictionary<string, string>?> loadEncryptedConfigAsync()
+    private string getKeyFilePath(ProviderType provider)
     {
-        try
-        {
-            if (!File.Exists(_encryptedConfigPath))
-            {
-                return null;
-            }
-
-            var encryptedContent = await File.ReadAllTextAsync(_encryptedConfigPath);
-            var jsonContent = decryptString(encryptedContent);
-
-            return JsonSerializer.Deserialize<Dictionary<string, string>>(jsonContent);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error loading encrypted configuration");
-            return null;
-        }
+        return Path.Combine(_storageDirectory, $"{provider.ToString().ToLowerInvariant()}.key");
     }
 
-    private async Task saveEncryptedConfigAsync(Dictionary<string, string> config)
+    private void ensureStorageDirectoryExists()
     {
         try
         {
-            var jsonContent = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
-            var encryptedContent = encryptString(jsonContent);
-
-            await File.WriteAllTextAsync(_encryptedConfigPath, encryptedContent);
-
-            // Set file permissions to be more restrictive (Windows)
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (!Directory.Exists(_storageDirectory))
             {
-                var fileInfo = new FileInfo(_encryptedConfigPath);
-                var fileSecurity = fileInfo.GetAccessControl();
-                // In a full implementation, you'd set more restrictive permissions here
+                Directory.CreateDirectory(_storageDirectory);
+                _logger.LogDebug("Created storage directory: {Directory}", _storageDirectory);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error saving encrypted configuration");
+            _logger.LogError(ex, "Error creating storage directory: {Directory}", _storageDirectory);
             throw;
         }
     }
 
-    private string encryptString(string plainText)
+    public void Dispose()
     {
-        // For now, use simple AES encryption for all platforms
-        // In production, you'd use Windows DPAPI on Windows
-        var key = getMachineSpecificKey();
-        using var aes = Aes.Create();
-        aes.Key = key;
-        aes.GenerateIV();
-
-        using var encryptor = aes.CreateEncryptor();
-        var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
-        var encryptedBytes = encryptor.TransformFinalBlock(plainTextBytes, 0, plainTextBytes.Length);
-
-        // Combine IV and encrypted data
-        var combined = new byte[aes.IV.Length + encryptedBytes.Length];
-        Array.Copy(aes.IV, 0, combined, 0, aes.IV.Length);
-        Array.Copy(encryptedBytes, 0, combined, aes.IV.Length, encryptedBytes.Length);
-
-        return Convert.ToBase64String(combined);
-    }
-
-    private string decryptString(string encryptedText)
-    {
-        // For now, use simple AES decryption for all platforms
-        // In production, you'd use Windows DPAPI on Windows
-        var key = getMachineSpecificKey();
-        var combined = Convert.FromBase64String(encryptedText);
-
-        using var aes = Aes.Create();
-        aes.Key = key;
-
-        // Extract IV and encrypted data
-        var iv = new byte[16]; // AES block size
-        var encryptedBytes = new byte[combined.Length - 16];
-        Array.Copy(combined, 0, iv, 0, 16);
-        Array.Copy(combined, 16, encryptedBytes, 0, encryptedBytes.Length);
-
-        aes.IV = iv;
-        using var decryptor = aes.CreateDecryptor();
-        var decryptedBytes = decryptor.TransformFinalBlock(encryptedBytes, 0, encryptedBytes.Length);
-
-        return Encoding.UTF8.GetString(decryptedBytes);
-    }
-
-    private byte[] getMachineSpecificKey()
-    {
-        // Generate a machine-specific key based on hardware characteristics
-        // This is a simplified approach - in production you'd want more robust key derivation
-        var machineInfo = Environment.MachineName + Environment.UserName + Environment.OSVersion.ToString();
-        using var sha256 = SHA256.Create();
-        return sha256.ComputeHash(Encoding.UTF8.GetBytes(machineInfo));
-    }
-
-    private void ensureConfigDirectoryExists()
-    {
-        try
+        if (!_disposed)
         {
-            if (!Directory.Exists(_configDirectory))
-            {
-                Directory.CreateDirectory(_configDirectory);
-                _logger.LogDebug("Created configuration directory: {Directory}", _configDirectory);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating configuration directory: {Directory}", _configDirectory);
-            throw;
+            ClearSensitiveData();
+            _fileLock?.Dispose();
+            _disposed = true;
         }
     }
 }
