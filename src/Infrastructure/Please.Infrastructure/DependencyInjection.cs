@@ -12,6 +12,12 @@ namespace Please.Infrastructure;
 /// </summary>
 public static class DependencyInjection
 {
+    private static string GetConfigurationValue(string environmentKey, string? configurationKey, IConfiguration? configuration, string fallback)
+    {
+        var envVar = Environment.GetEnvironmentVariable(environmentKey);
+        var configVar = configurationKey != null ? configuration?[configurationKey] : null;
+        return envVar ?? configVar ?? fallback;
+    }
     /// <summary>
     /// Registers Infrastructure layer services with the DI container
     /// </summary>
@@ -30,51 +36,32 @@ public static class DependencyInjection
             {
                 OpenAi = new OpenAiConfiguration
                 {
-                    ApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ??
-                             configuration?["OPENAI_API_KEY"] ?? "",
-                    BaseUrl = Environment.GetEnvironmentVariable("OPENAI_BASE_URL") ??
-                              configuration?["OPENAI_BASE_URL"] ?? "https://api.openai.com/v1",
-                    DefaultModel = Environment.GetEnvironmentVariable("OPENAI_DEFAULT_MODEL") ??
-                                   configuration?["OPENAI_DEFAULT_MODEL"] ?? "gpt-3.5-turbo"
+                    ApiKey = GetConfigurationValue("OPENAI_API_KEY", "OPENAI_API_KEY", configuration, ""),
+                    BaseUrl = GetConfigurationValue("OPENAI_BASE_URL", "OPENAI_BASE_URL", configuration, "https://api.openai.com/v1"),
+                    DefaultModel = GetConfigurationValue("OPENAI_DEFAULT_MODEL", "OPENAI_DEFAULT_MODEL", configuration, "gpt-3.5-turbo")
                 },
                 Anthropic = new AnthropicConfiguration
                 {
-                    ApiKey = Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY") ??
-                             configuration?["ANTHROPIC_API_KEY"] ?? "",
-                    BaseUrl = Environment.GetEnvironmentVariable("ANTHROPIC_BASE_URL") ??
-                              configuration?["ANTHROPIC_BASE_URL"] ??
-                              "https://api.anthropic.com/v1",
-                    DefaultModel = Environment.GetEnvironmentVariable("ANTHROPIC_DEFAULT_MODEL") ??
-                                   configuration?["ANTHROPIC_DEFAULT_MODEL"] ??
-                                   "claude-3-haiku-20240307"
+                    ApiKey = GetConfigurationValue("ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY", configuration, ""),
+                    BaseUrl = GetConfigurationValue("ANTHROPIC_BASE_URL", "ANTHROPIC_BASE_URL", configuration, "https://api.anthropic.com/v1"),
+                    DefaultModel = GetConfigurationValue("ANTHROPIC_DEFAULT_MODEL", "ANTHROPIC_DEFAULT_MODEL", configuration, "claude-3-haiku-20240307")
                 },
                 Ollama = new OllamaConfiguration
                 {
-                    BaseUrl = Environment.GetEnvironmentVariable("OLLAMA_BASE_URL") ??
-                              configuration?["OLLAMA_BASE_URL"] ?? "http://localhost:11434",
-                    DefaultModel = Environment.GetEnvironmentVariable("OLLAMA_DEFAULT_MODEL") ??
-                                   configuration?["OLLAMA_DEFAULT_MODEL"] ?? "llama2"
+                    BaseUrl = GetConfigurationValue("OLLAMA_BASE_URL", "DefaultSettings:OLLAMA_BASE_URL", configuration, "http://localhost:11434"),
+                    DefaultModel = GetConfigurationValue("OLLAMA_DEFAULT_MODEL", "DefaultSettings:OLLAMA_DEFAULT_MODEL", configuration, "llama3:latest")
                 },
                 OpenRouter = new OpenRouterConfiguration
                 {
-                    ApiKey = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY") ??
-                             configuration?["OPENROUTER_API_KEY"] ?? "",
-                    BaseUrl = Environment.GetEnvironmentVariable("OPENROUTER_BASE_URL") ??
-                              configuration?["OPENROUTER_BASE_URL"] ??
-                              "https://openrouter.ai/api/v1",
-                    DefaultModel = Environment.GetEnvironmentVariable("OPENROUTER_DEFAULT_MODEL") ??
-                                   configuration?["OPENROUTER_DEFAULT_MODEL"] ??
-                                   "microsoft/wizardlm-2-8x22b"
+                    ApiKey = GetConfigurationValue("OPENROUTER_API_KEY", "OPENROUTER_API_KEY", configuration, ""),
+                    BaseUrl = GetConfigurationValue("OPENROUTER_BASE_URL", "OPENROUTER_BASE_URL", configuration, "https://openrouter.ai/api/v1"),
+                    DefaultModel = GetConfigurationValue("OPENROUTER_DEFAULT_MODEL", "OPENROUTER_DEFAULT_MODEL", configuration, "microsoft/wizardlm-2-8x22b")
                 },
                 Gemini = new GeminiConfiguration
                 {
-                    ApiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY") ??
-                             configuration?["GEMINI_API_KEY"] ?? "",
-                    BaseUrl = Environment.GetEnvironmentVariable("GEMINI_BASE_URL") ??
-                              configuration?["GEMINI_BASE_URL"] ??
-                              "https://generativelanguage.googleapis.com/v1beta",
-                    DefaultModel = Environment.GetEnvironmentVariable("GEMINI_DEFAULT_MODEL") ??
-                                   configuration?["GEMINI_DEFAULT_MODEL"] ?? "gemini-pro"
+                    ApiKey = GetConfigurationValue("GEMINI_API_KEY", "GEMINI_API_KEY", configuration, ""),
+                    BaseUrl = GetConfigurationValue("GEMINI_BASE_URL", "GEMINI_BASE_URL", configuration, "https://generativelanguage.googleapis.com/v1beta"),
+                    DefaultModel = GetConfigurationValue("GEMINI_DEFAULT_MODEL", "GEMINI_DEFAULT_MODEL", configuration, "gemini-pro")
                 }
             };
         });

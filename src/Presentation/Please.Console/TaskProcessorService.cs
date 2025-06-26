@@ -38,12 +38,8 @@ public class TaskProcessor
         var scriptService = _serviceProvider.GetRequiredService<IScriptService>();
         var scriptExecutor = _serviceProvider.GetRequiredService<IScriptExecutor>();
 
-        // Create a script request using the task description
-        var request = ScriptRequest.Create(
-            taskDescription,
-            ProviderType.OpenAi,
-            "gpt-3.5-turbo"
-        );
+        // Create a script request using the task description with automatic provider selection
+        var request = ScriptRequest.Create(taskDescription);
 
         try
         {
