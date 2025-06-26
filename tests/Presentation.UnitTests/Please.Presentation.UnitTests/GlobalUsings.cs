@@ -1,4 +1,4 @@
 global using Xunit;
-global using FluentAssertions;
+global using Shouldly;
 global using NSubstitute;
 global using Microsoft.Extensions.Logging;

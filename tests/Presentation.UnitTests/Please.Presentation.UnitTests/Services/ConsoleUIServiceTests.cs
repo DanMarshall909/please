@@ -23,7 +23,7 @@ public class ConsoleUIServiceTests
         var exception = Record.Exception(() => _consoleUIService.DisplayScript(script, title));
 
         // Assert: Should not throw exception and service should handle display
-        exception.Should().BeNull();
+        exception.ShouldBeNull();
     }
 
     [Fact]
@@ -44,8 +44,8 @@ public class ConsoleUIServiceTests
         });
 
         // Assert: Should not throw exception and task should complete
-        exception.Should().BeNull();
-        taskCompleted.Should().BeTrue();
+        exception.ShouldBeNull();
+        taskCompleted.ShouldBeTrue();
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class ConsoleUIServiceTests
         var exception = Record.Exception(() => _consoleUIService.DisplayRiskWarning(riskLevel, warnings));
 
         // Assert: Should not throw exception and service should handle display
-        exception.Should().BeNull();
+        exception.ShouldBeNull();
     }
 
     [Fact]
@@ -73,6 +73,6 @@ public class ConsoleUIServiceTests
         var exception = Record.Exception(() => _consoleUIService.DisplayBanner(version, description));
 
         // Assert: Should not throw exception and service should handle display
-        exception.Should().BeNull();
+        exception.ShouldBeNull();
     }
 }
