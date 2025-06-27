@@ -48,7 +48,9 @@
       "Bash(gh run list:*)",
       "Bash(gh run view:*)",
       "Bash(dotnet clean:*)",
-      "Bash(dotnet restore:*)"
+      "Bash(dotnet restore:*)",
+      "Bash(git rm:*)",
+      "Bash(diff:*)"
     ],
     "deny": []
   }
