@@ -9,11 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0"/>
-    <PackageReference Include="xunit" Version="2.9.2"/>
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2"/>
-    <PackageReference Include="coverlet.collector" Version="6.0.0"/>
-    <PackageReference Include="NSubstitute" Version="5.1.0"/>
+    <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+    <PackageReference Include="xunit"/>
+    <PackageReference Include="xunit.runner.visualstudio"/>
+    <PackageReference Include="coverlet.collector"/>
+    <PackageReference Include="NSubstitute"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -21,7 +21,7 @@
     <ProjectReference Include="..\..\..\src\Domain\Please.Domain\Please.Domain.csproj"/>
     <ProjectReference Include="..\..\..\src\Application\Please.Application\Please.Application.csproj"/>
     <ProjectReference Include="..\..\..\tests\TestUtilities\Please.TestUtilities\Please.TestUtilities.csproj"/>
-    <PackageReference Include="Shouldly" Version="4.3.0"/>
+    <PackageReference Include="Shouldly"/>
   </ItemGroup>
 
 </Project>

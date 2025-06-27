@@ -174,12 +174,22 @@ All core features are complete and production-ready:
 - **Security focus**: Input validation, encrypted storage, risk assessment
 - **Clean architecture**: Strict layering and dependency rules
 - **Performance**: Native AOT compilation ready
+- **Centralized Package Management**: Directory.Packages.props for version consistency
 
 ### Git Workflow
 - **v2**: Primary development branch
 - **master**: Main branch for PRs  
 - **TDD Cycle**: Red-Green-Refactor-Cover-Commit
 - **Feature Branches**: For significant changes
+
+## Package Management
+
+The project uses centralized package management via `Directory.Packages.props` to ensure version consistency across all projects. Package versions are defined centrally and project files reference packages without explicit versions.
+
+### Adding New Packages
+1. Add the package version to `Directory.Packages.props`
+2. Reference the package in project files without version attributes
+3. Run `dotnet restore` to apply changes
 
 ## Technology Stack
 
