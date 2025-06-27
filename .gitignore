@@ -42,3 +42,44 @@ desktop.ini
 # Temporary files
 *.tmp
 *.temp
+
+# C# build output
+*.csproj.user
+*.suo
+*.user
+*.sln.docstates
+
+# Build directories
+bin/
+obj/
+
+# Rider files
+.idea/
+*.sln.iml
+*.DotSettings.user
+
+# Coverage and test output
+coverage/
+coverage-report/
+coverage_artifacts/
+TestResults/
+*.coverage
+*.coveragexml
+*.cobertura.xml
+
+# Ignore test results and temp files in tests/
+tests/**/*.tmp
+tests/**/*.log
+tests/**/*.out
+
+# PowerShell scripts directory artifacts
+scripts/*.log
+
+# Memory bank working files (keep actual content)
+memory-bank/**/*.tmp
+
+# Legacy Go build artifacts
+legacy-go/please
+legacy-go/please.exe
+legacy-go/*.test
+test-publish/

@@ -1,0 +1,18 @@
+{
+  "default": {
+    "colors": {
+      "primary": "#00ff41",
+      "secondary": "#ffffff",
+      "error": "#ff0000",
+      "warning": "#ffff00"
+    }
+  },
+  "dark": {
+    "colors": {
+      "primary": "#ffffff",
+      "secondary": "#000000",
+      "error": "#ff5555",
+      "warning": "#ffaa00"
+    }
+  }
+}

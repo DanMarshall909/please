@@ -1,0 +1,38 @@
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 2
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{cs,vb}]
+indent_size = 4
+
+resharper_expression_braces = none
+
+# Private and local methods use camelCase (PascalCase with the first letter lowercase)
+dotnet_naming_rule.private_methods_camel_case.severity = warning
+dotnet_naming_rule.private_methods_camel_case.symbols = private_methods
+dotnet_naming_rule.private_methods_camel_case.style = camel_case
+
+dotnet_naming_symbols.private_methods.applicable_kinds = method
+dotnet_naming_symbols.private_methods.applicable_accessibilities = private
+
+# Local functions follow the same rule
+dotnet_naming_rule.local_functions_camel_case.severity = warning
+dotnet_naming_rule.local_functions_camel_case.symbols = local_functions
+dotnet_naming_rule.local_functions_camel_case.style = camel_case
+
+dotnet_naming_symbols.local_functions.applicable_kinds = local_function
+
+dotnet_naming_style.camel_case.capitalization = camel_case
+
+[*.{json,yml,yaml,xml,csproj,props,targets,config}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+max_line_length = 80

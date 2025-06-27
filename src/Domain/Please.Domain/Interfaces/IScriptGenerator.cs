@@ -1,0 +1,35 @@
+using Please.Domain.Common;
+using Please.Domain.Entities;
+
+namespace Please.Domain.Interfaces;
+
+/// <summary>
+/// Contract for AI-powered script generation
+/// </summary>
+public interface IScriptGenerator
+{
+    /// <summary>
+    /// Generates a script based on the provided request
+    /// </summary>
+    Task<Result<ScriptResponse>> GenerateScriptAsync(ScriptRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Validates if the provider and model combination is supported
+    /// </summary>
+    Task<Result<bool>> IsProviderAvailableAsync(ScriptRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the fallback model for a specific provider if the requested model is unavailable
+    /// </summary>
+    string GetFallbackModel(ScriptRequest request);
+
+    /// <summary>
+    /// Generates a fixed script based on an original script and error message
+    /// </summary>
+    Task<Result<ScriptResponse>> GenerateFixedScriptAsync(
+        string originalScript,
+        string errorMessage,
+        ScriptRequest request,
+        CancellationToken cancellationToken = default);
+}

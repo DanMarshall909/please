@@ -1,0 +1,22 @@
+using Please.Domain.Commands;
+using Please.Domain.Common;
+using Please.Domain.Interfaces;
+
+namespace Please.TestUtilities;
+
+public sealed class FakeContextService : IContextService
+{
+    public Result<CommandContext> ContextResult { get; set; } =
+        Result<CommandContext>.Failure("no context");
+
+    public List<CommandExecution> StoredExecutions { get; } = [];
+
+    public Task<Result<CommandContext>> GetContextAsync(CommandIntent intent,
+        CancellationToken cancellationToken = default) => Task.FromResult(ContextResult);
+
+    public Task<VoidResult> StorePatternAsync(CommandExecution execution, CancellationToken cancellationToken = default)
+    {
+        StoredExecutions.Add(execution);
+        return VoidResult.SuccessfulTask;
+    }
+}

@@ -1,0 +1,1 @@
+﻿make build DOTNET_CONFIGURATION=Release

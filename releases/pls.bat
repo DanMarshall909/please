@@ -1,2 +1,3 @@
 @echo off
-please-windows-amd64.exe %*
+cd /d "C:\Code\please"
+dotnet run --project src/Presentation/Please.Console -- %*
