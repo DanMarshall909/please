@@ -15,7 +15,6 @@ public static class DependencyInjection
     /// <summary>
     /// Adds Application layer services to the dependency injection container
     /// </summary>
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddLogging();

@@ -2,7 +2,7 @@
 
 [![Build & Release](https://github.com/DanMarshall909/please/actions/workflows/release-v2.yml/badge.svg)](https://github.com/DanMarshall909/please/actions/workflows/release-v2.yml)
 
-**Please v6** is an AI-powered script generation tool that transforms natural language descriptions into executable scripts. Built with .NET 8 Native AOT, it's available as single-file executables for all platforms with automatic installation capabilities.
+**Please v6** is an AI-powered script generation tool that transforms natural language descriptions into executable scripts. Built with .NET 9 Native AOT, it's available as single-file executables for all platforms with automatic installation capabilities.
 
 ## ✨ Features
 
@@ -212,7 +212,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- Built with [.NET 8](https://dotnet.microsoft.com/) and Native AOT
+- Built with [.NET 9](https://dotnet.microsoft.com/) and Native AOT
 - UI powered by [Spectre.Console](https://spectreconsole.net/)
 - PowerShell integration via [Microsoft.PowerShell.SDK](https://www.nuget.org/packages/Microsoft.PowerShell.SDK/)
 - AI providers: OpenAI, Anthropic, Google, OpenRouter, Ollama

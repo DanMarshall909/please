@@ -3,8 +3,15 @@ using Please.Domain.Entities;
 using Please.Domain.Interfaces;
 using Please.Domain.Services;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Please.Infrastructure.Repositories;
+
+[JsonSerializable(typeof(List<ScriptResponse>))]
+[JsonSerializable(typeof(ScriptResponse))]
+internal partial class ScriptRepositoryJsonContext : JsonSerializerContext
+{
+}
 
 /// <summary>
 /// File-based implementation of script repository using platform-appropriate directories
@@ -17,7 +24,8 @@ public class ScriptRepository : IScriptRepository
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
         WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        TypeInfoResolver = ScriptRepositoryJsonContext.Default
     };
 
     public ScriptRepository(IPlatformService platformService)

@@ -184,7 +184,7 @@ All core features are complete and production-ready:
 ## Technology Stack
 
 ### Core Dependencies
-- **.NET 8**: Latest LTS with Native AOT support
+- **.NET 9**: Latest version with enhanced Native AOT support
 - **Microsoft.Extensions.***: Configuration, DI, Logging
 - **Spectre.Console**: Professional terminal UI
 - **Microsoft.PowerShell.SDK**: Native PowerShell syntax validation

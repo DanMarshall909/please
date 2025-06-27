@@ -11,7 +11,7 @@ on:
     branches: [ master, main, v2 ]
 
 env:
-  DOTNET_VERSION: '8.0.x'
+  DOTNET_VERSION: '9.0.x'
   CONFIGURATION: Release
   
 permissions:
@@ -78,10 +78,10 @@ jobs:
             --runtime ${{ matrix.runtime }} \
             --self-contained true \
             --output ./publish \
+            --no-restore \
             /p:PublishAot=true \
             /p:PublishTrimmed=true \
-            /p:TrimMode=link \
-            /p:AssemblyName=please
+            /p:TrimMode=link
 
       - name: Prepare artifact (Windows)
         if: matrix.os == 'windows-latest'
