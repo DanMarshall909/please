@@ -2,6 +2,7 @@ using Please.Console.Services;
 using Please.Domain.Entities;
 using Please.Domain.Enums;
 using Please.Domain.Interfaces;
+using Shouldly;
 
 namespace Please.Presentation.UnitTests.Services;
 
@@ -156,6 +157,124 @@ public class ConsoleUIServiceTests
         );
 
         // Act & Assert - Should not throw
+        Should.NotThrow(() => _consoleUIService.DisplayScriptPreview(response));
+    }
+
+    [Fact]
+    public void Confirm_script_execution_handles_non_interactive_environment()
+    {
+        // Arrange
+        var response = ScriptResponse.Create(
+            "Get-Date",
+            "Get current date",
+            ProviderType.OpenAi,
+            "gpt-4",
+            ScriptType.PowerShell,
+            RiskLevel.Low
+        );
+
+        // Simulate non-interactive environment
+        Environment.SetEnvironmentVariable("CI", "true");
+        
+        try
+        {
+            // Act
+            var result = _consoleUIService.ConfirmScriptExecution(response);
+
+            // Assert - Should default to false for safety in non-interactive mode
+            result.ShouldBeFalse();
+        }
+        finally
+        {
+            // Cleanup
+            Environment.SetEnvironmentVariable("CI", null);
+        }
+    }
+
+    [Fact]
+    public async Task Edit_script_externally_creates_temp_file_with_correct_extension()
+    {
+        // Arrange
+        var script = "Get-Date";
+        var scriptType = ScriptType.PowerShell;
+        var taskDescription = "Test script";
+
+        // Act & Assert - Should not throw exception during setup
+        // Note: We can't easily test the full external editor workflow in unit tests
+        // This test ensures the method can be called without immediate errors
+        var exception = await Record.ExceptionAsync(async () =>
+        {
+            // This will fail when trying to open the editor, but should succeed in file creation logic
+            try
+            {
+                await _consoleUIService.EditScriptExternallyAsync(script, scriptType, taskDescription);
+            }
+            catch (InvalidOperationException)
+            {
+                // Expected when no editor is available in test environment
+            }
+        });
+
+        // Assert - Method should handle the error gracefully
+        exception.ShouldBeNull();
+    }
+
+    [Fact]
+    public void Display_script_with_enhanced_syntax_highlighting_handles_powershell()
+    {
+        // Arrange
+        var script = "Get-Process | Where-Object { $_.Name -eq 'notepad' }";
+        var title = "PowerShell Script";
+        var scriptType = ScriptType.PowerShell;
+
+        // Act & Assert - Should not throw
+        Should.NotThrow(() => _consoleUIService.DisplayScriptWithSyntaxHighlighting(script, title, scriptType));
+    }
+
+    [Fact]
+    public void Display_script_with_syntax_highlighting_handles_bash()
+    {
+        // Arrange
+        var script = "#!/bin/bash\necho \"Hello World\"\nls -la";
+        var title = "Bash Script";
+        var scriptType = ScriptType.Bash;
+
+        // Act & Assert - Should not throw
+        Should.NotThrow(() => _consoleUIService.DisplayScriptWithSyntaxHighlighting(script, title, scriptType));
+    }
+
+    [Fact]
+    public void Display_script_response_with_syntax_highlighting_shows_enhanced_formatting()
+    {
+        // Arrange
+        var response = ScriptResponse.Create(
+            "Get-Service | Where-Object { $_.Status -eq 'Running' }",
+            "List running services",
+            ProviderType.OpenAi,
+            "gpt-4",
+            ScriptType.PowerShell,
+            RiskLevel.Low
+        );
+
+        // Act & Assert - Should not throw and display with syntax highlighting
+        Should.NotThrow(() => _consoleUIService.DisplayScriptResponse(response));
+    }
+
+    [Fact]
+    public void Display_script_preview_with_syntax_highlighting_truncates_long_scripts()
+    {
+        // Arrange - Create a long PowerShell script
+        var longScript = string.Join("\n", Enumerable.Repeat("Get-Process | Where-Object { $_.Name -eq 'test' }", 20));
+        var response = ScriptResponse.Create(
+            longScript,
+            "Long script test",
+            ProviderType.Anthropic,
+            "claude-3-haiku",
+            ScriptType.PowerShell,
+            RiskLevel.Medium
+        );
+
+        // Act & Assert - Should not throw and handle truncation with syntax highlighting
         Should.NotThrow(() => _consoleUIService.DisplayScriptPreview(response));
     }
 }

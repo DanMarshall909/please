@@ -1,7 +1,10 @@
 using Please.Domain.Entities;
 using Please.Domain.Enums;
 using Please.Domain.Interfaces;
+using Please.Infrastructure.Services;
 using Spectre.Console;
+using System.Diagnostics;
+using System.IO;
 
 namespace Please.Console.Services;
 
@@ -10,6 +13,7 @@ namespace Please.Console.Services;
 /// </summary>
 public class ConsoleUIService : IConsoleUIService
 {
+    private readonly SyntaxHighlightingService _syntaxHighlightingService = new();
     public void DisplayScript(string script, string title)
     {
         var panel = new Panel(new Markup($"[cyan]{script.EscapeMarkup()}[/]"))
@@ -47,6 +51,16 @@ public class ConsoleUIService : IConsoleUIService
 
     public int DisplayInteractiveMenu(string[] options)
     {
+        // Check if we're in an interactive environment
+        if (Environment.GetEnvironmentVariable("CI") == "true" || 
+            Environment.GetEnvironmentVariable("TERM") == "dumb" ||
+            !Environment.UserInteractive)
+        {
+            // Non-interactive environment - default to first safe option or cancel
+            AnsiConsole.MarkupLine($"[yellow]Non-interactive environment detected. Defaulting to cancel for safety.[/]");
+            return options.Length - 1; // Last option is typically "Cancel"
+        }
+
         var prompt = new SelectionPrompt<string>()
             .Title("[green]Select an action:[/]")
             .PageSize(10)
@@ -108,7 +122,9 @@ public class ConsoleUIService : IConsoleUIService
             _ => "text"
         };
 
-        var panel = new Panel(new Markup($"[cyan]{script.EscapeMarkup()}[/]"))
+        var highlightedScript = _syntaxHighlightingService.HighlightScript(script, scriptType);
+        
+        var panel = new Panel(new Markup(highlightedScript))
         {
             Header = new PanelHeader($"[bold yellow]{title} ({language.ToUpper()})[/]"),
             Border = BoxBorder.Rounded,
@@ -197,11 +213,13 @@ public class ConsoleUIService : IConsoleUIService
         var scriptPreview = response.Script.Length > 200 
             ? response.Script.Substring(0, 200) + "..." 
             : response.Script;
+        
+        var highlightedPreview = _syntaxHighlightingService.HighlightScript(scriptPreview, response.ScriptType);
 
         previewTable.AddRow($"[bold]Task:[/] {response.TaskDescription}");
         previewTable.AddRow($"[bold]Provider:[/] {response.Provider} ({response.Model})");
         previewTable.AddRow($"[bold]Risk:[/] {GetRiskLevelMarkup(response.RiskLevel)}");
-        previewTable.AddRow($"[bold]Script:[/]\n[dim]{scriptPreview.EscapeMarkup()}[/]");
+        previewTable.AddRow($"[bold]Script:[/]\n{highlightedPreview}");
 
         if (response.Warnings.Count > 0)
         {
@@ -234,5 +252,243 @@ public class ConsoleUIService : IConsoleUIService
             RiskLevel.Critical => Color.Maroon,
             _ => Color.Grey
         };
+    }
+
+    public async Task<string?> EditScriptExternallyAsync(string script, ScriptType scriptType, string taskDescription)
+    {
+        try
+        {
+            // Create temp file with appropriate extension
+            var fileExtension = GetFileExtension(scriptType);
+            var sanitizedDescription = SanitizeFileName(taskDescription);
+            var tempFileName = $"please_script_{sanitizedDescription}_{DateTime.Now:yyyyMMdd_HHmmss}{fileExtension}";
+            var tempFilePath = Path.Combine(Path.GetTempPath(), tempFileName);
+
+            // Write script to temp file
+            await File.WriteAllTextAsync(tempFilePath, script);
+
+            AnsiConsole.MarkupLine($"[blue]📝 Opening script in external editor...[/]");
+            AnsiConsole.MarkupLine($"[dim]File: {tempFilePath}[/]");
+            AnsiConsole.WriteLine();
+
+            // Open in default editor and wait for it to close
+            var editor = GetPreferredEditor();
+            await OpenInEditorAsync(tempFilePath, editor);
+
+            AnsiConsole.MarkupLine($"[green]✅ Editor closed. Reading modified script...[/]");
+
+            // Read the modified content
+            if (File.Exists(tempFilePath))
+            {
+                var modifiedScript = await File.ReadAllTextAsync(tempFilePath);
+                
+                // Clean up temp file
+                try { File.Delete(tempFilePath); }
+                catch { /* Ignore cleanup errors */ }
+
+                return string.IsNullOrWhiteSpace(modifiedScript) ? null : modifiedScript;
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine($"[red]❌ Error opening external editor: {ex.Message}[/]");
+            return null;
+        }
+    }
+
+    public bool ConfirmScriptExecution(ScriptResponse response)
+    {
+        AnsiConsole.WriteLine();
+        var rule = new Rule($"[bold yellow]📋 Script Review & Execution Confirmation[/]")
+        {
+            Style = Style.Parse("yellow")
+        };
+        AnsiConsole.Write(rule);
+        AnsiConsole.WriteLine();
+
+        // Display the script one more time for review
+        DisplayScriptWithSyntaxHighlighting(response.Script, "Final Script", response.ScriptType);
+
+        // Show risk assessment
+        var riskColor = GetRiskLevelMarkup(response.RiskLevel);
+        AnsiConsole.MarkupLine($"[bold]Risk Level:[/] {riskColor}");
+        
+        if (response.Warnings.Any())
+        {
+            AnsiConsole.MarkupLine($"[bold red]⚠️  {response.Warnings.Count} warning(s) detected[/]");
+        }
+
+        AnsiConsole.WriteLine();
+
+        // Execution confirmation prompt
+        var choices = new[] { "✅ Execute Script", "❌ Cancel" };
+        
+        if (Environment.GetEnvironmentVariable("CI") == "true" || 
+            Environment.GetEnvironmentVariable("TERM") == "dumb")
+        {
+            // Non-interactive environment - default to cancel for safety
+            AnsiConsole.MarkupLine($"[yellow]Non-interactive environment detected. Defaulting to cancel for safety.[/]");
+            return false;
+        }
+
+        var prompt = new SelectionPrompt<string>()
+            .Title("[green]Do you want to execute this script?[/]")
+            .PageSize(10)
+            .AddChoices(choices);
+
+        var selected = AnsiConsole.Prompt(prompt);
+        return selected.StartsWith("✅");
+    }
+
+    private string GetFileExtension(ScriptType scriptType)
+    {
+        return scriptType switch
+        {
+            ScriptType.PowerShell => ".ps1",
+            ScriptType.Bash => ".sh",
+            ScriptType.Command => ".bat",
+            ScriptType.Python => ".py",
+            _ => ".txt"
+        };
+    }
+
+    private string SanitizeFileName(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return "script";
+
+        // Remove invalid filename characters and limit length
+        var invalidChars = Path.GetInvalidFileNameChars();
+        var sanitized = new string(input.Where(c => !invalidChars.Contains(c)).ToArray());
+        sanitized = sanitized.Replace(" ", "_").ToLowerInvariant();
+        
+        return sanitized.Length > 20 ? sanitized.Substring(0, 20) : sanitized;
+    }
+
+    private string GetPreferredEditor()
+    {
+        // Check environment variables for preferred editor
+        var editor = Environment.GetEnvironmentVariable("PLEASE_EDITOR") ??
+                    Environment.GetEnvironmentVariable("EDITOR") ??
+                    Environment.GetEnvironmentVariable("VISUAL");
+
+        if (!string.IsNullOrEmpty(editor))
+            return editor;
+
+        // Platform-specific defaults
+        if (OperatingSystem.IsWindows())
+        {
+            // Try VS Code first, then Notepad++ and finally Notepad
+            var candidates = new[] { "code", "notepad++", "notepad" };
+            foreach (var candidate in candidates)
+            {
+                if (IsCommandAvailable(candidate))
+                    return candidate;
+            }
+            return "notepad";
+        }
+        else if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+        {
+            // Try common editors
+            var candidates = new[] { "code", "nano", "vim", "vi" };
+            foreach (var candidate in candidates)
+            {
+                if (IsCommandAvailable(candidate))
+                    return candidate;
+            }
+            return "vi";
+        }
+
+        return "notepad"; // Fallback
+    }
+
+    private bool IsCommandAvailable(string command)
+    {
+        try
+        {
+            var processStartInfo = new ProcessStartInfo
+            {
+                FileName = OperatingSystem.IsWindows() ? "where" : "which",
+                Arguments = command,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using var process = Process.Start(processStartInfo);
+            process?.WaitForExit(1000); // 1 second timeout
+            return process?.ExitCode == 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private async Task OpenInEditorAsync(string filePath, string editor)
+    {
+        try
+        {
+            ProcessStartInfo startInfo;
+            
+            if (editor == "code")
+            {
+                // VS Code - wait for window to close
+                startInfo = new ProcessStartInfo
+                {
+                    FileName = "code",
+                    Arguments = $"--wait \"{filePath}\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+            }
+            else if (OperatingSystem.IsWindows() && (editor == "notepad" || editor == "notepad++"))
+            {
+                startInfo = new ProcessStartInfo
+                {
+                    FileName = editor,
+                    Arguments = $"\"{filePath}\"",
+                    UseShellExecute = true
+                };
+            }
+            else
+            {
+                // Unix-like systems or other editors
+                startInfo = new ProcessStartInfo
+                {
+                    FileName = editor,
+                    Arguments = $"\"{filePath}\"",
+                    UseShellExecute = false
+                };
+            }
+
+            AnsiConsole.MarkupLine($"[dim]Command: {startInfo.FileName} {startInfo.Arguments}[/]");
+            AnsiConsole.MarkupLine($"[yellow]💡 Please save and close the editor when you're done editing.[/]");
+            AnsiConsole.WriteLine();
+
+            using var process = Process.Start(startInfo);
+            if (process != null)
+            {
+                // For VS Code with --wait flag, this will block until editor closes
+                // For other editors, we'll wait a reasonable amount of time
+                if (editor == "code")
+                {
+                    await process.WaitForExitAsync();
+                }
+                else
+                {
+                    // For editors that don't support --wait, we need to poll or wait for user input
+                    AnsiConsole.MarkupLine($"[yellow]📝 Editor opened. Press any key when you've finished editing and saved the file...[/]");
+                    System.Console.ReadKey(true);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to open editor '{editor}': {ex.Message}", ex);
+        }
     }
 }

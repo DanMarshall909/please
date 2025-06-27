@@ -9,9 +9,13 @@
     Optional provider to configure directly (OpenAI, Anthropic, Gemini, OpenRouter, Ollama)
 .PARAMETER Permanent
     Set environment variables permanently (default: temporary for current session)
+.PARAMETER InstallAlias
+    Install 'pls' alias for easier usage (creates pls.cmd and pls.ps1)
 .EXAMPLE
     .\setup-environment.ps1
     .\setup-environment.ps1 -Provider OpenAI -Permanent
+    .\setup-environment.ps1 -InstallAlias
+    .\setup-environment.ps1 -Provider Anthropic -Permanent -InstallAlias
 #>
 
 param(
@@ -20,7 +24,10 @@ param(
     [string]$Provider = "",
 
     [Parameter(Mandatory=$false)]
-    [switch]$Permanent = $false
+    [switch]$Permanent = $false,
+
+    [Parameter(Mandatory=$false)]
+    [switch]$InstallAlias = $false
 )
 
 # Color functions for better UX
@@ -301,8 +308,66 @@ function Test-Configuration {
     return $success
 }
 
+function Install-PlsAlias {
+    Write-Header "Installing 'pls' Alias"
+
+    $pleasePath = Split-Path -Parent $PSScriptRoot
+    $plsCmdPath = Join-Path $pleasePath "pls.cmd"
+    $plsPs1Path = Join-Path $pleasePath "pls.ps1"
+
+    # Create pls.cmd for Command Prompt
+    $cmdContent = @"
+@echo off
+pushd "$pleasePath"
+dotnet run --project src/Presentation/Please.Console -- %*
+popd
+"@
+    Set-Content -Path $plsCmdPath -Value $cmdContent -Encoding ASCII
+    Write-Success "Created pls.cmd for Command Prompt"
+
+    # Create pls.ps1 for PowerShell
+    $ps1Content = @"
+#!/usr/bin/env pwsh
+Push-Location "$pleasePath"
+try {
+    dotnet run --project src/Presentation/Please.Console -- `$args
+} finally {
+    Pop-Location
+}
+"@
+    Set-Content -Path $plsPs1Path -Value $ps1Content -Encoding UTF8
+    Write-Success "Created pls.ps1 for PowerShell"
+
+    # Add to PATH if not already there
+    $currentPath = [Environment]::GetEnvironmentVariable("PATH", "User")
+    if ($currentPath -notlike "*$pleasePath*") {
+        try {
+            $newPath = if ($currentPath.EndsWith(";")) { 
+                $currentPath + $pleasePath 
+            } else { 
+                $currentPath + ";" + $pleasePath 
+            }
+            
+            [Environment]::SetEnvironmentVariable("PATH", $newPath, "User")
+            Write-Success "Added $pleasePath to user PATH"
+        }
+        catch {
+            Write-Warning "Failed to update PATH: $($_.Exception.Message)"
+            Write-Info "You can manually add $pleasePath to your PATH"
+        }
+    } else {
+        Write-Success "$pleasePath is already in PATH"
+    }
+
+    Write-Info "`n🎉 'pls' alias installed! Usage examples:"
+    Write-Host "  pls get current time" -ForegroundColor Cyan
+    Write-Host "  pls list running services" -ForegroundColor Cyan
+    Write-Host "  pls create backup script" -ForegroundColor Cyan
+    Write-Info "`n📝 Restart your terminal for the 'pls' command to be available"
+}
+
 function Show-Summary {
-    param($ConfiguredProviders)
+    param($ConfiguredProviders, $AliasInstalled)
 
     Write-Header "Configuration Complete"
 
@@ -311,10 +376,20 @@ function Show-Summary {
         Write-Host "  ✅ $provider" -ForegroundColor Green
     }
 
+    if ($AliasInstalled) {
+        Write-Host "`n  ✅ 'pls' alias installed" -ForegroundColor Green
+    }
+
     Write-Info "`nNext steps:"
-    Write-Host "  1. Test your configuration:" -ForegroundColor White
-    Write-Host "     cd src/Presentation/Please.Console/bin/Debug/net8.0/win-x64" -ForegroundColor Gray
-    Write-Host "     .\Please.Console.exe 'echo hello world'" -ForegroundColor Gray
+    if ($AliasInstalled) {
+        Write-Host "  1. Test your configuration with the alias:" -ForegroundColor White
+        Write-Host "     pls get current time" -ForegroundColor Cyan
+        Write-Host "     pls echo hello world" -ForegroundColor Cyan
+    } else {
+        Write-Host "  1. Test your configuration:" -ForegroundColor White
+        Write-Host "     cd src/Presentation/Please.Console/bin/Debug/net8.0/win-x64" -ForegroundColor Gray
+        Write-Host "     .\Please.Console.exe 'echo hello world'" -ForegroundColor Gray
+    }
     Write-Host "`n  2. Build the application if needed:" -ForegroundColor White
     Write-Host "     dotnet build src/Presentation/Please.Console" -ForegroundColor Gray
 }
@@ -357,8 +432,21 @@ function Main {
         $configuredProviders += $selectedProvider
     }
 
-    if ($configuredProviders.Count -gt 0) {
-        Show-Summary $configuredProviders
+    # Install alias if requested
+    $aliasInstalled = $false
+    if ($InstallAlias) {
+        Install-PlsAlias
+        $aliasInstalled = $true
+    } elseif ($configuredProviders.Count -gt 0) {
+        $installAlias = Read-Host "`nInstall 'pls' alias for easier usage? (y/n) [y]"
+        if ($installAlias -eq "" -or $installAlias -eq "y") {
+            Install-PlsAlias
+            $aliasInstalled = $true
+        }
+    }
+
+    if ($configuredProviders.Count -gt 0 -or $aliasInstalled) {
+        Show-Summary $configuredProviders $aliasInstalled
     } else {
         Write-Info "No providers were configured."
     }

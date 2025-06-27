@@ -23,6 +23,7 @@ public static class DependencyInjection
         // Register core application services with explicit interface registrations for AOT compatibility
         services.TryAddTransient<IScriptService, ScriptService>();
         services.TryAddTransient<CommandProcessor>();
+        services.TryAddTransient<InstallationService>();
 
         // These interfaces need implementations in the Infrastructure layer or test doubles
         // We don't register them here, but we ensure the AOT compiler knows about them

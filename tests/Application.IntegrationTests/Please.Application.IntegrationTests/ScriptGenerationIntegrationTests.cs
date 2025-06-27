@@ -151,6 +151,18 @@ internal class TestScriptValidationService : IScriptValidationService
     public bool ContainsDangerousOperations(string script, ScriptType scriptType) =>
         AssessRiskLevel(script, scriptType) >= RiskLevel.High;
 
+    public List<string> ValidateSyntax(string script, ScriptType scriptType)
+    {
+        // Simple test implementation - no actual syntax validation
+        return new List<string>();
+    }
+
+    public string AutoFixSyntaxErrors(string script, ScriptType scriptType, List<string> syntaxErrors)
+    {
+        // Simple test implementation - no actual auto-fixing
+        return script;
+    }
+
     public ScriptResponse EnhanceWithValidation(ScriptResponse response)
     {
         var riskLevel = AssessRiskLevel(response.Script, response.ScriptType);

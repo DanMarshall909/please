@@ -82,3 +82,4 @@ memory-bank/**/*.tmp
 legacy-go/please
 legacy-go/please.exe
 legacy-go/*.test
+test-publish/

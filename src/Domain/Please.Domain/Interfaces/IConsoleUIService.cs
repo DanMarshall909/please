@@ -85,4 +85,20 @@ public interface IConsoleUIService
     /// </summary>
     /// <param name="response">Script response to preview</param>
     void DisplayScriptPreview(ScriptResponse response);
+
+    /// <summary>
+    /// Open script in external editor for modification
+    /// </summary>
+    /// <param name="script">Initial script content</param>
+    /// <param name="scriptType">Type of script for file extension</param>
+    /// <param name="taskDescription">Description for temp file naming</param>
+    /// <returns>Modified script content, or null if cancelled</returns>
+    Task<string?> EditScriptExternallyAsync(string script, ScriptType scriptType, string taskDescription);
+
+    /// <summary>
+    /// Confirm script execution after review/editing
+    /// </summary>
+    /// <param name="response">Script response to confirm</param>
+    /// <returns>True if user wants to execute, false otherwise</returns>
+    bool ConfirmScriptExecution(ScriptResponse response);
 }

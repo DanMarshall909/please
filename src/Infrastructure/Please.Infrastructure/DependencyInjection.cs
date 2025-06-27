@@ -98,6 +98,7 @@ public static class DependencyInjection
         services.AddSingleton<IContextService, ContextService>();
         services.AddSingleton<IScriptExecutor, PowerShellScriptExecutor>();
         services.AddSingleton<IUserConfirmation, ConsoleUserConfirmation>();
+        services.AddSingleton<IPlatformService, PlatformService>();
 
         return services;
     }

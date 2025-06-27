@@ -1,198 +1,245 @@
-# Please - Development Guide
+# Development Guide
 
-## 🎯 **Development Strategy**
+## Current Status
 
-### **Current Status (Complete)**
-1. ✅ **C# Infrastructure**: Complete with all AI providers and services
-2. ✅ **Console App**: Fully wired with dependency injection and CLI
-3. ✅ **Integration Testing**: End-to-end functionality verified
-4. ✅ **Feature Parity**: C# version matches and exceeds Go capabilities
-5. ✅ **Automated Setup**: Environment configuration scripts added
+All core features are complete and production-ready:
+- AI provider integration (5 providers: OpenAI, Anthropic, Gemini, OpenRouter, Ollama)
+- Syntax validation with PowerShell AST parser and auto-fix
+- External editor support with smart detection
+- Security validation with 4-tier risk assessment
+- Professional console UI with progress indicators
+- Natural language command processing
+- Comprehensive testing with 90%+ coverage
 
-### **Release Strategy**
-- **Go v5**: Maintenance mode for bug fixes and minor features
-- **C# v6**: Primary development focus with production releases
-- **Migration Path**: Users can choose between implementations based on needs
+## Development Workflow
 
-## 📈 **Roadmap**
+### Prerequisites
+- .NET 8 SDK
+- PowerShell (for syntax validation features)
+- Git
+- VS Code, Visual Studio, or JetBrains Rider
 
-### **✅ Phase 1: C# Foundation (Completed)**
-- ✅ Domain and Application layers
-- ✅ Infrastructure implementation with all 5 AI providers
-- ✅ Console application wiring with dependency injection
-- ✅ Comprehensive integration tests
-
-### **✅ Phase 2: Feature Parity (Completed)**  
-- ✅ All Go features implemented in C#
-- ✅ Performance optimization with async patterns
-- ✅ Comprehensive testing across all layers
-- ✅ Complete documentation and setup automation
-
-### **✅ Phase 3: Production Release (Completed)**
-- ✅ C# v6.0 production release ready
-- ✅ Automated environment setup scripts
-- ✅ Cross-platform compatibility
-- 🔄 User feedback and iteration (ongoing)
-
-### **🔄 Phase 4: Future Enhancements (Ongoing)**
-- 🔄 Advanced script validation and safety features
-- 🔄 Enhanced error handling and retry mechanisms
-- 🔄 Performance monitoring and analytics
-- 🔄 Additional AI provider integrations
-
-## 🔧 **Building Both Versions**
-
-### **Go Version**
+### Build and Test
 ```bash
-cd legacy-go
-go build -o please-go.exe
-```
+# Clone repository
+git clone https://github.com/DanMarshall909/please.git
+cd please
 
-### **C# Version** 
-```bash
-dotnet build src/Presentation/Please.Console
-# Output: src/Presentation/Please.Console/bin/Debug/net8.0/Please.Console.exe
-```
+# Build solution
+dotnet build
 
-## 📝 **Git Branch Strategy**
-
-```
-main                     # Current development state
-├── release/please-v5-stable    # Go v5.0 stable branch
-├── feature/please-v6-csharp    # C# v6.0 development branch
-└── legacy/archive              # Previous experimental work
-```
-
-### **Branch Usage**
-- **main**: Integration and coordination branch
-- **release/please-v5-stable**: Go production releases
-- **feature/please-v6-csharp**: C# development and testing
-
-## 🤝 **Contributing**
-
-### **Go v5 Contributions**
-- Work in `legacy-go/` directory
-- Focus on bug fixes and minor enhancements
-- Maintain backward compatibility
-
-### **C# v6 Contributions**
-- Work in `src/` directory
-- Follow Clean Architecture principles
-- Implement features from Go version
-- Add comprehensive tests
-
-## 📊 **Implementation Status**
-
-### **✅ Go v5.0 (Production Ready)**
-- ✅ Multi-provider AI support (OpenAI, Anthropic, Ollama)
-- ✅ Cross-platform script generation
-- ✅ Interactive menu system
-- ✅ Script validation and safety
-- ✅ Localization support
-- ✅ Test monitoring with AI analysis
-- ✅ Builds successfully
-- ⚠️ Minor localization test failures (non-blocking)
-
-### **✅ C# v6.0 (Production Ready)**
-- ✅ **Domain Layer**: Complete with entities, enums, interfaces, exceptions
-- ✅ **Application Layer**: Clean architecture without MediatR for Native AOT compatibility
-- ✅ **Infrastructure Layer**: Complete with 5 AI providers (OpenAI, Anthropic, Gemini, OpenRouter, Ollama)
-- ✅ **Console Application**: Fully functional with dependency injection and CLI interface
-- ✅ **Automated Setup**: Interactive scripts for environment configuration
-- ✅ **Test Infrastructure**: Comprehensive unit testing across all layers
-- ✅ **Integration Tests**: End-to-end testing with real AI providers
-- ✅ **Documentation**: Complete setup and configuration guides
-
-## 🔧 **Supported Providers**
-
-| Provider | API Key Required | Base URL | Default Model |
-|----------|------------------|----------|---------------|
-| **OpenAI** | Yes | https://api.openai.com/v1 | gpt-4o-mini |
-| **Anthropic** | Yes | https://api.anthropic.com/v1 | claude-3-haiku-20240307 |
-| **Gemini** | Yes | https://generativelanguage.googleapis.com/v1beta | gemini-pro |
-| **OpenRouter** | Yes | https://openrouter.ai/api/v1 | microsoft/wizardlm-2-8x22b |
-| **Ollama** | No | http://localhost:11434 | llama2 |
-
-## 🆘 **Support**
-
-- **Go v5 Issues**: Report with `[Go]` prefix
-- **C# v6 Issues**: Report with `[C#]` prefix  
-- **General Issues**: Architecture or strategy questions
-
-## 🧪 **Testing**
-
-### **Running Tests**
-
-#### **Go Tests**
-```bash
-cd legacy-go
-go test ./...
-```
-
-#### **C# Tests**
-```bash
 # Run all tests
 dotnet test
 
-# Run specific test project
-dotnet test tests/Infrastructure.UnitTests/Please.Infrastructure.UnitTests
+# Build release version
+dotnet build src/Presentation/Please.Console -c Release
+
+# Test natural language interface
+./please find files older than 3 days
 ```
 
-### **Test Coverage**
-- **Go**: Manual testing and integration tests
-- **C#**: Comprehensive unit testing with NUnit framework
+### Code Quality Standards
+- **Zero Warnings**: Project treats warnings as errors
+- **TDD Approach**: Red-Green-Refactor-Cover-Commit cycle
+- **Enterprise Test Naming**: Plain English, behavior-focused
+- **Clean Architecture**: Strict dependency rules
+- **Security Focus**: Input validation and risk assessment
 
-## 🚀 **Development Workflow**
+## Testing Strategy
 
-### **Setting Up Development Environment**
+### Test Architecture
+```
+tests/
+├── Domain.UnitTests/           # Pure domain logic, zero dependencies
+├── Application.UnitTests/      # Business workflows with mocks
+├── Infrastructure.UnitTests/   # Provider implementations and services
+├── Presentation.UnitTests/    # Console UI and command processing
+├── Application.IntegrationTests/ # End-to-end workflows
+└── TestUtilities/             # Shared test infrastructure
+```
 
-1. **Clone Repository**
+### Testing Patterns
+- **Arrange-Act-Assert**: Standard test structure
+- **Builder Pattern**: Complex test data creation
+- **Mocking**: NSubstitute for dependency isolation
+- **Integration**: Real provider testing when configured
+- **Behavior Focus**: Tests describe what the system should do
+
+### Test Examples
 ```bash
-git clone <repository-url>
-cd please
+# Test syntax validation
+dotnet test --filter="Auto_fix_corrects_nonexistent_cmdlets"
+
+# Test external editor functionality
+dotnet test --filter="Edit_script_externally"
+
+# Test security validation
+dotnet test --filter="Script_with_corrupted_ai_tokens"
+
+# Integration tests with real providers
+dotnet test tests/Application.IntegrationTests/
 ```
 
-2. **Go Development**
-```bash
-cd legacy-go
-go mod download
-go build
+## Architecture Decisions
+
+### Clean Architecture Implementation
+- **Domain**: Zero dependencies, pure business logic
+- **Application**: Use cases, depends only on Domain
+- **Infrastructure**: All external dependencies, implements Domain interfaces
+- **Presentation**: Console UI, orchestrates through DI
+
+### Key Design Patterns
+- **Result Pattern**: Explicit error handling without exceptions
+- **Provider Factory**: Automatic AI provider selection
+- **Command Line Processing**: Natural language argument joining
+- **Validation Pipeline**: Syntax → Security → Auto-fix → Re-validation
+
+### Technology Choices
+```csharp
+// Core dependencies
+Microsoft.Extensions.*      // Configuration, DI, Logging
+Spectre.Console            // Professional terminal UI
+Microsoft.PowerShell.SDK   // Native PowerShell parsing
+System.Text.Json          // High-performance serialization
+
+// Testing dependencies
+NUnit                      // Test framework
+Shouldly                   // Readable assertions
+NSubstitute               // Mocking framework
 ```
 
-3. **C# Development**
-```bash
-dotnet restore
-dotnet build
+### Excluded Dependencies
+- **Entity Framework**: File-based persistence for simplicity
+- **MediatR**: Direct services for Native AOT compatibility
+- **AutoMapper**: Simple record mapping preferred
+- **Heavy ORMs**: Performance and complexity considerations
+
+## Development Process
+
+### Feature Development
+1. **Planning**: Document requirements and acceptance criteria
+2. **TDD Cycle**: Write failing test, implement feature, refactor
+3. **Testing**: Unit tests, integration tests, manual testing
+4. **Documentation**: Update relevant documentation
+5. **Review**: Code review and quality checks
+
+### Git Workflow
+- **v2**: Primary development branch
+- **master**: Main branch for pull requests
+- **Feature Branches**: For significant changes
+- **Commit Messages**: Clear, descriptive commit messages
+
+### Code Review Checklist
+- [ ] Tests cover new functionality
+- [ ] No warnings or errors
+- [ ] Documentation updated
+- [ ] Security considerations addressed
+- [ ] Performance impact assessed
+
+## Security Development
+
+### Security-First Approach
+- **Input Validation**: All user inputs and AI responses validated
+- **Pattern Matching**: Regex-based security analysis
+- **Auto-Fix Safety**: Only safe corrections applied automatically
+- **Risk Assessment**: 4-tier classification with clear warnings
+
+### Security Testing
+```csharp
+[Fact]
+public void Script_with_dangerous_operations_has_high_risk()
+{
+    var script = "Remove-Item -Path 'C:\\temp' -Force -Recurse";
+    var riskLevel = _validationService.AssessRiskLevel(script, ScriptType.PowerShell);
+    riskLevel.ShouldBe(RiskLevel.High);
+}
 ```
 
-4. **Environment Configuration**
-```bash
-# Use automated setup
-.\scripts\setup-environment.ps1    # Windows
-./scripts/setup-environment.sh     # Linux/macOS
+## Performance Considerations
+
+### Native AOT Readiness
+- **Direct Services**: No heavy abstraction layers
+- **Minimal Dependencies**: Reduced startup time
+- **Efficient JSON**: System.Text.Json for performance
+- **Async Patterns**: Proper asynchronous programming
+
+### Build Configuration
+```xml
+<PropertyGroup>
+    <PublishAot>true</PublishAot>
+    <PublishSingleFile>true</PublishSingleFile>
+    <TrimMode>link</TrimMode>
+    <AssemblyName>please</AssemblyName>
+</PropertyGroup>
 ```
 
-### **Making Changes**
+## Contributing Guidelines
 
-1. **Choose Implementation**: Work in either `legacy-go/` or `src/` directory
-2. **Follow Patterns**: Maintain consistency with existing code
-3. **Add Tests**: Ensure new features are tested
-4. **Update Documentation**: Keep docs in sync with changes
+### Getting Started
+1. Fork the repository
+2. Create a feature branch
+3. Follow TDD approach
+4. Ensure all tests pass
+5. Update documentation
+6. Submit pull request
 
-### **Release Process**
+### Coding Standards
+- **C# Conventions**: Follow .NET coding standards
+- **Async/Await**: Use async patterns for I/O operations
+- **Error Handling**: Use Result pattern, avoid exceptions for control flow
+- **Dependency Injection**: Register services in appropriate layers
 
-#### **Go v5 Releases**
-- Focus on bug fixes and minor features
-- Maintain backward compatibility
-- Use semantic versioning
+### Pull Request Process
+1. **Description**: Clear description of changes and motivation
+2. **Tests**: Include comprehensive test coverage
+3. **Documentation**: Update relevant documentation
+4. **Review**: Address code review feedback
+5. **Merge**: Squash commits for clean history
 
-#### **C# v6 Releases**
-- Primary development focus
-- Follow Clean Architecture principles
-- Comprehensive testing required
+## Troubleshooting
 
----
+### Common Development Issues
+- **Build Errors**: Ensure .NET 8 SDK installed
+- **Test Failures**: Check provider configuration and connectivity
+- **PowerShell Issues**: Verify PowerShell installation for syntax validation
+- **Editor Integration**: Check editor availability and PATH configuration
 
-*For architecture details, see [ARCHITECTURE.md](ARCHITECTURE.md)*  
-*For setup instructions, see [GETTING-STARTED.md](GETTING-STARTED.md)*  
-*For configuration help, see [CONFIGURATION.md](CONFIGURATION.md)*
+### Debug Configuration
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Please Console",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/Presentation/Please.Console/bin/Debug/net8.0/please.dll",
+            "args": ["create a script to list files"],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false
+        }
+    ]
+}
+```
+
+## Future Development
+
+### Planned Enhancements
+- **Provider Caching**: Cache responses for repeated requests
+- **Batch Processing**: Multiple script generation in single request
+- **Streaming Responses**: Real-time streaming for large scripts
+- **Policy Engine**: Organizational security policy enforcement
+
+### Extension Points
+- **AI Providers**: Interface for adding new providers
+- **Validation Rules**: Configurable security patterns
+- **Editor Support**: Pluggable editor detection
+- **UI Themes**: Customizable console appearance
+
+### Performance Optimizations
+- **Startup Time**: Reduce cold start latency
+- **Memory Usage**: Optimize memory allocation patterns
+- **Network Efficiency**: Implement connection pooling and retry policies
+- **Caching Strategy**: Intelligent response caching
+
+This development guide ensures consistent, high-quality contributions while maintaining the security and performance standards of the Please project.

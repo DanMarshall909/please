@@ -29,7 +29,17 @@ public interface IScriptValidationService
     bool ContainsDangerousOperations(string script, ScriptType scriptType);
 
     /// <summary>
-    /// Enhances a script response with validation results
+    /// Validates script syntax using native language parsers
+    /// </summary>
+    List<string> ValidateSyntax(string script, ScriptType scriptType);
+
+    /// <summary>
+    /// Automatically fixes common syntax errors in scripts
+    /// </summary>
+    string AutoFixSyntaxErrors(string script, ScriptType scriptType, List<string> syntaxErrors);
+
+    /// <summary>
+    /// Enhances a script response with validation results and auto-fixes
     /// </summary>
     ScriptResponse EnhanceWithValidation(ScriptResponse response);
 }

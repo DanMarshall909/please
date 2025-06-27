@@ -1,112 +1,183 @@
 # Please - AI-Powered Script Generation
 
-![Please Banner](https://img.shields.io/badge/Please-Dual%20Implementation-blue?style=for-the-badge&logo=robot)
-![Go Version](https://img.shields.io/badge/Go-v5.0--stable-00ADD8?style=for-the-badge&logo=go)
-![C# Version](https://img.shields.io/badge/C%23-v6.0--production-239120?style=for-the-badge&logo=csharp)
+**Please** is an AI-powered command-line tool that generates scripts from natural language descriptions. Simply describe what you need in plain English, and Please creates executable scripts with proper validation and safety features.
 
-**Please** is an AI-powered command-line tool that generates scripts for any task. Simply describe what you need in plain English, and Please creates the script for you.
+## Natural Language Interface
 
-## ✨ **What Please Does**
+Please accepts natural language commands without quotes:
 
 ```bash
-# Tell Please what you need
-.\Please.Console.exe "create a PowerShell script to backup my documents"
+# Build and install
+dotnet build src/Presentation/Please.Console -c Release
 
-# Get a complete, ready-to-run script
-# Output: A PowerShell script with error handling, progress indicators, and comments
+# Use natural language directly
+please find files older than 3 days
+please create a backup script for my documents
+please list all running services on this computer
+please generate a script to clean temporary files
 ```
 
-### **Real Examples**
-- **"clean temporary files"** → PowerShell script that safely removes temp files
-- **"backup my photos to OneDrive"** → Script with progress bars and error recovery
-- **"install development tools"** → Automated setup script for your dev environment
-- **"monitor disk usage"** → System monitoring script with alerts
+## Core Features
 
-## 🚀 **Get Started in 2 Minutes**
+- **Natural Language Processing**: No quotes or special syntax required
+- **Syntax Validation**: PowerShell AST parser with auto-fix capabilities
+- **External Editor Support**: Edit scripts in VS Code, nano, vim, or any preferred editor
+- **Security Validation**: 4-tier risk assessment with safety warnings
+- **5 AI Providers**: OpenAI, Anthropic, Google Gemini, OpenRouter, Ollama
+- **Professional UI**: Beautiful terminal interface with progress indicators
 
-### **Windows (Recommended)**
-```powershell
-# 1. Quick setup with our automated script
-.\scripts\setup-environment.ps1
+## Quick Start
 
-# 2. Start generating scripts
-.\Please.Console.exe "your task description here"
-```
-
-### **Linux/macOS**
+### Installation
 ```bash
-# 1. Quick setup
-./scripts/setup-environment.sh
+# Clone repository
+git clone https://github.com/DanMarshall909/please.git
+cd please
 
-# 2. Start using
-./please "your task description here"
+# Build release version
+dotnet build src/Presentation/Please.Console -c Release
+
+# Copy executable to PATH (optional)
+cp src/Presentation/Please.Console/bin/Release/net8.0/win-x64/please.exe /usr/local/bin/
 ```
 
-**📖 Complete setup guide:** [GETTING-STARTED.md](GETTING-STARTED.md)
+### Configuration
+```bash
+# Automated setup
+./scripts/setup-environment.ps1 -Provider OpenAI -Permanent
+./scripts/setup-environment.sh --provider anthropic --permanent
 
-## 🎯 **Two Implementations**
+# Or set environment variables
+export OPENAI_API_KEY="your-key-here"
+export ANTHROPIC_API_KEY="your-key-here"
+```
 
-Please offers two production-ready implementations:
+### Usage Examples
+```bash
+# File operations
+please find duplicate files in downloads folder
+please create a script to organize photos by date
 
-| Version | Status | Best For |
-|---------|--------|----------|
-| **🟢 C# v6.0** | ✅ Production Ready | **Recommended** - Modern architecture, 5 AI providers, automated setup |
-| **🔵 Go v5.0** | ✅ Production Ready | Lightweight alternative, minimal dependencies |
+# System administration  
+please show system information and memory usage
+please create a PowerShell script to monitor disk space
+please list all installed programs
 
-## 🔧 **Supported AI Providers**
+# Development tasks
+please create a backup script for my project files
+please generate a script to clean build artifacts
+please create a PowerShell script to restart specific services
+```
 
-- **OpenAI** (GPT-4, GPT-3.5)
-- **Anthropic** (Claude 3)
-- **Google Gemini**
-- **OpenRouter** (Multiple models)
-- **Ollama** (Local models)
+## Key Capabilities
 
-**⚙️ Configuration guide:** [CONFIGURATION.md](CONFIGURATION.md)
+### Syntax Validation and Auto-Fix
+- Native PowerShell AST parser detects real syntax errors
+- Automatically fixes common AI mistakes like non-existent cmdlets
+- Re-validates scripts after editing or modification
+- Provides line-specific error messages
 
-## 📚 **Documentation**
+### External Editor Integration
+- Automatically detects available editors (VS Code, Notepad++, nano, vim)
+- Supports `--wait` flag for proper editor integration
+- Creates temporary files with correct extensions (.ps1, .sh, .py, .bat)
+- Re-validates and applies fixes after editing
 
-| Document | Description |
-|----------|-------------|
-| **[GETTING-STARTED.md](GETTING-STARTED.md)** | Setup instructions, usage examples, troubleshooting |
-| **[CONFIGURATION.md](CONFIGURATION.md)** | AI provider setup, API keys, advanced options |
-| **[ARCHITECTURE.md](ARCHITECTURE.md)** | Technical design, dual implementation strategy |
-| **[DEVELOPMENT.md](DEVELOPMENT.md)** | Contributing, building, testing, roadmap |
-| **[scripts/README.md](scripts/README.md)** | Automated setup script documentation |
+### Security Features
+- 4-tier risk assessment (Low, Medium, High, Critical)
+- Pattern-based security analysis for dangerous operations
+- Non-interactive environment safety (CI/automation protection)
+- Encrypted local storage for API keys (Windows DPAPI)
 
-## 🆘 **Need Help?**
+### Professional User Experience
+- Beautiful terminal interface using Spectre.Console
+- Progress indicators during AI generation
+- Interactive menus with context-aware options
+- Syntax highlighting and script preview
+- Color-coded risk warnings and safety notes
 
-- **Quick Start Issues**: See [GETTING-STARTED.md](GETTING-STARTED.md#troubleshooting)
-- **Configuration Help**: Check [CONFIGURATION.md](CONFIGURATION.md)
-- **Report Bugs**: Create a GitHub issue with `[C#]` or `[Go]` tag
-- **Feature Requests**: Open a GitHub discussion
+## AI Provider Support
 
-## 🤝 **Contributing**
+| Provider | Default Model | Local | API Key Required |
+|----------|---------------|-------|------------------|
+| OpenAI | gpt-4o-mini | No | Yes |
+| Anthropic | claude-3-haiku-20240307 | No | Yes |
+| Google Gemini | gemini-pro | No | Yes |
+| OpenRouter | microsoft/wizardlm-2-8x22b | No | Yes |
+| Ollama | llama3:latest | Yes | No |
 
-Please is actively developed with both implementations welcoming contributions:
+## Architecture
 
-- **🟢 C# Development**: Modern clean architecture ([DEVELOPMENT.md](DEVELOPMENT.md))
-- **🔵 Go Development**: Stable, lightweight implementation
-- **📖 Documentation**: Help improve guides and examples
+Built using Clean Architecture principles with strict separation of concerns:
 
-## ⭐ **Why Please?**
+- **Domain Layer**: Zero dependencies, core business logic
+- **Application Layer**: Use cases and business workflows
+- **Infrastructure Layer**: AI providers, validation services, security
+- **Presentation Layer**: Console UI with Spectre.Console
 
-- **🎯 Simple**: Just describe what you need in plain English
-- **🔒 Safe**: Generated scripts include error handling and safety checks
-- **⚡ Fast**: Get working scripts in seconds, not hours
-- **🎨 Flexible**: Choose from multiple AI providers and models
-- **🔧 Production Ready**: Both implementations are battle-tested
+## Development
+
+### Prerequisites
+- .NET 8 SDK
+- PowerShell (for syntax validation)
+- VS Code or preferred editor
+
+### Build and Test
+```bash
+# Build solution
+dotnet build
+
+# Run comprehensive tests
+dotnet test
+
+# Test specific features
+dotnet test --filter="Auto_fix_corrects_nonexistent_cmdlets"
+dotnet test --filter="External_editor_functionality"
+```
+
+### Code Quality
+- Zero warnings policy (treats warnings as errors)
+- 90%+ test coverage across all layers
+- TDD approach with Red-Green-Refactor-Cover-Commit cycle
+- Enterprise test naming conventions
+
+## Configuration Options
+
+### Environment Variables
+- `PLEASE_EDITOR`: Preferred editor for script editing
+- `EDITOR` / `VISUAL`: Standard Unix editor variables
+- Provider-specific API keys (see documentation)
+
+### Security Configuration
+API keys are stored securely using:
+1. Environment variables (highest priority)
+2. Encrypted local storage (Windows DPAPI)
+3. User Secrets (development)
+4. Configuration files (non-sensitive data only)
+
+## Legacy Go Implementation
+
+A stable Go v5.0 implementation is available in `legacy-go/` for users preferring a lightweight alternative:
+
+```bash
+cd legacy-go
+go build -o please.exe
+./please.exe "create a script to list files"
+```
+
+## Contributing
+
+Contributions welcome for:
+- AI provider integrations
+- Security improvements
+- UI enhancements
+- Documentation improvements
+- Bug fixes and optimizations
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ---
 
-## 🌟 **Ready to Start?**
-
-1. **[Get Started](GETTING-STARTED.md)** - Setup and first script
-2. **[Explore Examples](GETTING-STARTED.md#usage-examples)** - See what Please can do
-3. **[Configure Providers](CONFIGURATION.md)** - Set up your preferred AI service
-4. **[Join Development](DEVELOPMENT.md)** - Help make Please even better
-
-*Transform your ideas into working scripts with Please! 🎉*
-
----
-
-*Updated: June 25, 2025 | Status: Production Ready | [Issues](../../issues) | [Discussions](../../discussions)*
+*Built with .NET 8, Clean Architecture, and comprehensive testing for reliable AI-powered script generation.*

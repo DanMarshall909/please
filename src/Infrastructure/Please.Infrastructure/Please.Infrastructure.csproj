@@ -12,6 +12,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0"/>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0"/>
     <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="8.0.0"/>
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.4.0"/>
+    <PackageReference Include="Spectre.Console" Version="0.47.0"/>
   </ItemGroup>
 
   <ItemGroup>

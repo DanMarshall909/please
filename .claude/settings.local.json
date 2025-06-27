@@ -29,7 +29,21 @@
       "Bash(env)",
       "Bash(echo:*)",
       "WebFetch(domain:enterprisecraftsmanship.com)",
-      "Bash(dotnet test:*)"
+      "Bash(dotnet test:*)",
+      "Bash(dotnet build:*)",
+      "Bash(powershell:*)",
+      "Bash(pwsh:*)",
+      "Bash(./please.exe find:*)",
+      "Bash(gh issue:*)",
+      "Bash(alias pls)",
+      "Bash(mkdir:*)",
+      "Bash(chmod:*)",
+      "Bash(export PATH=\"$HOME/bin:$PATH\")",
+      "Bash(~/bin/pls get:*)",
+      "Bash(cp:*)",
+      "Bash(cmd.exe:*)",
+      "Bash(dotnet publish:*)",
+      "Bash(./please.exe:*)"
     ],
     "deny": []
   }

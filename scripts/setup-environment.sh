@@ -73,6 +73,7 @@ declare -A PROVIDER_KEY_URLS=(
 
 # Global variables
 PERMANENT=false
+INSTALL_ALIAS=false
 SELECTED_PROVIDER=""
 CONFIGURED_PROVIDERS=()
 
@@ -371,7 +372,67 @@ test_configuration() {
     fi
 }
 
+install_pls_alias() {
+    header "Installing 'pls' Alias"
+
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local please_path="$(dirname "$script_dir")"
+    local pls_script_path="$HOME/bin/pls"
+
+    # Create ~/bin directory if it doesn't exist
+    mkdir -p "$HOME/bin"
+
+    # Create pls script
+    cat > "$pls_script_path" << EOF
+#!/bin/bash
+cd "$please_path"
+dotnet run --project src/Presentation/Please.Console -- "\$@"
+EOF
+
+    chmod +x "$pls_script_path"
+    success "Created pls script at $pls_script_path"
+
+    # Add ~/bin to PATH if not already there
+    local profile_file=""
+    if [[ -n "${BASH_VERSION:-}" ]]; then
+        if [[ -f ~/.bash_profile ]]; then
+            profile_file=~/.bash_profile
+        elif [[ -f ~/.bashrc ]]; then
+            profile_file=~/.bashrc
+        fi
+    elif [[ -n "${ZSH_VERSION:-}" ]]; then
+        profile_file=~/.zshrc
+    else
+        case "${SHELL:-}" in
+            */bash) profile_file=~/.bashrc ;;
+            */zsh) profile_file=~/.zshrc ;;
+            *) profile_file=~/.profile ;;
+        esac
+    fi
+
+    # Check if ~/bin is in PATH
+    if [[ ":$PATH:" != *":$HOME/bin:"* ]]; then
+        if [[ -n "$profile_file" ]]; then
+            echo 'export PATH="$HOME/bin:$PATH"' >> "$profile_file"
+            success "Added \$HOME/bin to PATH in $profile_file"
+        else
+            warning "Could not determine profile file. Manually add \$HOME/bin to your PATH"
+        fi
+        # Add to current session
+        export PATH="$HOME/bin:$PATH"
+    else
+        success "\$HOME/bin is already in PATH"
+    fi
+
+    info "\n🎉 'pls' alias installed! Usage examples:"
+    echo -e "  ${CYAN}pls get current time${NC}"
+    echo -e "  ${CYAN}pls list running services${NC}"
+    echo -e "  ${CYAN}pls create backup script${NC}"
+    info "\n📝 Restart your terminal or run 'source $profile_file' to ensure PATH is loaded"
+}
+
 show_summary() {
+    local alias_installed="$1"
     header "Configuration Complete"
 
     success "Successfully configured the following providers:"
@@ -379,10 +440,20 @@ show_summary() {
         echo -e "  ${GREEN}✅ ${PROVIDER_NAMES[$provider]}${NC}"
     done
 
+    if [[ "$alias_installed" == "true" ]]; then
+        echo -e "\n  ${GREEN}✅ 'pls' alias installed${NC}"
+    fi
+
     info "\nNext steps:"
-    echo "  1. Test your configuration:"
-    echo "     cd src/Presentation/Please.Console/bin/Debug/net8.0/linux-x64"
-    echo "     ./Please.Console 'echo hello world'"
+    if [[ "$alias_installed" == "true" ]]; then
+        echo "  1. Test your configuration with the alias:"
+        echo -e "     ${CYAN}pls get current time${NC}"
+        echo -e "     ${CYAN}pls echo hello world${NC}"
+    else
+        echo "  1. Test your configuration:"
+        echo "     cd src/Presentation/Please.Console/bin/Debug/net8.0/linux-x64"
+        echo "     ./Please.Console 'echo hello world'"
+    fi
     echo ""
     echo "  2. Build the application if needed:"
     echo "     dotnet build src/Presentation/Please.Console"
@@ -394,12 +465,15 @@ show_usage() {
     echo "Options:"
     echo "  --provider PROVIDER    Configure specific provider (openai, anthropic, gemini, openrouter, ollama)"
     echo "  --permanent           Set environment variables permanently in shell profile"
+    echo "  --install-alias       Install 'pls' alias for easier usage"
     echo "  --help                Show this help message"
     echo ""
     echo "Examples:"
     echo "  $0                              # Interactive setup"
     echo "  $0 --provider openai           # Configure OpenAI only"
     echo "  $0 --provider anthropic --permanent  # Configure Anthropic permanently"
+    echo "  $0 --install-alias              # Just install the pls alias"
+    echo "  $0 --provider ollama --permanent --install-alias  # Full setup"
 }
 
 main() {
@@ -412,6 +486,10 @@ main() {
                 ;;
             --permanent)
                 PERMANENT=true
+                shift
+                ;;
+            --install-alias)
+                INSTALL_ALIAS=true
                 shift
                 ;;
             --help)
@@ -438,39 +516,55 @@ main() {
         fi
     fi
 
-    # Interactive provider selection if not specified
-    if [[ -z "$SELECTED_PROVIDER" ]]; then
+    # Interactive provider selection if not specified and not just installing alias
+    if [[ -z "$SELECTED_PROVIDER" && "$INSTALL_ALIAS" != true ]]; then
         if ! show_provider_menu; then
             info "Setup cancelled."
             exit 0
         fi
     fi
 
-    # Configure providers
-    if [[ "$SELECTED_PROVIDER" == "multiple" ]]; then
-        header "Multiple Provider Configuration"
-        for provider in "${!PROVIDER_NAMES[@]}"; do
-            read -p "Configure ${PROVIDER_NAMES[$provider]}? (y/n) [n]: " configure
-            if [[ "$configure" == "y" ]]; then
-                configure_provider "$provider"
-                set_environment_variables "$provider"
-                if test_configuration "$provider"; then
-                    CONFIGURED_PROVIDERS+=("$provider")
+    # Configure providers (skip if only installing alias)
+    if [[ "$INSTALL_ALIAS" != true || -n "$SELECTED_PROVIDER" ]]; then
+        if [[ "$SELECTED_PROVIDER" == "multiple" ]]; then
+            header "Multiple Provider Configuration"
+            for provider in "${!PROVIDER_NAMES[@]}"; do
+                read -p "Configure ${PROVIDER_NAMES[$provider]}? (y/n) [n]: " configure
+                if [[ "$configure" == "y" ]]; then
+                    configure_provider "$provider"
+                    set_environment_variables "$provider"
+                    if test_configuration "$provider"; then
+                        CONFIGURED_PROVIDERS+=("$provider")
+                    fi
                 fi
+            done
+        elif [[ -n "$SELECTED_PROVIDER" ]]; then
+            # Single provider configuration
+            configure_provider "$SELECTED_PROVIDER"
+            set_environment_variables "$SELECTED_PROVIDER"
+            if test_configuration "$SELECTED_PROVIDER"; then
+                CONFIGURED_PROVIDERS+=("$SELECTED_PROVIDER")
             fi
-        done
-    else
-        # Single provider configuration
-        configure_provider "$SELECTED_PROVIDER"
-        set_environment_variables "$SELECTED_PROVIDER"
-        if test_configuration "$SELECTED_PROVIDER"; then
-            CONFIGURED_PROVIDERS+=("$SELECTED_PROVIDER")
+        fi
+    fi
+
+    # Install alias if requested
+    local alias_installed="false"
+    if [[ "$INSTALL_ALIAS" == true ]]; then
+        install_pls_alias
+        alias_installed="true"
+    elif [[ ${#CONFIGURED_PROVIDERS[@]} -gt 0 ]]; then
+        read -p $'\nInstall \'pls\' alias for easier usage? (y/n) [y]: ' install_alias_choice
+        install_alias_choice="${install_alias_choice:-y}"
+        if [[ "$install_alias_choice" == "y" ]]; then
+            install_pls_alias
+            alias_installed="true"
         fi
     fi
 
     # Show summary
-    if [[ ${#CONFIGURED_PROVIDERS[@]} -gt 0 ]]; then
-        show_summary
+    if [[ ${#CONFIGURED_PROVIDERS[@]} -gt 0 || "$alias_installed" == "true" ]]; then
+        show_summary "$alias_installed"
     else
         info "No providers were configured successfully."
     fi
