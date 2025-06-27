@@ -50,7 +50,9 @@
       "Bash(dotnet clean:*)",
       "Bash(dotnet restore:*)",
       "Bash(git rm:*)",
-      "Bash(diff:*)"
+      "Bash(diff:*)",
+      "Bash(./src/Presentation/Please.Console/bin/Release/net9.0/win-x64/Please.exe say hi)",
+      "Bash(./src/Presentation/Please.Console/bin/Release/net9.0/win-x64/Please.exe --help)"
     ],
     "deny": []
   }

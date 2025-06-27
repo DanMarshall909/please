@@ -30,7 +30,7 @@ public class PowerShellScriptExecutor : IScriptExecutor
 
             var processStartInfo = new ProcessStartInfo
             {
-                FileName = "powershell.exe",
+                FileName = Environment.OSVersion.Platform == PlatformID.Win32NT ? "powershell.exe" : "pwsh",
                 Arguments = "-ExecutionPolicy Bypass -NoProfile -NonInteractive -Command -",
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
@@ -46,14 +46,9 @@ public class PowerShellScriptExecutor : IScriptExecutor
             // Wrap the script to capture Write-Host output
             var wrappedScript = $@"
 $ErrorActionPreference = 'Continue'
-$OriginalInformationPreference = $InformationPreference
-$InformationPreference = 'Continue'
 
-# Capture all output including Write-Host
-$OutputCollection = @()
-
-# Override Write-Host to capture output
-function Write-Host {{
+# Redirect Write-Host to Write-Output so it goes to stdout
+function Global:Write-Host {{
     param(
         [Parameter(ValueFromPipeline=$true)]
         [object]$Object,
@@ -61,20 +56,18 @@ function Write-Host {{
         [ConsoleColor]$BackgroundColor,
         [switch]$NoNewline
     )
-
+    
     if ($Object -ne $null) {{
-        $OutputCollection += $Object.ToString()
-        if (-not $NoNewline) {{
-            $OutputCollection += ""`n""
+        if ($NoNewline) {{
+            Write-Output $Object.ToString()
+        }} else {{
+            Write-Output $Object.ToString()
         }}
     }}
 }}
 
 # Execute the original script
 {cleanedScript}
-
-# Output all captured content
-$OutputCollection -join """"
 ";
 
             // Send the wrapped script to PowerShell

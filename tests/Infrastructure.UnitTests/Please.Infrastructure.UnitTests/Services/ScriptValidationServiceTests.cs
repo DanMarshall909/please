@@ -241,6 +241,20 @@ public class ScriptValidationServiceTests
     }
 
     [Fact]
+    public void Auto_fix_corrects_get_prompt_cmdlet()
+    {
+        // Arrange: Script with Get-Prompt cmdlet that doesn't exist
+        string scriptWithGetPrompt = "Say-Hi -Name (Get-Prompt)";
+        var syntaxErrors = new List<string> { "Cmdlet 'Get-Prompt' does not exist" };
+
+        // Act: Auto-fix the script
+        var fixedScript = _validationService.AutoFixSyntaxErrors(scriptWithGetPrompt, ScriptType.PowerShell, syntaxErrors);
+
+        // Assert: Should replace Get-Prompt with Read-Host
+        fixedScript.ShouldBe("Say-Hi -Name (Read-Host)");
+    }
+
+    [Fact]
     public void Auto_fix_corrects_mathematical_expressions()
     {
         // Arrange: Script with malformed mathematical expression

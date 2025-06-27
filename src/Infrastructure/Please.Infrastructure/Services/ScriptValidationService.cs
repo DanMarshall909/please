@@ -469,7 +469,8 @@ public class ScriptValidationService : IScriptValidationService
             "Create-Directory", // Should be New-Item -ItemType Directory
             "Remove-Folder",    // Should be Remove-Item
             "Copy-File",        // Should be Copy-Item
-            "Move-File"         // Should be Move-Item
+            "Move-File",        // Should be Move-Item
+            "Get-Prompt"        // Should be Read-Host or simple string input
         };
         
         return nonExistentCmdlets.Contains(cmdletName, StringComparer.OrdinalIgnoreCase);
@@ -574,7 +575,8 @@ public class ScriptValidationService : IScriptValidationService
             { "Create-Directory", "New-Item -ItemType Directory" },
             { "Remove-Folder", "Remove-Item" },
             { "Copy-File", "Copy-Item" },
-            { "Move-File", "Move-Item" }
+            { "Move-File", "Move-Item" },
+            { "Get-Prompt", "Read-Host" }
         };
 
         foreach (var fix in cmdletFixes)

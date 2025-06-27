@@ -75,6 +75,15 @@ public class TaskProcessor
                     _consoleUI.DisplayRiskWarning(result.Value!.RiskLevel.ToString().ToUpper(), riskWarnings.ToArray());
                 }
 
+                // Check if auto-execute is requested
+                if (_arguments.IsAutoExecuteCommand)
+                {
+                    // Auto-execute the script without user interaction
+                    _consoleUI.DisplayScript("Auto-executing script...", "Information");
+                    await ExecuteScriptDirectly(result.Value!, scriptExecutor);
+                    return;
+                }
+
                 // Interactive menu for user action
                 var menuOptions = new[]
                 {
@@ -117,6 +126,33 @@ public class TaskProcessor
             _consoleUI.DisplayRiskWarning("HIGH", new[] { "Unexpected error occurred", $"Error: {ex.Message}" });
             _logger.LogError(ex, "Script generation failed with exception");
         }
+    }
+
+    private async Task ExecuteScriptDirectly(ScriptResponse scriptResponse, IScriptExecutor scriptExecutor)
+    {
+        await _consoleUI.DisplayProgressAsync(
+            "⚡ Executing script...",
+            async () =>
+            {
+                var executionResult = await scriptExecutor.ExecuteScriptAsync(scriptResponse.Script);
+
+                if (executionResult.IsSuccess)
+                {
+                    if (!string.IsNullOrWhiteSpace(executionResult.Value))
+                    {
+                        _consoleUI.DisplayScript(executionResult.Value!, "Script Output");
+                    }
+                    else
+                    {
+                        _consoleUI.DisplayScript("Script completed successfully with no output.", "Execution Result");
+                    }
+                }
+                else
+                {
+                    _consoleUI.DisplayRiskWarning("HIGH", new[] { "Script execution failed", $"Error: {executionResult.Error}" });
+                }
+            }
+        );
     }
 
     private async Task ExecuteScriptWithConfirmation(ScriptResponse scriptResponse, IScriptExecutor scriptExecutor)
@@ -250,12 +286,14 @@ public class TaskProcessor
         Console.WriteLine("  please list running services");
         Console.WriteLine("  please create backup script for my documents");
         Console.WriteLine("  please find files older than 7 days");
+        Console.WriteLine("  please say hello --auto-execute");
         Console.WriteLine();
         Console.WriteLine("COMMANDS:");
-        Console.WriteLine("  --install, -i    Install Please to your system");
-        Console.WriteLine("  --status,  -s    Show installation status");
-        Console.WriteLine("  --version, -v    Show version information");
-        Console.WriteLine("  --help,    -h    Show this help message");
+        Console.WriteLine("  --install, -i       Install Please to your system");
+        Console.WriteLine("  --status,  -s       Show installation status");
+        Console.WriteLine("  --version, -v       Show version information");
+        Console.WriteLine("  --help,    -h       Show this help message");
+        Console.WriteLine("  --auto-execute, -x  Auto-execute generated script without confirmation");
         Console.WriteLine();
         Console.WriteLine("Please uses natural language to generate and execute scripts.");
         Console.WriteLine("Supported providers: OpenAI, Anthropic, Gemini, OpenRouter, Ollama");

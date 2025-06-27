@@ -24,13 +24,13 @@ public class CommandLineArgumentsTests
     public void Parse_with_single_argument_returns_same_as_task_description()
     {
         // Arrange
-        var args = new[] { "help" };
+        var args = new[] { "test" };
 
         // Act
         var arguments = CommandLineArguments.Parse(args);
 
         // Assert
-        arguments.TaskDescription.ShouldBe("help");
+        arguments.TaskDescription.ShouldBe("test");
         arguments.RawArguments.ShouldBe(args);
         arguments.HasInput.ShouldBeTrue();
     }
@@ -107,6 +107,66 @@ public class CommandLineArgumentsTests
         // Assert
         arguments.TaskDescription.ShouldBe("??? !!! @#$% 123 abc");
         arguments.RawArguments.ShouldBe(args);
+        arguments.HasInput.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Parse_with_auto_execute_flag_sets_IsAutoExecuteCommand()
+    {
+        // Arrange
+        var args = new[] { "say", "hello", "--auto-execute" };
+
+        // Act
+        var arguments = CommandLineArguments.Parse(args);
+
+        // Assert
+        arguments.IsAutoExecuteCommand.ShouldBeTrue();
+        arguments.TaskDescription.ShouldBe("say hello");
+        arguments.HasInput.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Parse_with_auto_execute_short_flag_sets_IsAutoExecuteCommand()
+    {
+        // Arrange
+        var args = new[] { "create", "file", "-x" };
+
+        // Act
+        var arguments = CommandLineArguments.Parse(args);
+
+        // Assert
+        arguments.IsAutoExecuteCommand.ShouldBeTrue();
+        arguments.TaskDescription.ShouldBe("create file");
+        arguments.HasInput.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Parse_without_auto_execute_flag_leaves_IsAutoExecuteCommand_false()
+    {
+        // Arrange
+        var args = new[] { "get", "current", "time" };
+
+        // Act
+        var arguments = CommandLineArguments.Parse(args);
+
+        // Assert
+        arguments.IsAutoExecuteCommand.ShouldBeFalse();
+        arguments.TaskDescription.ShouldBe("get current time");
+        arguments.HasInput.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Parse_with_auto_execute_flag_filters_it_from_task_description()
+    {
+        // Arrange
+        var args = new[] { "--auto-execute", "list", "files", "-x", "in", "directory" };
+
+        // Act
+        var arguments = CommandLineArguments.Parse(args);
+
+        // Assert
+        arguments.IsAutoExecuteCommand.ShouldBeTrue();
+        arguments.TaskDescription.ShouldBe("list files in directory");
         arguments.HasInput.ShouldBeTrue();
     }
 }
