@@ -100,7 +100,7 @@ public sealed class EnhancedScriptService : IScriptService
         if (!saveResult.IsSuccess)
         {
             _logger.LogError("Failed to save script: {Error}", saveResult.Error);
-            return Result<ScriptResponse>.Failure($"Failed to save script: {saveResult.Error}");
+            return Result<ScriptResponse>.Failure($"Failed to save script: {saveResult.Error.Message}");
         }
 
         _logger.LogInformation("Script generated successfully after {AttemptCount} attempt(s)", attemptNumber);

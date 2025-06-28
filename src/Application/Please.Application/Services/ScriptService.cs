@@ -35,7 +35,7 @@ public sealed class ScriptService : IScriptService
         if (!saveResult.IsSuccess) // Fixed reference to IsSuccess directly
         {
             _logger.LogError("Failed to save script: {Error}", saveResult.Error); // Fixed Error field
-            return Result<ScriptResponse>.Failure($"Failed to save script: {saveResult.Error}"); // Fixed field access
+            return Result<ScriptResponse>.Failure($"Failed to save script: {saveResult.Error.Message}"); // Fixed field access
         }
 
         _logger.LogInformation("Script generated successfully");

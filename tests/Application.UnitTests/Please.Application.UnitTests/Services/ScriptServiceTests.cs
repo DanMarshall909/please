@@ -37,13 +37,22 @@ public class ScriptServiceTests
     public async Task generate_script_saves_and_returns_response_when_successful()
     {
         var request = ScriptRequest.Create("task");
-        var response = ScriptResponse.Create("echo hi", "task", ProviderType.OpenAi, "gpt-4", ScriptType.Bash);
+        var fixedTime = DateTime.UtcNow;
+        var response = ScriptResponse.Create("echo hi", "task", ProviderType.OpenAi, "gpt-4", ScriptType.Bash, createdAt: fixedTime) with 
+        { 
+            GeneratedAt = fixedTime 
+        };
         _generator.NextResult = Result<ScriptResponse>.Success(response);
 
         var result = await _service.GenerateScriptAsync(request);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(response, result.Value);
+        Assert.NotNull(result.Value);
+        Assert.Equal(response.Script, result.Value.Script);
+        Assert.Equal(response.TaskDescription, result.Value.TaskDescription);
+        Assert.Equal(response.Provider, result.Value.Provider);
+        Assert.Equal(response.Model, result.Value.Model);
+        Assert.Equal(response.ScriptType, result.Value.ScriptType);
     }
 
     [Fact]

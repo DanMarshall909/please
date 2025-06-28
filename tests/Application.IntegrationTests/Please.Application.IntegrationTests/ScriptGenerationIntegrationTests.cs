@@ -282,4 +282,7 @@ internal class TestScriptRepository : IScriptRepository
 
     public Task<Result<bool>> HasHistoryAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult(Result<bool>.Success(SavedScripts.Any()));
+
+    public Task<Result<IEnumerable<ScriptResponse>>> GetAllScriptsAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult(Result<IEnumerable<ScriptResponse>>.Success(SavedScripts.AsEnumerable()));
 }

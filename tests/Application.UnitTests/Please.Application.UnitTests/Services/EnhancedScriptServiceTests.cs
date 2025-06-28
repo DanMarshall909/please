@@ -37,13 +37,18 @@ public class EnhancedScriptServiceTests
 
     private static ScriptResponse CreateScriptResponse(string script = "Get-Date", RiskLevel risk = RiskLevel.Low)
     {
+        var fixedTime = new DateTime(2023, 1, 1, 12, 0, 0, DateTimeKind.Utc);
         return ScriptResponse.Create(
             script,
             "test task",
             ProviderType.OpenAi,
             "gpt-4",
             ScriptType.PowerShell,
-            risk);
+            risk,
+            fixedTime) with 
+        { 
+            GeneratedAt = fixedTime 
+        };
     }
 
     [Fact]
@@ -85,9 +90,11 @@ public class EnhancedScriptServiceTests
         var originalResponse = CreateScriptResponse("Get-ComputerName"); // Invalid cmdlet
         var fixedResponse = CreateScriptResponse("$env:COMPUTERNAME"); // Fixed script
         
-        // First generation returns invalid script
+        // First generation returns invalid script, second call returns fixed script
         _generator.GenerateScriptAsync(request, Arg.Any<CancellationToken>())
-            .Returns(Result<ScriptResponse>.Success(originalResponse));
+            .Returns(
+                Result<ScriptResponse>.Success(originalResponse), 
+                Result<ScriptResponse>.Success(fixedResponse));
         
         // Validation detects syntax errors
         _validationService.EnhanceWithValidation(originalResponse)
