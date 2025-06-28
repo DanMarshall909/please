@@ -21,7 +21,7 @@ public static class DependencyInjection
         services.AddLogging();
 
         // Register core application services with explicit interface registrations for AOT compatibility
-        services.TryAddTransient<IScriptService, ScriptService>();
+        services.TryAddTransient<IScriptService, EnhancedScriptService>();
         services.TryAddTransient<CommandProcessor>();
         services.TryAddTransient<InstallationService>();
 
@@ -92,6 +92,12 @@ public static class DependencyInjection
         public Task<VoidResult> SaveScriptAsync(Domain.Entities.ScriptResponse response,
             CancellationToken cancellationToken = default)
             => VoidResult.SuccessfulTask;
+
+        public Task<Result<IEnumerable<Domain.Entities.ScriptResponse>>> GetAllScriptsAsync(
+            CancellationToken cancellationToken = default)
+            => Task.FromResult(
+                Result<IEnumerable<Domain.Entities.ScriptResponse>>.Success(
+                    Array.Empty<Domain.Entities.ScriptResponse>()));
     }
 
     private class UnusedContextService : IContextService

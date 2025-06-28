@@ -1,15 +1,36 @@
 using Please.Infrastructure.Repositories;
 using Please.TestUtilities.Builders;
+using Please.Domain.Services;
+using NSubstitute;
 
 namespace Please.Infrastructure.UnitTests.Repositories;
 
-public class ScriptRepositoryTests
+public class ScriptRepositoryTests : IDisposable
 {
+    private readonly string _testDirectory;
+
+    public ScriptRepositoryTests()
+    {
+        // Create a unique directory for each test instance
+        _testDirectory = Path.Combine(Path.GetTempPath(), "PleaseTests", Guid.NewGuid().ToString());
+        Directory.CreateDirectory(_testDirectory);
+    }
+
+    public void Dispose()
+    {
+        // Clean up test directory after each test
+        if (Directory.Exists(_testDirectory))
+        {
+            Directory.Delete(_testDirectory, true);
+        }
+    }
     [Fact]
     public async Task SaveScriptAsync_with_valid_script_returns_success()
     {
         // Arrange
-        var repository = new ScriptRepository();
+        var platformService = Substitute.For<IPlatformService>();
+        platformService.GetDataDirectory().Returns(_testDirectory);
+        var repository = new ScriptRepository(platformService);
         var script = ScriptResponseBuilder.Create()
             .WithScript("Get-ChildItem")
             .Build();
@@ -25,7 +46,9 @@ public class ScriptRepositoryTests
     public async Task SaveScriptAsync_with_null_script_returns_failure()
     {
         // Arrange
-        var repository = new ScriptRepository();
+        var platformService = Substitute.For<IPlatformService>();
+        platformService.GetDataDirectory().Returns(_testDirectory);
+        var repository = new ScriptRepository(platformService);
 
         // Act
         var result = await repository.SaveScriptAsync(null!);
@@ -39,7 +62,9 @@ public class ScriptRepositoryTests
     public async Task GetLastScriptAsync_with_existing_scripts_returns_most_recent()
     {
         // Arrange
-        var repository = new ScriptRepository();
+        var platformService = Substitute.For<IPlatformService>();
+        platformService.GetDataDirectory().Returns(_testDirectory);
+        var repository = new ScriptRepository(platformService);
         var script1 = ScriptResponseBuilder.Create()
             .WithScript("Get-Process")
             .Build();
@@ -63,7 +88,9 @@ public class ScriptRepositoryTests
     public async Task GetLastScriptAsync_with_no_scripts_returns_null()
     {
         // Arrange
-        var repository = new ScriptRepository();
+        var platformService = Substitute.For<IPlatformService>();
+        platformService.GetDataDirectory().Returns(_testDirectory);
+        var repository = new ScriptRepository(platformService);
 
         // Act
         var result = await repository.GetLastScriptAsync();
@@ -77,7 +104,9 @@ public class ScriptRepositoryTests
     public async Task GetScriptHistoryAsync_returns_scripts_in_reverse_chronological_order()
     {
         // Arrange
-        var repository = new ScriptRepository();
+        var platformService = Substitute.For<IPlatformService>();
+        platformService.GetDataDirectory().Returns(_testDirectory);
+        var repository = new ScriptRepository(platformService);
         var script1 = ScriptResponseBuilder.Create()
             .WithScript("Script1")
             .Build();
@@ -103,7 +132,9 @@ public class ScriptRepositoryTests
     public async Task GetScriptHistoryAsync_with_count_limit_returns_correct_number()
     {
         // Arrange
-        var repository = new ScriptRepository();
+        var platformService = Substitute.For<IPlatformService>();
+        platformService.GetDataDirectory().Returns(_testDirectory);
+        var repository = new ScriptRepository(platformService);
         for (var i = 0; i < 5; i++)
         {
             var script = ScriptResponseBuilder.Create()
@@ -124,7 +155,9 @@ public class ScriptRepositoryTests
     public async Task GetScriptHistoryAsync_with_since_filter_returns_scripts_after_date()
     {
         // Arrange
-        var repository = new ScriptRepository();
+        var platformService = Substitute.For<IPlatformService>();
+        platformService.GetDataDirectory().Returns(_testDirectory);
+        var repository = new ScriptRepository(platformService);
         var cutoffDate = DateTime.UtcNow.AddMinutes(-1);
 
         var oldScript = ScriptResponseBuilder.Create()
@@ -152,7 +185,9 @@ public class ScriptRepositoryTests
     public async Task HasHistoryAsync_with_no_scripts_returns_false()
     {
         // Arrange
-        var repository = new ScriptRepository();
+        var platformService = Substitute.For<IPlatformService>();
+        platformService.GetDataDirectory().Returns(_testDirectory);
+        var repository = new ScriptRepository(platformService);
 
         // Act
         var result = await repository.HasHistoryAsync();
@@ -166,7 +201,9 @@ public class ScriptRepositoryTests
     public async Task HasHistoryAsync_with_scripts_returns_true()
     {
         // Arrange
-        var repository = new ScriptRepository();
+        var platformService = Substitute.For<IPlatformService>();
+        platformService.GetDataDirectory().Returns(_testDirectory);
+        var repository = new ScriptRepository(platformService);
         var script = ScriptResponseBuilder.Create()
             .WithScript("Get-Process")
             .Build();
@@ -184,7 +221,9 @@ public class ScriptRepositoryTests
     public async Task ClearHistoryAsync_removes_all_scripts()
     {
         // Arrange
-        var repository = new ScriptRepository();
+        var platformService = Substitute.For<IPlatformService>();
+        platformService.GetDataDirectory().Returns(_testDirectory);
+        var repository = new ScriptRepository(platformService);
         var script1 = ScriptResponseBuilder.Create().WithScript("Script1").Build();
         var script2 = ScriptResponseBuilder.Create().WithScript("Script2").Build();
         await repository.SaveScriptAsync(script1);

@@ -43,7 +43,22 @@
       "Bash(cp:*)",
       "Bash(cmd.exe:*)",
       "Bash(dotnet publish:*)",
-      "Bash(./please.exe:*)"
+      "Bash(./please.exe:*)",
+      "Bash(dotnet --list-runtimes)",
+      "Bash(dotnet --list-sdks)",
+      "Bash(./dotnet-install.sh:*)",
+      "Bash(export PATH=\"$HOME/.dotnet:$PATH\")",
+      "Bash(dotnet --info)",
+      "Bash(./src/Presentation/Please.Console/bin/Release/net8.0/linux-x64/please \"print the current time\")",
+      "Bash(export CI=true)",
+      "Bash(export PLEASE_PROVIDER=ollama)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet add package:*)",
+      "Bash(dotnet add:*)",
+      "Bash(make:*)",
+      "Bash(grep:*)",
+      "Bash(dotnet clean:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": []
   }

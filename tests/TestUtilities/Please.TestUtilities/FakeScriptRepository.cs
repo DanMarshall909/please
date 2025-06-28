@@ -43,4 +43,7 @@ public sealed class FakeScriptRepository : IScriptRepository
 
     public Task<Result<bool>> HasHistoryAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult(Result<bool>.Success(_scripts.Count > 0));
+
+    public Task<Result<IEnumerable<ScriptResponse>>> GetAllScriptsAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult(Result<IEnumerable<ScriptResponse>>.Success(_scripts.AsEnumerable()));
 }

@@ -1,11 +1,48 @@
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Please.Infrastructure.Services;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace Please.Infrastructure.UnitTests.Services;
 
-public class PowerShellScriptExecutorTests
+public class PowerShellScriptExecutorTests : IDisposable
 {
+    private readonly bool _isPowerShellAvailable;
+
+    public PowerShellScriptExecutorTests()
+    {
+        _isPowerShellAvailable = CheckPowerShellAvailability();
+    }
+
+    public void Dispose()
+    {
+        // Cleanup if needed
+    }
+
+    private static bool CheckPowerShellAvailability()
+    {
+        try
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = OperatingSystem.IsWindows() ? "powershell.exe" : "pwsh",
+                Arguments = OperatingSystem.IsWindows() ? "-Version" : "--version",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            using var process = Process.Start(startInfo);
+            if (process == null) return false;
+            process.WaitForExit(1000);
+            return process.ExitCode == 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
     private PowerShellScriptExecutor createScriptExecutor()
     {
         var logger = Substitute.For<ILogger<PowerShellScriptExecutor>>();
@@ -13,8 +50,13 @@ public class PowerShellScriptExecutorTests
     }
 
     [Fact]
-    public async Task Test_write_host_output_is_captured_successfully()
+    public async Task Captures_write_host_output_when_script_executed()
     {
+        if (!_isPowerShellAvailable)
+        {
+            // Skip test if PowerShell is not available
+            return;
+        }
         // Given: A script with Write-Host commands
         var script = """
             Write-Host "Hello World!"
@@ -33,8 +75,13 @@ public class PowerShellScriptExecutorTests
     }
 
     [Fact]
-    public async Task Test_mixed_output_types_are_captured()
+    public async Task Captures_both_write_host_and_write_output_when_script_has_mixed_commands()
     {
+        if (!_isPowerShellAvailable)
+        {
+            // Skip test if PowerShell is not available
+            return;
+        }
         // Given: A script with Write-Host and regular output
         var script = """
             Write-Host "From Write-Host"
@@ -55,8 +102,13 @@ public class PowerShellScriptExecutorTests
     }
 
     [Fact]
-    public async Task Test_color_script_example_works()
+    public async Task Executes_color_script_successfully_and_captures_all_color_messages()
     {
+        if (!_isPowerShellAvailable)
+        {
+            // Skip test if PowerShell is not available
+            return;
+        }
         // Given: The specific color script from the user's example
         var script = """
             # List of 10 different colors
@@ -86,8 +138,13 @@ public class PowerShellScriptExecutorTests
     }
 
     [Fact]
-    public async Task Test_empty_script_returns_empty_output()
+    public async Task Returns_empty_output_when_script_is_empty()
     {
+        if (!_isPowerShellAvailable)
+        {
+            // Skip test if PowerShell is not available
+            return;
+        }
         // Given: An empty script
         var script = "";
         var scriptExecutor = createScriptExecutor();
@@ -101,8 +158,13 @@ public class PowerShellScriptExecutorTests
     }
 
     [Fact]
-    public async Task Test_script_with_error_returns_failure()
+    public async Task Returns_failure_when_script_contains_syntax_errors()
     {
+        if (!_isPowerShellAvailable)
+        {
+            // Skip test if PowerShell is not available
+            return;
+        }
         // Given: A script that will cause an error
         var script = "Get-NonExistentCommand";
         var scriptExecutor = createScriptExecutor();
@@ -116,8 +178,13 @@ public class PowerShellScriptExecutorTests
     }
 
     [Fact]
-    public async Task Test_markdown_code_fences_are_cleaned()
+    public async Task Removes_markdown_code_fences_before_executing_script()
     {
+        if (!_isPowerShellAvailable)
+        {
+            // Skip test if PowerShell is not available
+            return;
+        }
         // Given: A script with markdown code fences
         var script = """
             ```powershell

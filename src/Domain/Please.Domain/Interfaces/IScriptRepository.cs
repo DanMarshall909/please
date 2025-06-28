@@ -35,4 +35,9 @@ public interface IScriptRepository
     /// Checks if any scripts exist in history
     /// </summary>
     Task<Result<bool>> HasHistoryAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets all scripts for search/filtering operations
+    /// </summary>
+    Task<Result<IEnumerable<ScriptResponse>>> GetAllScriptsAsync(CancellationToken cancellationToken = default);
 }

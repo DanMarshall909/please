@@ -132,6 +132,68 @@ src/
 - **Interactive Menus**: Context-aware options
 - **Script Preview**: Syntax highlighting and metadata display
 
+### Recently Added Features (Latest Session)
+
+#### Enhanced Script Generation with Retry Logic (🔄)
+- **Automatic Validation**: All generated scripts are validated using PowerShell AST parser
+- **Intelligent Retry**: Up to 3 attempts to fix validation errors automatically
+- **LLM Feedback Loop**: Sends syntax errors back to the AI for correction
+- **User Progress Indicators**: Shows retry attempts and fixing progress
+- **Graceful Fallback**: Saves final attempt even if not perfect
+- **Cancellation Support**: Users can interrupt with Ctrl+C at any time
+- **Service**: `EnhancedScriptService` in Application layer
+- **Zero Auto-Execution**: Scripts never run without explicit user confirmation
+
+#### Copy to Clipboard (📋)
+- **Cross-Platform Support**: Windows (PowerShell), Linux (xclip/xsel/wl-copy), macOS (pbcopy)
+- **Smart Detection**: Automatically detects available clipboard utilities
+- **Error Handling**: Graceful fallback with helpful user messages
+- **User Feedback**: Shows script statistics and provider information
+- **Interface**: `IClipboardService` in Domain, `ClipboardService` in Infrastructure
+
+#### Save to File (💾)
+- **Intelligent Naming**: Auto-generates safe filenames from task descriptions
+- **File Extensions**: Script-type aware (.ps1, .sh, .py, .bat, .txt)
+- **Metadata Headers**: Rich comments with provider, timestamp, risk level, warnings
+- **Conflict Resolution**: Automatic versioning for duplicate filenames
+- **Cross-Platform Paths**: Uses appropriate default directories per OS
+- **Interface**: `IFileService` in Domain, `FileService` in Infrastructure
+
+#### Script History Browser (🕒)
+- **CLI Command**: `please --history` / `please -r` / `please history`
+- **Interactive Browser**: List last 20 scripts with task descriptions and timestamps
+- **Time Display**: Human-readable format (just now, 5m ago, 2h ago, 3d ago)
+- **Script Actions**: Execute, Edit & Execute, Copy to Clipboard, Save to File
+- **History Management**: View all scripts, clear history with confirmation
+- **Empty State**: Helpful guidance when no history exists
+- **Backend**: Leverages existing `IScriptRepository` infrastructure
+
+### Menu Integration
+The interactive script menu now provides:
+- 🚀 Execute script now
+- ✏️ Edit in external editor
+- 📋 **Copy to clipboard** ✅ (NEW)
+- 💾 **Save to file** ✅ (NEW)
+- ❌ Cancel
+
+### Command Line Interface
+```bash
+# Core functionality
+please create a backup script for my documents
+please list running services
+
+# New commands
+please --history     # Browse script history
+please -r           # Short form of --history
+please history      # Alternative form
+
+# All existing commands
+please --install    # Install to system
+please --status     # Show status
+please --version    # Show version
+please --help       # Show help
+```
+
 ## Configuration
 
 ### Security-First Configuration
@@ -161,16 +223,23 @@ src/
 ### Current Implementation Status
 All core features are complete and production-ready:
 - AI provider integration (5 providers)
+- **Enhanced Script Generation with Retry Logic** ✅ (NEW)
 - Syntax validation with auto-fix
 - External editor support
 - Security validation and warnings
 - Professional console UI
 - Natural language processing
-- Comprehensive testing
+- **Copy to Clipboard** (cross-platform)
+- **Save to File** (with metadata headers)
+- **Script History Browser** (browse, re-run, manage past scripts)
+- **Cancellation Support** (Ctrl+C handling) ✅ (NEW)
+- Comprehensive testing with enterprise naming conventions
 
 ### Code Quality Standards
 - **Zero warnings**: Treats warnings as errors
 - **Comprehensive testing**: Unit, integration, and TDD coverage
+- **Enterprise Test Naming**: Plain English, behavior-focused (follows https://enterprisecraftsmanship.com/posts/you-naming-tests-wrong/)
+- **Test Coverage**: Covers validation, retry logic, cancellation, error handling
 - **Security focus**: Input validation, encrypted storage, risk assessment
 - **Clean architecture**: Strict layering and dependency rules
 - **Performance**: Native AOT compilation ready
@@ -230,6 +299,74 @@ Built-in corrections for frequent AI errors:
 ```csharp
 "Get-ComputerName" → "$env:COMPUTERNAME"
 "Get-SystemInfo" → "Get-ComputerInfo"
+```
+
+### Latest Session Implementation Details
+
+#### Service Registration Pattern
+New services follow this pattern in `Infrastructure/DependencyInjection.cs`:
+```csharp
+services.AddSingleton<IClipboardService, ClipboardService>();
+services.AddSingleton<IFileService, FileService>();
+```
+
+#### Test Integration Pattern
+New services require test doubles in `TestUtilities/TestModule.cs`:
+```csharp
+services.AddSingleton<FakeClipboardService>();
+services.AddSingleton<FakeFileService>();
+services.AddSingleton<IClipboardService>(sp => sp.GetRequiredService<FakeClipboardService>());
+services.AddSingleton<IFileService>(sp => sp.GetRequiredService<FakeFileService>());
+```
+
+#### TaskProcessor Constructor Updates
+When adding new services, update TaskProcessor constructor:
+```csharp
+public TaskProcessor(IServiceProvider serviceProvider, ILogger<TaskProcessor> logger,
+    CommandLineArguments arguments, IConsoleUIService consoleUI, 
+    IClipboardService clipboardService, IFileService fileService)
+```
+
+And all test instantiations:
+```csharp
+new TaskProcessor(_serviceProvider, _logger, arguments, _consoleUI, _clipboardService, _fileService)
+```
+
+#### Command Line Arguments Pattern
+Special commands follow this pattern in `CommandLineArguments.cs`:
+```csharp
+// Add property
+public bool IsNewCommand { get; }
+
+// Add parsing logic
+IsNewCommand = firstArg == "--command" || firstArg == "-c" || firstArg == "command";
+
+// Add to special command check
+if (IsInstallCommand || IsStatusCommand || IsVersionCommand || IsHelpCommand || IsHistoryCommand || IsNewCommand)
+```
+
+#### Cross-Platform Considerations
+- PowerShell scripts: Use `pwsh` on Linux/macOS, `powershell.exe` on Windows
+- File paths: Use `Path.Combine()` and `Path.GetInvalidFileNameChars()`
+- Clipboard: Platform-specific utilities (xclip/xsel/wl-copy on Linux, pbcopy on macOS)
+- Default directories: Use `Environment.SpecialFolder` enums
+
+#### Test Isolation
+File-based tests require unique directories to prevent interference:
+```csharp
+private readonly string _testDirectory;
+
+public TestClass()
+{
+    _testDirectory = Path.Combine(Path.GetTempPath(), "TestName", Guid.NewGuid().ToString());
+    Directory.CreateDirectory(_testDirectory);
+}
+
+public void Dispose()
+{
+    if (Directory.Exists(_testDirectory))
+        Directory.Delete(_testDirectory, true);
+}
 ```
 
 This architecture provides a robust, secure, and user-friendly platform for AI-powered script generation with comprehensive validation and safety features.

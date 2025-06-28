@@ -134,6 +134,22 @@ public class ScriptRepository : IScriptRepository
         }
     }
 
+    public Task<Result<IEnumerable<ScriptResponse>>> GetAllScriptsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            lock (_lock)
+            {
+                var scripts = LoadScriptsFromFile();
+                return Task.FromResult(Result<IEnumerable<ScriptResponse>>.Success(scripts.AsEnumerable()));
+            }
+        }
+        catch (Exception ex)
+        {
+            return Task.FromResult(Result<IEnumerable<ScriptResponse>>.Failure($"Failed to load all scripts: {ex.Message}"));
+        }
+    }
+
     private List<ScriptResponse> LoadScriptsFromFile()
     {
         if (!File.Exists(_historyFilePath))

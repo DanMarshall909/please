@@ -16,14 +16,22 @@ public class ConsoleUIService : IConsoleUIService
     private readonly SyntaxHighlightingService _syntaxHighlightingService = new();
     public void DisplayScript(string script, string title)
     {
-        var panel = new Panel(new Markup($"[cyan]{script.EscapeMarkup()}[/]"))
-        {
-            Header = new PanelHeader($"[bold yellow]{title}[/]"),
-            Border = BoxBorder.Rounded,
-            BorderStyle = new Style(Color.Blue)
-        };
+        // Display header
+        AnsiConsole.WriteLine();
+        var rule = new Rule($"[bold yellow]{title}[/]");
+        rule.Justification = Justify.Center;
+        rule.Style = Style.Parse("blue");
+        AnsiConsole.Write(rule);
+        AnsiConsole.WriteLine();
 
-        AnsiConsole.Write(panel);
+        // Display script line by line with line numbers (like Go implementation)
+        var lines = script.Split('\n');
+        for (int i = 0; i < lines.Length; i++)
+        {
+            var lineNumber = (i + 1).ToString().PadLeft(3);
+            AnsiConsole.MarkupLine($"[dim]{lineNumber}│[/] {lines[i].EscapeMarkup()}");
+        }
+        
         AnsiConsole.WriteLine();
     }
 
@@ -122,16 +130,26 @@ public class ConsoleUIService : IConsoleUIService
             _ => "text"
         };
 
+        // Display header
+        AnsiConsole.WriteLine();
+        var rule = new Rule($"[bold yellow]{title} ({language.ToUpper()})[/]");
+        rule.Justification = Justify.Center;
+        rule.Style = Style.Parse(scriptType == ScriptType.PowerShell ? "blue" : "green");
+        AnsiConsole.Write(rule);
+        AnsiConsole.WriteLine();
+
+        // Get highlighted script
         var highlightedScript = _syntaxHighlightingService.HighlightScript(script, scriptType);
         
-        var panel = new Panel(new Markup(highlightedScript))
+        // Display script line by line with line numbers
+        var lines = highlightedScript.Split('\n');
+        for (int i = 0; i < lines.Length; i++)
         {
-            Header = new PanelHeader($"[bold yellow]{title} ({language.ToUpper()})[/]"),
-            Border = BoxBorder.Rounded,
-            BorderStyle = new Style(scriptType == ScriptType.PowerShell ? Color.Blue : Color.Green)
-        };
-
-        AnsiConsole.Write(panel);
+            var lineNumber = (i + 1).ToString().PadLeft(3);
+            // Note: highlightedScript already contains markup, so we don't escape it
+            AnsiConsole.MarkupLine($"[dim]{lineNumber}│[/] {lines[i]}");
+        }
+        
         AnsiConsole.WriteLine();
     }
 
@@ -216,7 +234,7 @@ public class ConsoleUIService : IConsoleUIService
         
         var highlightedPreview = _syntaxHighlightingService.HighlightScript(scriptPreview, response.ScriptType);
 
-        previewTable.AddRow($"[bold]Task:[/] {response.TaskDescription}");
+        previewTable.AddRow($"[bold]Task:[/] {response.TaskDescription.EscapeMarkup()}");
         previewTable.AddRow($"[bold]Provider:[/] {response.Provider} ({response.Model})");
         previewTable.AddRow($"[bold]Risk:[/] {GetRiskLevelMarkup(response.RiskLevel)}");
         previewTable.AddRow($"[bold]Script:[/]\n{highlightedPreview}");

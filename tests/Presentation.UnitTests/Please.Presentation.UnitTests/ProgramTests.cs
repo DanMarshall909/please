@@ -5,6 +5,7 @@ using Please.Application;
 using Please.Application.Services;
 using Please.Domain.Interfaces;
 using Please.Infrastructure;
+using Please.TestUtilities;
 using Shouldly;
 using Xunit;
 
@@ -25,6 +26,7 @@ public class ProgramTests
             {
                 services.AddApplication();
                 services.AddInfrastructure(); // This should be added to Program.cs
+                services.AddTestDoubles(); // Add test doubles for missing services
                 services.AddSingleton(arguments);
                 services.AddTransient<TaskProcessor>();
             })
@@ -52,6 +54,7 @@ public class ProgramTests
             {
                 services.AddApplication();
                 services.AddInfrastructure();
+                services.AddTestDoubles(); // Add test doubles for missing services
                 services.AddSingleton(arguments);
                 services.AddTransient<TaskProcessor>();
             })
@@ -79,6 +82,7 @@ public class ProgramTests
                 {
                     services.AddApplication();
                     services.AddInfrastructure();
+                    services.AddTestDoubles(); // Add test doubles for missing services
                     services.AddSingleton(arguments);
                     services.AddTransient<TaskProcessor>();
                 })
@@ -103,6 +107,7 @@ public class ProgramTests
                 {
                     services.AddApplication();
                     services.AddInfrastructure();
+                    services.AddTestDoubles(); // Add test doubles for missing services
                     services.AddSingleton(arguments);
                     services.AddTransient<TaskProcessor>();
                 })

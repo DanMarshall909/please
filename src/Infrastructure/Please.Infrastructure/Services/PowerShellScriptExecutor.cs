@@ -21,6 +21,14 @@ public class PowerShellScriptExecutor : IScriptExecutor
     {
         try
         {
+            // Check if PowerShell is available
+            var powerShellExe = OperatingSystem.IsWindows() ? "powershell.exe" : "pwsh";
+            if (!OperatingSystem.IsWindows() && !IsPowerShellCoreAvailable())
+            {
+                _logger.LogWarning("PowerShell Core (pwsh) is not available on this system");
+                return Result<string>.Failure("PowerShell Core is not installed. Please install PowerShell Core to execute PowerShell scripts on Linux/macOS.");
+            }
+
             _logger.LogInformation("Executing PowerShell script...");
 
             // Clean the script by removing markdown code fences
@@ -30,7 +38,7 @@ public class PowerShellScriptExecutor : IScriptExecutor
 
             var processStartInfo = new ProcessStartInfo
             {
-                FileName = "powershell.exe",
+                FileName = OperatingSystem.IsWindows() ? "powershell.exe" : "pwsh",
                 Arguments = "-ExecutionPolicy Bypass -NoProfile -NonInteractive -Command -",
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
@@ -45,17 +53,17 @@ public class PowerShellScriptExecutor : IScriptExecutor
 
             // Wrap the script to capture Write-Host output
             var wrappedScript = $@"
-$ErrorActionPreference = 'Continue'
+$ErrorActionPreference = 'Stop'
 $OriginalInformationPreference = $InformationPreference
 $InformationPreference = 'Continue'
 
 # Capture all output including Write-Host
-$OutputCollection = @()
+$global:OutputCollection = [System.Collections.ArrayList]::new()
 
 # Override Write-Host to capture output
-function Write-Host {{
+function global:Write-Host {{
     param(
-        [Parameter(ValueFromPipeline=$true)]
+        [Parameter(ValueFromPipeline=$true, Position=0)]
         [object]$Object,
         [ConsoleColor]$ForegroundColor,
         [ConsoleColor]$BackgroundColor,
@@ -63,18 +71,31 @@ function Write-Host {{
     )
 
     if ($Object -ne $null) {{
-        $OutputCollection += $Object.ToString()
+        [void]$global:OutputCollection.Add($Object.ToString())
         if (-not $NoNewline) {{
-            $OutputCollection += ""`n""
+            [void]$global:OutputCollection.Add(""`n"")
         }}
+    }}
+    
+    # Also write to actual console for immediate output
+    if ($ForegroundColor) {{
+        Microsoft.PowerShell.Utility\Write-Host $Object -ForegroundColor $ForegroundColor -NoNewline:$NoNewline
+    }} else {{
+        Microsoft.PowerShell.Utility\Write-Host $Object -NoNewline:$NoNewline
     }}
 }}
 
 # Execute the original script
-{cleanedScript}
+try {{
+    {cleanedScript}
+}} catch {{
+    Write-Error $_.Exception.Message
+}}
 
 # Output all captured content
-$OutputCollection -join """"
+if ($global:OutputCollection.Count -gt 0) {{
+    $global:OutputCollection -join """"
+}}
 ";
 
             // Send the wrapped script to PowerShell
@@ -91,7 +112,7 @@ $OutputCollection -join """"
             var output = (await outputTask).Trim();
             var error = (await errorTask).Trim();
 
-            if (process.ExitCode == 0)
+            if (process.ExitCode == 0 && string.IsNullOrEmpty(error))
             {
                 _logger.LogInformation("Script executed successfully with exit code {ExitCode}", process.ExitCode);
                 // Return actual output even if empty - don't add fallback message here
@@ -138,5 +159,29 @@ $OutputCollection -join """"
         }
 
         return string.Join('\n', cleanedLines);
+    }
+
+    private static bool IsPowerShellCoreAvailable()
+    {
+        try
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "pwsh",
+                Arguments = "--version",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            using var process = Process.Start(startInfo);
+            if (process == null) return false;
+            process.WaitForExit(1000);
+            return process.ExitCode == 0;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
